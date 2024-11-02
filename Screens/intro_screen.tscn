@@ -1,0 +1,61 @@
+[gd_scene load_steps=5 format=3 uid="uid://u7cbeq44pw08"]
+
+[ext_resource type="Theme" uid="uid://cvvwknver7ddr" path="res://Themes/monospace-font-theme.tres" id="1_tqfun"]
+[ext_resource type="Script" path="res://ProgressBars/LoadingBar.cs" id="2_owdrk"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8q3hn"]
+bg_color = Color(0.0646965, 0.0646965, 0.0646965, 1)
+draw_center = false
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+expand_margin_left = 8.0
+expand_margin_top = 8.0
+expand_margin_right = 8.0
+expand_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jst5t"]
+bg_color = Color(0.21512, 0.48, 0.1104, 1)
+border_color = Color(0, 0, 0, 1)
+
+[node name="IntroScreen" type="CanvasLayer"]
+
+[node name="SceneContainer" type="BoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="SceneContainer"]
+show_behind_parent = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("1_tqfun")
+color = Color(0.0646965, 0.0646965, 0.0646965, 1)
+
+[node name="LoadingBar" type="ProgressBar" parent="SceneContainer/Background"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -448.0
+offset_top = -36.0
+offset_right = 448.0
+offset_bottom = 28.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_8q3hn")
+theme_override_styles/fill = SubResource("StyleBoxFlat_jst5t")
+show_percentage = false
+script = ExtResource("2_owdrk")

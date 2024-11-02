@@ -1,0 +1,48 @@
+[gd_scene load_steps=5 format=3 uid="uid://dtvpxppojlasm"]
+
+[ext_resource type="Shader" path="res://Shaders/crt.gdshader" id="1_4876q"]
+[ext_resource type="PackedScene" uid="uid://u7cbeq44pw08" path="res://Screens/intro_screen.tscn" id="1_iu054"]
+[ext_resource type="PackedScene" uid="uid://nddd2eqotbpa" path="res://Screens/console_screen.tscn" id="3_3efbf"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cj4xb"]
+shader = ExtResource("1_4876q")
+shader_parameter/overlay = true
+shader_parameter/scanlines_opacity = 0.277
+shader_parameter/scanlines_width = 0.25
+shader_parameter/grille_opacity = 0.3
+shader_parameter/resolution = Vector2(640, 480)
+shader_parameter/pixelate = true
+shader_parameter/roll = true
+shader_parameter/roll_speed = 0.25
+shader_parameter/roll_size = 4.196
+shader_parameter/roll_variation = 4.44
+shader_parameter/distort_intensity = 0.03
+shader_parameter/noise_opacity = 0.062
+shader_parameter/noise_speed = 3.0
+shader_parameter/static_noise_intensity = 0.06
+shader_parameter/aberration = 4.75e-08
+shader_parameter/brightness = 1.4
+shader_parameter/discolor = true
+shader_parameter/warp_amount = 1.0
+shader_parameter/clip_warp = false
+shader_parameter/vignette_intensity = 0.1
+shader_parameter/vignette_opacity = 0.313
+
+[node name="Root" type="CanvasLayer"]
+follow_viewport_enabled = true
+
+[node name="Monitor" type="ColorRect" parent="."]
+top_level = true
+material = SubResource("ShaderMaterial_cj4xb")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="IntroScreen" parent="Monitor" instance=ExtResource("1_iu054")]
+
+[node name="ConsoleScreen" parent="Monitor" instance=ExtResource("3_3efbf")]
+visible = false

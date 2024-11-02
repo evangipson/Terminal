@@ -1,0 +1,10 @@
+# Godot 4+ specific ignores
+**/.godot/
+**/android/
+
+# vs hidden files
+.vs/
+
+# bin and obj directories
+**/bin/
+**/obj/
