@@ -22,6 +22,8 @@ public partial class WhiteNoiseGenerator : AudioStreamPlayer
 			_sampleHz = generator.MixRate;
 			Player.Play();
 			_playback = (AudioStreamGeneratorPlayback)Player.GetStreamPlayback();
+			FillBuffer();
+
 			_timeBeforeTonalShift = _random.Next(5, 15);
 		}
 	}
@@ -38,7 +40,7 @@ public partial class WhiteNoiseGenerator : AudioStreamPlayer
 		_elapsedTonalShiftTime += delta;
 		if (_elapsedTime >= _timeBeforeTonalShift)
 		{
-			_amountToChangePitchScale = _random.Next(1, 2) / 100f;
+			_amountToChangePitchScale = _random.Next(1, 10) / 1000f;
 			PitchScale += (float)Math.Clamp(_random.Next(0, 2) == 0 ? _amountToChangePitchScale : _amountToChangePitchScale * -1, 0.01, 0.06);
 
 			_timeBeforeTonalShift = _random.Next(5, 15);
