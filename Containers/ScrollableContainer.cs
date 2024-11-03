@@ -1,4 +1,5 @@
 using Godot;
+using Terminal.Constants;
 using Terminal.Inputs;
 
 namespace Terminal.Containers
@@ -41,8 +42,8 @@ namespace Terminal.Containers
 				AutowrapMode = TextServer.AutowrapMode.Arbitrary
 			};
 
-			newUserInput.AddThemeColorOverride("font_color", new Color("#377a1c"));
-			newUserInput.AddThemeColorOverride("caret_color", new Color("#377a1c"));
+			newUserInput.AddThemeColorOverride("font_color", ColorConstants.TerminalGreen);
+			newUserInput.AddThemeColorOverride("caret_color", ColorConstants.TerminalGreen);
 			newUserInput.AddThemeConstantOverride("outline_size", 0);
 			newUserInput.AddThemeConstantOverride("caret_width", 8);
 			newUserInput.AddThemeStyleboxOverride("normal", _emptyStyleBox);
@@ -65,12 +66,12 @@ namespace Terminal.Containers
 				GrowVertical = GrowDirection.End,
 				Theme = _defaultUserInputTheme,
 				Text = message,
-				FocusMode = FocusModeEnum.All,
+				FocusMode = FocusModeEnum.None,
 				AutowrapMode = TextServer.AutowrapMode.Arbitrary
 			};
 
-			commandResponse.AddThemeColorOverride("font_color", new Color("#377a1c"));
-			commandResponse.AddThemeColorOverride("caret_color", new Color("#377a1c"));
+			commandResponse.AddThemeColorOverride("font_color", ColorConstants.TerminalGreen);
+			commandResponse.AddThemeColorOverride("caret_color", ColorConstants.TerminalGreen);
 			commandResponse.AddThemeConstantOverride("outline_size", 0);
 			commandResponse.AddThemeConstantOverride("caret_width", 8);
 			commandResponse.AddThemeStyleboxOverride("normal", _emptyStyleBox);

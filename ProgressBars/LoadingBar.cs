@@ -9,28 +9,29 @@ namespace Terminal.Game.ProgressBars
 	public partial class LoadingBar : ProgressBar
 	{
 		private readonly Random _random = new();
-		private readonly double _autoScrollSpeed = 0.3;
-
-		private TimerService _timerService;
+		private readonly double _autoScrollSpeed = 0.2;
+		
 		private ScreenNavigator _screenNavigator;
+		private TimerService _timerService;
 		private Tween _tween;
 		private double _loadedValue = 0;
 
 		public override void _Ready()
 		{
 			_screenNavigator = GetNode<ScreenNavigator>("/root/ScreenNavigator");
-			_timerService = GetNode<TimerService>("/root/TimerService");
-			_timerService.OnTick += FillProgressBar;
+			_timerService = new(FillProgressBar);
 		}
 
-		public void FillProgressBar()
+		public void FillProgressBar(object sender, EventArgs args)
 		{
 			_timerService.RandomWait();
-			IncreaseProgressBarValue(_random.Next(5, 20));
+			var increasedProgressBarValue = _random.Next(5, 20);
 			if (Value >= 100)
 			{
-				_timerService.OnDone += GoToConsoleScreen;
+				CallDeferred("OnLoadingBarDone");
+				return;
 			}
+			CallDeferred("IncreaseProgressBarValue", increasedProgressBarValue);
 		}
 
 		public void IncreaseProgressBarValue(int value)
@@ -40,9 +41,10 @@ namespace Terminal.Game.ProgressBars
 			_tween.TweenProperty(this, "value", _loadedValue, _autoScrollSpeed);
 		}
 
-		public void GoToConsoleScreen()
+		private void OnLoadingBarDone()
 		{
-			_screenNavigator.GotoScene(ScreenConstants.ConsoleScenePath);
+			_timerService.Done();
+			_screenNavigator.GotoScene(ScreenConstants.WelcomeScenePath);
 		}
 	}
 }

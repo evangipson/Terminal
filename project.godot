@@ -17,7 +17,6 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-TimerService="*res://Services/TimerService.cs"
 ScreenNavigator="*res://Navigators/ScreenNavigator.cs"
 
 [display]
