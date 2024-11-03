@@ -14,15 +14,24 @@ namespace Terminal.Inputs
 
 		private string _directory;
 
+		private bool _hasFocus = false;
+
 		public override void _Ready()
 		{
 			SetDirectory();
 			SetCaretColumn(Text.Length);
 			SetCaretLine(1);
-			CallDeferred("grab_focus");
-			EmitSignal(SignalName.FocusEntered);
 
 			GD.Print($"user input '{Name}' ready");
+		}
+
+		public override void _Draw()
+		{
+			if(!_hasFocus)
+			{
+				GrabFocus();
+				_hasFocus = true;
+			}
 		}
 
 		public override void _Input(InputEvent @event)
