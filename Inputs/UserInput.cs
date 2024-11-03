@@ -10,7 +10,7 @@ namespace Terminal.Inputs
 		public delegate void EvaluatedEventHandler();
 
 		[Signal]
-		public delegate void UnknownCommandEventHandler(string message);
+		public delegate void KnownCommandEventHandler(string message);
 
 		private KeyboardSounds _keyboardSounds;
 
@@ -84,9 +84,34 @@ namespace Terminal.Inputs
 				return;
 			}
 
+			if (command == Enums.UserCommand.Help && parsedTokens.Count == 1)
+			{
+				EmitSignal(SignalName.KnownCommand, @"
+TOPIC
+    Terminal OS help system
+
+SHORT DESCRIPTION
+    Displays help about Terminal OS commands.
+
+EXAMPLES:
+    help exit   : Display information about the ""exit"" command.
+");
+			}
+
+			if (command == Enums.UserCommand.Help && parsedTokens.Count == 2 && parsedTokens.Last().Equals("exit", System.StringComparison.OrdinalIgnoreCase))
+			{
+				EmitSignal(SignalName.KnownCommand, @"
+COMMAND
+    exit
+	
+REMARKS
+    Exits Terminal OS.
+");
+			}
+
 			if (command == Enums.UserCommand.Unknown && !parsedTokens.All(token => string.IsNullOrEmpty(token)))
 			{
-				EmitSignal(SignalName.UnknownCommand, $"\"{parsedTokens.First()}\" is an unknown command");
+				EmitSignal(SignalName.KnownCommand, $"\"{parsedTokens.First()}\" is an unknown command");
 			}
 
 			EmitSignal(SignalName.Evaluated);

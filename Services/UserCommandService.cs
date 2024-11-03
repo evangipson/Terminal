@@ -12,7 +12,12 @@ namespace Terminal.Services
 		{
 			var tokens = ParseInputToTokens(userInput);
 
-			if(tokens.SingleOrDefault(token => token.Equals("exit", StringComparison.OrdinalIgnoreCase)) != null)
+			if (tokens.SingleOrDefault(token => token.Equals("help", StringComparison.OrdinalIgnoreCase)) != null)
+			{
+				return UserCommand.Help;
+			}
+
+			if (tokens.SingleOrDefault(token => token.Equals("exit", StringComparison.OrdinalIgnoreCase)) != null)
 			{
 				return UserCommand.Exit;
 			}

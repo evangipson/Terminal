@@ -20,20 +20,20 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_gl2w5"]
 shader = ExtResource("1_4876q")
 shader_parameter/overlay = true
-shader_parameter/scanlines_opacity = 0.138
-shader_parameter/scanlines_width = 0.219
-shader_parameter/grille_opacity = 0.282
+shader_parameter/scanlines_opacity = 0.074
+shader_parameter/scanlines_width = 0.228
+shader_parameter/grille_opacity = 0.081
 shader_parameter/resolution = Vector2(640, 480)
 shader_parameter/pixelate = true
 shader_parameter/roll = true
 shader_parameter/roll_speed = 4.0
 shader_parameter/roll_size = 35.444
 shader_parameter/roll_variation = 0.283
-shader_parameter/distort_intensity = 0.041
-shader_parameter/noise_opacity = 0.185
+shader_parameter/distort_intensity = 0.018
+shader_parameter/noise_opacity = 0.135
 shader_parameter/noise_speed = 3.0
 shader_parameter/static_noise_intensity = 0.06
-shader_parameter/aberration = 0.03
+shader_parameter/aberration = 4.75e-08
 shader_parameter/brightness = 1.4
 shader_parameter/discolor = true
 shader_parameter/warp_amount = 0.533

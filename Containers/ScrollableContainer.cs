@@ -50,14 +50,14 @@ namespace Terminal.Containers
 			newUserInput.AddThemeStyleboxOverride("focus", _emptyStyleBox);
 
 			newUserInput.Evaluated += AddNewUserInput;
-			newUserInput.UnknownCommand += AddUnknownCommandResponse;
+			newUserInput.KnownCommand += AddKnownCommandResponse;
 			AddChild(newUserInput);
 			newUserInput.Owner = this;
 
 			EmitSignal(SignalName.ChildEnteredTree);
 		}
 
-		private void AddUnknownCommandResponse(string message)
+		private void AddKnownCommandResponse(string message)
 		{
 			var commandResponse = new Label()
 			{
@@ -67,7 +67,7 @@ namespace Terminal.Containers
 				Theme = _defaultUserInputTheme,
 				Text = message,
 				FocusMode = FocusModeEnum.None,
-				AutowrapMode = TextServer.AutowrapMode.Arbitrary
+				AutowrapMode = TextServer.AutowrapMode.WordSmart
 			};
 
 			commandResponse.AddThemeColorOverride("font_color", ColorConstants.TerminalGreen);

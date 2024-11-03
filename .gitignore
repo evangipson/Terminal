@@ -8,3 +8,7 @@
 # bin and obj directories
 **/bin/
 **/obj/
+
+# exports
+**/Exports/
+**/export_presets.cfg
