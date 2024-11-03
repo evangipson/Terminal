@@ -12,6 +12,7 @@ namespace Terminal.Containers
 
 		private TimerService _timerService;
 		private ScreenNavigator _screenNavigator;
+		private KeyboardSounds _keyboardSounds;
 		private Label _welcomeLabel;
 		private float _lettersShowing;
 
@@ -21,6 +22,7 @@ namespace Terminal.Containers
 			{
 				_welcomeLabel = GetNode<ColorRect>("Background").GetNode<Label>("WelcomeLabel");
 				_screenNavigator = GetNode<ScreenNavigator>("/root/ScreenNavigator");
+				_keyboardSounds = GetTree().Root.GetNode<CanvasLayer>("Root").GetNode<KeyboardSounds>("/root/Root/KeyboardSounds");
 				_timerService = new(AnimateText);
 			}
 		}
@@ -34,6 +36,7 @@ namespace Terminal.Containers
 			}
 
 			_timerService.Wait(timeToWait);
+			_keyboardSounds.PlayKeyboardSound();
 			CallDeferred("OnTextAnimating");
 		}
 

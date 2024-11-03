@@ -1,9 +1,21 @@
-[gd_scene load_steps=6 format=3 uid="uid://dtvpxppojlasm"]
+[gd_scene load_steps=20 format=3 uid="uid://dtvpxppojlasm"]
 
 [ext_resource type="Shader" path="res://Shaders/crt.gdshader" id="1_4876q"]
 [ext_resource type="PackedScene" uid="uid://u7cbeq44pw08" path="res://Screens/intro_screen.tscn" id="1_iu054"]
 [ext_resource type="PackedScene" uid="uid://nddd2eqotbpa" path="res://Screens/console_screen.tscn" id="3_3efbf"]
 [ext_resource type="PackedScene" uid="uid://vu437t7g2cwv" path="res://Screens/welcome_screen.tscn" id="3_13snw"]
+[ext_resource type="AudioStream" uid="uid://dwryw0shwo6gj" path="res://Audio/Keyboard/keypress-001.ogg" id="5_yofx3"]
+[ext_resource type="AudioStream" uid="uid://dohmimbt8os3i" path="res://Audio/Keyboard/keypress-002.ogg" id="6_uxgnd"]
+[ext_resource type="AudioStream" uid="uid://cwesf5ny74anh" path="res://Audio/Keyboard/keypress-003.ogg" id="7_l4lmx"]
+[ext_resource type="AudioStream" uid="uid://b6hxxydqrsih8" path="res://Audio/Keyboard/keypress-004.ogg" id="8_ts0lg"]
+[ext_resource type="AudioStream" uid="uid://2xrd4d8shf07" path="res://Audio/Keyboard/keypress-005.ogg" id="9_0whkl"]
+[ext_resource type="AudioStream" uid="uid://b6c6q5qr5xggh" path="res://Audio/Keyboard/keypress-006.ogg" id="10_0jwjo"]
+[ext_resource type="AudioStream" uid="uid://tiln21r3jt8v" path="res://Audio/Keyboard/keypress-007.ogg" id="11_27kaa"]
+[ext_resource type="AudioStream" uid="uid://de1yikfbldkk2" path="res://Audio/Keyboard/keypress-008.ogg" id="12_quq3n"]
+[ext_resource type="AudioStream" uid="uid://bqucbbuluf083" path="res://Audio/Keyboard/keypress-009.ogg" id="13_8ihtb"]
+[ext_resource type="AudioStream" uid="uid://csac6w10ags3c" path="res://Audio/Keyboard/keypress-010.ogg" id="14_awu0l"]
+[ext_resource type="Script" path="res://Audio/KeyboardSounds.cs" id="15_ln4m5"]
+[ext_resource type="Script" path="res://Audio/WhiteNoiseGenerator.cs" id="16_off7g"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_gl2w5"]
 shader = ExtResource("1_4876q")
@@ -29,6 +41,23 @@ shader_parameter/clip_warp = false
 shader_parameter/vignette_intensity = 0.2
 shader_parameter/vignette_opacity = 0.4
 
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_pmbfg"]
+streams_count = 10
+stream_0/stream = ExtResource("5_yofx3")
+stream_1/stream = ExtResource("6_uxgnd")
+stream_2/stream = ExtResource("7_l4lmx")
+stream_3/stream = ExtResource("8_ts0lg")
+stream_4/stream = ExtResource("9_0whkl")
+stream_5/stream = ExtResource("10_0jwjo")
+stream_6/stream = ExtResource("11_27kaa")
+stream_7/stream = ExtResource("12_quq3n")
+stream_8/stream = ExtResource("13_8ihtb")
+stream_9/stream = ExtResource("14_awu0l")
+
+[sub_resource type="AudioStreamGenerator" id="AudioStreamGenerator_cpk3d"]
+mix_rate = 22050.0
+buffer_length = 1.0
+
 [node name="Root" type="CanvasLayer"]
 follow_viewport_enabled = true
 
@@ -50,3 +79,18 @@ visible = false
 
 [node name="ConsoleScreen" parent="Monitor" instance=ExtResource("3_3efbf")]
 visible = false
+
+[node name="KeyboardSounds" type="AudioStreamPlayer" parent="."]
+stream = SubResource("AudioStreamRandomizer_pmbfg")
+mix_target = 1
+max_polyphony = 8
+playback_type = 2
+script = ExtResource("15_ln4m5")
+
+[node name="WhiteNoiseGenerator" type="AudioStreamPlayer" parent="." node_paths=PackedStringArray("Player")]
+stream = SubResource("AudioStreamGenerator_cpk3d")
+volume_db = -27.756
+pitch_scale = 0.02
+max_polyphony = 2
+script = ExtResource("16_off7g")
+Player = NodePath(".")

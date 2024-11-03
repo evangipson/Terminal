@@ -12,12 +12,16 @@ namespace Terminal.Inputs
 		[Signal]
 		public delegate void UnknownCommandEventHandler(string message);
 
+		private KeyboardSounds _keyboardSounds;
+
 		private string _directory;
 
 		private bool _hasFocus = false;
 
 		public override void _Ready()
 		{
+			_keyboardSounds = GetTree().Root.GetNode<CanvasLayer>("Root").GetNode<KeyboardSounds>("/root/Root/KeyboardSounds");
+
 			SetDirectory();
 			SetCaretColumn(Text.Length);
 			SetCaretLine(1);
@@ -39,6 +43,11 @@ namespace Terminal.Inputs
 			if (!@event.IsPressed() || !HasFocus())
 			{
 				return;
+			}
+
+			if (@event is InputEventKey && @event.IsPressed())
+			{
+				_keyboardSounds.PlayKeyboardSound();
 			}
 
 			if (Input.IsPhysicalKeyPressed(Key.Enter))

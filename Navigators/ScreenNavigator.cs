@@ -7,13 +7,13 @@ namespace Terminal.Navigators
 	public partial class ScreenNavigator : Node
 	{
 		private Node _rootScene;
-		private Node _monitorShader;
+		private ColorRect _monitorShader;
 		private CanvasLayer _currentScene;
 
 		public override void _Ready()
 		{
 			_rootScene = GetTree().Root?.GetChild(GetTree().Root.GetChildCount() - 1);
-			_monitorShader = _rootScene?.GetChild(_rootScene.GetChildCount() - 1);
+			_monitorShader = _rootScene?.GetNode<ColorRect>("Monitor");
 			_currentScene = _monitorShader?.GetNode<CanvasLayer>(ScreenConstants.IntroScenePath);
 		}
 
