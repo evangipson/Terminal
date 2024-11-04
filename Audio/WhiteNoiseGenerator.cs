@@ -8,12 +8,15 @@ public partial class WhiteNoiseGenerator : AudioStreamPlayer
 
 	private AudioStreamGeneratorPlayback _playback;
 	private readonly Random _random = new();
+	private Tween _tween;
 	private float _sampleHz;
 	private float _pulseHz = 220.0f;
 	private double _elapsedTime = 0;
 	private double _elapsedTonalShiftTime = 0;
 	private double _timeBeforeTonalShift;
+	private float _pitchScale;
 	private float _amountToChangePitchScale;
+	private double _pitchScaleShiftSpeed;
 
 	public override void _Ready()
 	{
@@ -22,6 +25,7 @@ public partial class WhiteNoiseGenerator : AudioStreamPlayer
 			_sampleHz = generator.MixRate;
 			Player.Play();
 			_playback = (AudioStreamGeneratorPlayback)Player.GetStreamPlayback();
+			_pitchScale = PitchScale;
 			FillBuffer();
 
 			_timeBeforeTonalShift = _random.Next(5, 15);
@@ -38,10 +42,13 @@ public partial class WhiteNoiseGenerator : AudioStreamPlayer
 		}
 
 		_elapsedTonalShiftTime += delta;
-		if (_elapsedTime >= _timeBeforeTonalShift)
+		if (_elapsedTonalShiftTime >= _timeBeforeTonalShift)
 		{
-			_amountToChangePitchScale = _random.Next(1, 10) / 1000f;
-			PitchScale += (float)Math.Clamp(_random.Next(0, 2) == 0 ? _amountToChangePitchScale : _amountToChangePitchScale * -1, 0.01, 0.06);
+			_amountToChangePitchScale = _random.Next(-10, 10) / 1000f;
+			_pitchScale = (float)Mathf.Clamp(_pitchScale + _amountToChangePitchScale, 0.005, 0.04);
+			_pitchScaleShiftSpeed = _random.Next(100, 300) / 100f;
+			_tween = CreateTween().SetTrans(Tween.TransitionType.Linear);
+			_tween.TweenProperty(this, "pitch_scale", _pitchScale, _pitchScaleShiftSpeed);
 
 			_timeBeforeTonalShift = _random.Next(5, 15);
 			_elapsedTonalShiftTime = 0;
