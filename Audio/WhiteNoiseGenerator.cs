@@ -28,7 +28,7 @@ public partial class WhiteNoiseGenerator : AudioStreamPlayer
 			_pitchScale = PitchScale;
 			FillBuffer();
 
-			_timeBeforeTonalShift = _random.Next(5, 15);
+			_timeBeforeTonalShift = _random.Next(20, 120);
 		}
 	}
 
@@ -46,11 +46,11 @@ public partial class WhiteNoiseGenerator : AudioStreamPlayer
 		{
 			_amountToChangePitchScale = _random.Next(-10, 10) / 1000f;
 			_pitchScale = (float)Mathf.Clamp(_pitchScale + _amountToChangePitchScale, 0.005, 0.04);
-			_pitchScaleShiftSpeed = _random.Next(100, 300) / 100f;
+			_pitchScaleShiftSpeed = _random.Next(500, 1000) / 100f;
 			_tween = CreateTween().SetTrans(Tween.TransitionType.Linear);
 			_tween.TweenProperty(this, "pitch_scale", _pitchScale, _pitchScaleShiftSpeed);
 
-			_timeBeforeTonalShift = _random.Next(5, 15);
+			_timeBeforeTonalShift = _random.Next(20, 120);
 			_elapsedTonalShiftTime = 0;
 		}
 	}
