@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+PersistService="*res://Services/PersistService.cs"
 ScreenNavigator="*res://Navigators/ScreenNavigator.cs"
 
 [display]

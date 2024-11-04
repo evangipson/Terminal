@@ -13,12 +13,23 @@ namespace Terminal.Game.ProgressBars
 		
 		private ScreenNavigator _screenNavigator;
 		private TimerService _timerService;
+		private PersistService _persistService;
+		private StyleBoxFlat _flatStyleBox;
+		private Color _currentColor;
 		private Tween _tween;
 		private double _loadedValue = 0;
 
 		public override void _Ready()
 		{
 			_screenNavigator = GetNode<ScreenNavigator>("/root/ScreenNavigator");
+			_persistService = GetNode<PersistService>("/root/PersistService");
+			_flatStyleBox = new()
+			{
+				BgColor = _persistService.CurrentColor,
+				BorderColor = new("#000000")
+			};
+			AddThemeStyleboxOverride("fill", _flatStyleBox);
+			
 			_timerService = new(FillProgressBar);
 		}
 

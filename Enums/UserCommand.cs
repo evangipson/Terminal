@@ -4,6 +4,9 @@ namespace Terminal.Enums
 	{
 		Exit,
 		Help,
+		Color,
+		Save,
+		Commands,
 		Unknown
 	};
 }

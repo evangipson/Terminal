@@ -11,10 +11,24 @@ namespace Terminal.Services
 		public static UserCommand EvaluateUserInput(string userInput)
 		{
 			var tokens = ParseInputToTokens(userInput);
-
 			if (tokens.SingleOrDefault(token => token.Equals("help", StringComparison.OrdinalIgnoreCase)) != null)
 			{
 				return UserCommand.Help;
+			}
+
+			if (tokens.SingleOrDefault(token => token.Equals("color", StringComparison.OrdinalIgnoreCase)) != null)
+			{
+				return UserCommand.Color;
+			}
+
+			if (tokens.SingleOrDefault(token => token.Equals("save", StringComparison.OrdinalIgnoreCase)) != null)
+			{
+				return UserCommand.Save;
+			}
+
+			if (tokens.SingleOrDefault(token => token.Equals("commands", StringComparison.OrdinalIgnoreCase)) != null)
+			{
+				return UserCommand.Commands;
 			}
 
 			if (tokens.SingleOrDefault(token => token.Equals("exit", StringComparison.OrdinalIgnoreCase)) != null)

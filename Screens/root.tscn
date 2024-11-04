@@ -58,7 +58,7 @@ stream_9/stream = ExtResource("14_awu0l")
 mix_rate = 22050.0
 buffer_length = 1.0
 
-[node name="Root" type="CanvasLayer"]
+[node name="Root" type="CanvasLayer" groups=["Persist"]]
 follow_viewport_enabled = true
 
 [node name="Monitor" type="ColorRect" parent="."]
