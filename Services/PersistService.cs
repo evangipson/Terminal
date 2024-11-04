@@ -12,16 +12,13 @@ namespace Terminal.Services
 	public partial class PersistService : Node
 	{
 		public Color CurrentColor = ColorConstants.TerminalGreen;
-		public HashSet<string> CommandMemory = new();
+		public SortedSet<string> CommandMemory = new();
 
 		private readonly string _path = ProjectSettings.GlobalizePath("user://");
 		private readonly string _fileName = "savegame.json";
 		private readonly int _commandMemoryLimit = 10;
 
-		public override void _Ready()
-		{
-			LoadGame();
-		}
+		public override void _Ready() => LoadGame();
 
 		public void AddCommandToMemory(string command)
 		{
@@ -53,7 +50,7 @@ namespace Terminal.Services
 
 			Dictionary loadedData = (Dictionary)jsonLoader.Data;
 			CurrentColor = (Color)loadedData["TerminalColor"];
-			CommandMemory = loadedData["CommandMemory"].ToString().Split(',').ToHashSet();
+			CommandMemory = new SortedSet<string>(loadedData["CommandMemory"].ToString().Split(','));
 		}
 
 		public void SaveGame()

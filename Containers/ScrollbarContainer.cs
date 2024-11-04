@@ -1,33 +1,36 @@
 using Godot;
 
-public partial class ScrollbarContainer : ScrollContainer
+namespace Terminal.Containers
 {
-	private ScrollBar _scrollbar;
-	private double _autoScrollSpeed = 0.1;
-	private double _maxScrollLength = 0;
-	private Tween _tween;
-
-	public override void _Ready()
+	public partial class ScrollbarContainer : ScrollContainer
 	{
-		_scrollbar = GetVScrollBar();
-		_scrollbar.Connect(ScrollBar.SignalName.Changed, Callable.From(OnRangeChanged));
-		_maxScrollLength = _scrollbar.MaxValue;
-	}
+		private ScrollBar _scrollbar;
+		private double _autoScrollSpeed = 0.1;
+		private double _maxScrollLength = 0;
+		private Tween _tween;
 
-	private async void OnRangeChanged()
-	{
-		// wait a frame before animating anything
-		await ToSignal(_scrollbar, ScrollBar.SignalName.Changed);
-		AnimateScrollMax();
-	}
-
-	private void AnimateScrollMax()
-	{
-		if (_maxScrollLength != _scrollbar.MaxValue)
+		public override void _Ready()
 		{
+			_scrollbar = GetVScrollBar();
+			_scrollbar.Connect(ScrollBar.SignalName.Changed, Callable.From(OnRangeChanged));
 			_maxScrollLength = _scrollbar.MaxValue;
-			_tween = CreateTween().SetTrans(Tween.TransitionType.Linear);
-			_tween.TweenProperty(this, "scroll_vertical", _maxScrollLength - GetRect().Size.Y, _autoScrollSpeed);
+		}
+
+		private async void OnRangeChanged()
+		{
+			// wait a frame before animating anything
+			await ToSignal(_scrollbar, ScrollBar.SignalName.Changed);
+			AnimateScrollMax();
+		}
+
+		private void AnimateScrollMax()
+		{
+			if (_maxScrollLength != _scrollbar.MaxValue)
+			{
+				_maxScrollLength = _scrollbar.MaxValue;
+				_tween = CreateTween().SetTrans(Tween.TransitionType.Linear);
+				_tween.TweenProperty(this, "scroll_vertical", _maxScrollLength - GetRect().Size.Y, _autoScrollSpeed);
+			}
 		}
 	}
 }

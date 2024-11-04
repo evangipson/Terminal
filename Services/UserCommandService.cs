@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using Terminal.Enums;
@@ -11,37 +10,20 @@ namespace Terminal.Services
 		public static UserCommand EvaluateUserInput(string userInput)
 		{
 			var tokens = ParseInputToTokens(userInput);
-			if (tokens.SingleOrDefault(token => token.Equals("help", StringComparison.OrdinalIgnoreCase)) != null)
+			var firstToken = tokens.FirstOrDefault()?.ToLowerInvariant();
+			var userCommand = firstToken switch
 			{
-				return UserCommand.Help;
-			}
+				"help" => UserCommand.Help,
+				"color" => UserCommand.Color,
+				"save" => UserCommand.Save,
+				"commands" => UserCommand.Commands,
+				"exit" => UserCommand.Exit,
+				_ => UserCommand.Unknown
+			};
 
-			if (tokens.SingleOrDefault(token => token.Equals("color", StringComparison.OrdinalIgnoreCase)) != null)
-			{
-				return UserCommand.Color;
-			}
-
-			if (tokens.SingleOrDefault(token => token.Equals("save", StringComparison.OrdinalIgnoreCase)) != null)
-			{
-				return UserCommand.Save;
-			}
-
-			if (tokens.SingleOrDefault(token => token.Equals("commands", StringComparison.OrdinalIgnoreCase)) != null)
-			{
-				return UserCommand.Commands;
-			}
-
-			if (tokens.SingleOrDefault(token => token.Equals("exit", StringComparison.OrdinalIgnoreCase)) != null)
-			{
-				return UserCommand.Exit;
-			}
-
-			return UserCommand.Unknown;
+			return userCommand;
 		}
 
-		public static List<string> ParseInputToTokens(string userInput)
-		{
-			return userInput.Split(' ').ToList();
-		}
+		public static List<string> ParseInputToTokens(string userInput) => userInput.Split(' ').ToList();
 	}
 }

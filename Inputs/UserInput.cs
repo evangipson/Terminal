@@ -1,7 +1,7 @@
-using System;
 using System.Linq;
 using Godot;
 using Godot.Collections;
+
 using Terminal.Services;
 
 namespace Terminal.Inputs
@@ -34,8 +34,6 @@ namespace Terminal.Inputs
 			SetDirectory();
 			SetCaretColumn(Text.Length);
 			SetCaretLine(1);
-
-			GD.Print($"user input '{Name}' ready");
 		}
 
 		public override void _Draw()
@@ -124,7 +122,6 @@ namespace Terminal.Inputs
 				};
 				EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
 			}
-
 			if (command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("exit", System.StringComparison.OrdinalIgnoreCase))
 			{
 				Dictionary<string, string> outputTokens = new()
@@ -134,7 +131,6 @@ namespace Terminal.Inputs
 				};
 				EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
 			}
-
 			if ((command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("color", System.StringComparison.OrdinalIgnoreCase)) || (command == Enums.UserCommand.Color && parsedTokens.Count == 1))
 			{
 				Dictionary<string, string> outputTokens = new()
@@ -146,7 +142,6 @@ namespace Terminal.Inputs
 				};
 				EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
 			}
-
 			if (command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("save", System.StringComparison.OrdinalIgnoreCase))
 			{
 				Dictionary<string, string> outputTokens = new()
@@ -156,7 +151,6 @@ namespace Terminal.Inputs
 				};
 				EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
 			}
-
 			if ((command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("commands", System.StringComparison.OrdinalIgnoreCase)) || command == Enums.UserCommand.Commands)
 			{
 				Dictionary<string, string> outputTokens = new()
@@ -167,22 +161,18 @@ namespace Terminal.Inputs
 				};
 				EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
 			}
-
 			if (command == Enums.UserCommand.Color && parsedTokens.Count == 2)
 			{
 				EmitSignal(SignalName.ColorCommand, parsedTokens.Last());
 			}
-
 			if (command == Enums.UserCommand.Save)
 			{
 				EmitSignal(SignalName.SaveCommand);
 			}
-
 			if (command == Enums.UserCommand.Unknown && !parsedTokens.All(token => string.IsNullOrEmpty(token)))
 			{
 				EmitSignal(SignalName.KnownCommand, $"\n\"{parsedTokens.First()}\" is an unknown command.\n");
 			}
-
 			if (command == Enums.UserCommand.Exit)
 			{
 				GetTree().Quit();

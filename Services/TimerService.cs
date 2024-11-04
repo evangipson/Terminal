@@ -7,7 +7,7 @@ namespace Terminal.Services
 	public class TimerService
 	{
 		private readonly Random _random = new();
-		private Timer _timer;
+		private readonly Timer _timer;
 
         public TimerService(Action<object, EventArgs> tickAction, double milliseconds = 100)
         {
@@ -19,14 +19,8 @@ namespace Terminal.Services
 
         public void RandomWait() => Wait(_random.Next(500, 2000));
 
-		public void Wait(double milliseconds)
-		{
-			_timer.Interval = milliseconds;
-		}
+		public void Wait(double milliseconds) => _timer.Interval = milliseconds;
 
-		public void Done()
-		{
-			_timer.Stop();
-		}
+		public void Done() => _timer.Stop();
 	}
 }
