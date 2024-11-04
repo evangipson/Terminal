@@ -1,6 +1,11 @@
 using Godot;
 
-public partial class KeyboardSounds : AudioStreamPlayer
+namespace Terminal.Audio
 {
-	public void PlayKeyboardSound() => Play();
+    public partial class KeyboardSounds : AudioStreamPlayer
+    {
+        public const string AbsolutePath = "/root/Root/KeyboardSounds";
+
+        public void PlayKeyboardSound() => Play();
+    }
 }
