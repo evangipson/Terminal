@@ -12,7 +12,7 @@ namespace Terminal.Services
     public partial class PersistService : Node
     {
         public Color CurrentColor = ColorConstants.TerminalColors.First().Value;
-        public SortedSet<string> CommandMemory = new();
+        public LinkedList<string> CommandMemory = new();
 
         private readonly string _path = ProjectSettings.GlobalizePath("user://");
         private readonly string _fileName = "savegame.json";
@@ -24,12 +24,12 @@ namespace Terminal.Services
         {
             if (CommandMemory.Count > _commandMemoryLimit)
             {
-                CommandMemory.Remove(CommandMemory.First());
-                CommandMemory.Add(command);
+                CommandMemory.RemoveFirst();
+                CommandMemory.AddLast(command);
                 return;
             }
 
-            CommandMemory.Add(command);
+            CommandMemory.AddLast(command);
         }
 
         public void LoadGame()
@@ -50,7 +50,7 @@ namespace Terminal.Services
 
             Dictionary loadedData = (Dictionary)jsonLoader.Data;
             CurrentColor = (Color)loadedData["TerminalColor"];
-            CommandMemory = new SortedSet<string>(loadedData["CommandMemory"].ToString().Split(','));
+            CommandMemory = new LinkedList<string>(loadedData["CommandMemory"].ToString().Split(','));
         }
 
         public void SaveGame()

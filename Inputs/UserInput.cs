@@ -26,12 +26,13 @@ namespace Terminal.Inputs
         private PersistService _persistService;
         private string _directory;
         private bool _hasFocus = false;
-        private int _commandMemoryIndex = 0;
+        private int _commandMemoryIndex;
 
         public override void _Ready()
         {
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
             _keyboardSounds = GetTree().Root.GetNode<KeyboardSounds>(KeyboardSounds.AbsolutePath);
+            _commandMemoryIndex = _persistService.CommandMemory.Count;
 
             SetDirectory();
             SetCaretColumn(Text.Length);
@@ -67,10 +68,10 @@ namespace Terminal.Inputs
 
             if (Input.IsPhysicalKeyPressed(Key.Up))
             {
-                _commandMemoryIndex += 1;
-                if (_commandMemoryIndex > _persistService.CommandMemory.Count - 1)
+                _commandMemoryIndex -= 1;
+                if (_commandMemoryIndex < 0)
                 {
-                    _commandMemoryIndex = 0;
+                    _commandMemoryIndex = _persistService.CommandMemory.Count - 1;
                 }
                 Text = $"{_directory} {_persistService.CommandMemory.ElementAtOrDefault(_commandMemoryIndex)}";
                 SetCaretColumn(Text.Length);
@@ -80,10 +81,10 @@ namespace Terminal.Inputs
 
             if (Input.IsPhysicalKeyPressed(Key.Down))
             {
-                _commandMemoryIndex -= 1;
-                if (_commandMemoryIndex < 0)
+                _commandMemoryIndex += 1;
+                if (_commandMemoryIndex > _persistService.CommandMemory.Count - 1)
                 {
-                    _commandMemoryIndex = _persistService.CommandMemory.Count - 1;
+                    _commandMemoryIndex = 0;
                 }
                 Text = $"{_directory} {_persistService.CommandMemory.ElementAtOrDefault(_commandMemoryIndex)}";
                 SetCaretColumn(Text.Length);
