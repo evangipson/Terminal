@@ -23,8 +23,6 @@ ScreenNavigator="*res://Navigators/ScreenNavigator.cs"
 [display]
 
 window/size/mode=3
-window/size/resizable=false
-window/size/borderless=true
 
 [dotnet]
 

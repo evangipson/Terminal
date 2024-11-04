@@ -39,7 +39,7 @@ namespace Terminal.Containers
 			}
 
 			_timerService.Wait(timeToWait);
-			_keyboardSounds.PlayKeyboardSound();
+			CallDeferred("PlayKeyboardSound");
 			CallDeferred("OnTextAnimating");
 		}
 
@@ -60,5 +60,7 @@ namespace Terminal.Containers
 			_timerService.Done();
 			_screenNavigator.GotoScene(ScreenConstants.ConsoleScenePath);
 		}
+
+		private void PlayKeyboardSound() => _keyboardSounds.PlayKeyboardSound();
 	}
 }

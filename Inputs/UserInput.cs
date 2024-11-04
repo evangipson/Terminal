@@ -56,7 +56,7 @@ namespace Terminal.Inputs
 
 			if (@event is InputEventKey && @event.IsPressed())
 			{
-				_keyboardSounds.PlayKeyboardSound();
+				CallDeferred("PlayKeyboardSound");
 			}
 
 			if (Input.IsPhysicalKeyPressed(Key.Enter))
@@ -195,5 +195,7 @@ namespace Terminal.Inputs
 		}
 
 		private static string GetOutputFromTokens(Dictionary<string, string> outputTokens) => string.Join("\n\n", outputTokens.Select(token => string.Join('\n', token.Key, $"\t{token.Value}")));
+
+		private void PlayKeyboardSound() => _keyboardSounds.PlayKeyboardSound();
 	}
 }
