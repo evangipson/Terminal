@@ -116,14 +116,6 @@ namespace Terminal.Inputs
 
             var parsedTokens = UserCommandService.ParseInputToTokens(inputWithoutDirectory);
             var command = UserCommandService.EvaluateUserInput(inputWithoutDirectory);
-            if (command == Enums.UserCommand.ListDirectory)
-            {
-                EmitSignal(SignalName.ListDirectoryCommand);
-            }
-            if (command == Enums.UserCommand.ChangeDirectory && parsedTokens.Count < 3)
-            {
-                EmitSignal(SignalName.ChangeDirectoryCommand, parsedTokens.Last());
-            }
             if (command == Enums.UserCommand.Help && parsedTokens.All(token => token.Equals("help", System.StringComparison.OrdinalIgnoreCase)))
             {
                 Dictionary<string, string> outputTokens = new()
@@ -169,9 +161,37 @@ namespace Terminal.Inputs
                 {
                     ["COMMAND"] = "commands",
                     ["REMARKS"] = "Displays information about the terminal commands. Use help [command] to get more information about each command.",
-                    ["COMMANDS"] = "exit, save, color, help, commands"
+                    ["COMMANDS"] = "help, commands, ls, cd, exit, save, color"
                 };
                 EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
+            }
+            if (command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("cd", System.StringComparison.OrdinalIgnoreCase) || (command == Enums.UserCommand.ChangeDirectory && parsedTokens.Count == 1))
+            {
+                Dictionary<string, string> outputTokens = new()
+                {
+                    ["COMMAND"] = "cd",
+                    ["REMARKS"] = "Changes directory.",
+                    ["EXAMPLES"] = $"cd ~\t: Change directory to the default home directory for the current user."
+                };
+                EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
+            }
+            if (command == Enums.UserCommand.ChangeDirectory && parsedTokens.Count < 3)
+            {
+                EmitSignal(SignalName.ChangeDirectoryCommand, parsedTokens.Last());
+            }
+            if (command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("ls", System.StringComparison.OrdinalIgnoreCase))
+            {
+                Dictionary<string, string> outputTokens = new()
+                {
+                    ["COMMAND"] = "ls",
+                    ["REMARKS"] = "Lists contents of a directory.",
+                    ["EXAMPLES"] = "ls\t: List the contents of the current directory."
+                };
+                EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
+            }
+            if (command == Enums.UserCommand.ListDirectory)
+            {
+                EmitSignal(SignalName.ListDirectoryCommand);
             }
             if (command == Enums.UserCommand.Color && parsedTokens.Count == 2)
             {
