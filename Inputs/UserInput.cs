@@ -161,7 +161,7 @@ namespace Terminal.Inputs
                 {
                     ["COMMAND"] = "commands",
                     ["REMARKS"] = "Displays information about the terminal commands. Use help [command] to get more information about each command.",
-                    ["COMMANDS"] = "help, commands, ls, cd, exit, save, color"
+                    ["COMMANDS"] = "help, commands, ls, cd, view, exit, save, color"
                 };
                 EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
             }
