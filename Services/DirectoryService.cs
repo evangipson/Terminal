@@ -12,14 +12,38 @@ namespace Terminal.Services
             Directories = DirectoryConstants.GetDefaultDirectoryStructure()
         };
 
-        public static DirectoryEntity FindDirectory(this DirectoryEntity node, string name)
+        public static IDirectoryEntity FindFile(this IDirectoryEntity node, string fileName)
         {
             if (node == null)
             {
                 return null;
             }
 
-            if (node.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            if (node.ToString().Equals(fileName, StringComparison.OrdinalIgnoreCase) && !node.IsDirectory)
+            {
+                return node;
+            }
+
+            foreach (var child in node.Entities)
+            {
+                var found = child.FindFile(fileName);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+
+        public static IDirectoryEntity FindDirectory(this IDirectoryEntity node, string name)
+        {
+            if (node == null)
+            {
+                return null;
+            }
+
+            if (node.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && node.IsDirectory)
             {
                 return node;
             }
@@ -36,14 +60,14 @@ namespace Terminal.Services
             return null;
         }
 
-        public static DirectoryEntity FindDirectory(this DirectoryEntity node, Guid id)
+        public static IDirectoryEntity FindDirectory(this IDirectoryEntity node, Guid id)
         {
             if (node == null)
             {
                 return null;
             }
 
-            if (node.Id.Equals(id))
+            if (node.Id.Equals(id) && node.IsDirectory)
             {
                 return node;
             }

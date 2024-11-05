@@ -193,6 +193,22 @@ namespace Terminal.Inputs
             {
                 EmitSignal(SignalName.ListDirectoryCommand);
             }
+            if ((command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("ls", System.StringComparison.OrdinalIgnoreCase)) || (command == Enums.UserCommand.ViewFile && parsedTokens.Count == 1))
+            {
+                Dictionary<string, string> outputTokens = new()
+                {
+                    ["COMMAND"] = "view",
+                    ["REMARKS"] = "View the contents of a file.",
+                    ["EXAMPLES"] = "view file.ext\t: List the contents of the file.ext file."
+                };
+                EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
+            }
+            if (command == Enums.UserCommand.ViewFile && parsedTokens.Count == 2)
+            {
+                var fileName = parsedTokens.Take(2).Last();
+                var file = _persistService.GetFile(fileName);
+                EmitSignal(SignalName.KnownCommand, file?.Contents ?? $"\"{fileName}\" does not exist.");
+            }
             if (command == Enums.UserCommand.Color && parsedTokens.Count == 2)
             {
                 EmitSignal(SignalName.ColorCommand, parsedTokens.Last());

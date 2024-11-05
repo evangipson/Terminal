@@ -20,6 +20,7 @@ namespace Terminal.Services
                 "exit" => UserCommand.Exit,
                 "ls" => UserCommand.ListDirectory,
                 "cd" => UserCommand.ChangeDirectory,
+                "view" => UserCommand.ViewFile,
                 _ => UserCommand.Unknown
             };
 

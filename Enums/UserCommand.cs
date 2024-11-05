@@ -9,6 +9,7 @@ namespace Terminal.Enums
         Commands,
         ListDirectory,
         ChangeDirectory,
+        ViewFile,
         Unknown
     };
 }

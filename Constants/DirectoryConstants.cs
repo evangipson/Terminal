@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Terminal.Models;
 
 namespace Terminal.Constants
@@ -10,44 +9,59 @@ namespace Terminal.Constants
 
         public const string TerminalPromptCharacter = ">";
 
-        public static List<DirectoryEntity> GetDefaultDirectoryStructure()
+        public static List<IDirectoryEntity> GetDefaultDirectoryStructure()
         {
-            DirectoryEntity rootDirectory = new() { Name = "/", IsDirectory = true, IsRoot = true };
-
-            DirectoryEntity rootSystemDirectory = new() { Name = "system", IsDirectory = true, ParentId = rootDirectory.Id };
-            DirectoryEntity rootUsersDirectory = new() { Name = "users", IsDirectory = true, ParentId = rootDirectory.Id };
-            DirectoryEntity rootTempDirectory = new() { Name = "temp", IsDirectory = true, ParentId = rootDirectory.Id };
-
-            rootDirectory.Entities = new() { rootSystemDirectory, rootUsersDirectory, rootTempDirectory };
-
-            DirectoryEntity systemDirectory = rootDirectory.Entities.First(entity => entity.Name == "system");
-            systemDirectory.Entities = new()
+            DirectoryFolder rootDirectory = new() { Name = "/", IsRoot = true };
+            DirectoryFolder rootSystemDirectory = new() { Name = "system", ParentId = rootDirectory.Id };
+            DirectoryFolder rootUsersDirectory = new() { Name = "users", ParentId = rootDirectory.Id };
+            DirectoryFolder rootTempDirectory = new() { Name = "temp", ParentId = rootDirectory.Id };
+            rootDirectory.Entities = new()
             {
-                new() { Name = "config", IsDirectory = true, ParentId = systemDirectory.Id },
-                new() { Name = "device", IsDirectory = true, ParentId = systemDirectory.Id },
-                new() { Name = "logs", IsDirectory = true, ParentId = systemDirectory.Id },
-                new() { Name = "network", IsDirectory = true, ParentId = systemDirectory.Id },
-                new() { Name = "programs", IsDirectory = true, ParentId = systemDirectory.Id }
+                rootSystemDirectory,
+                rootUsersDirectory,
+                rootTempDirectory
             };
 
-            DirectoryEntity usersDirectory = rootDirectory.Entities.First(entity => entity.Name == "users");
-            usersDirectory.Entities = new()
+            rootSystemDirectory.Entities = new()
             {
-                new() { Name = "user", IsDirectory = true, ParentId = usersDirectory.Id }
+                new DirectoryFolder() { Name = "config", ParentId = rootSystemDirectory.Id },
+                new DirectoryFolder() { Name = "device", ParentId = rootSystemDirectory.Id },
+                new DirectoryFolder() { Name = "logs", ParentId = rootSystemDirectory.Id },
+                new DirectoryFolder() { Name = "network", ParentId = rootSystemDirectory.Id },
+                new DirectoryFolder() { Name = "programs", ParentId = rootSystemDirectory.Id }
             };
 
-            DirectoryEntity userDirectory = rootDirectory.Entities.First(entity => entity.Name == "users").Entities.First(entity => entity.Name == "user");
+            rootTempDirectory.Entities = new()
+            {
+                new DirectoryFolder() { Name = "logs", ParentId = rootTempDirectory.Id }
+            };
+
+            DirectoryFolder userDirectory = new() { Name = "user", ParentId = rootUsersDirectory.Id };
+            rootUsersDirectory.Entities = new()
+            {
+                userDirectory
+            };
+
+            DirectoryFolder homeDirectory = new() { Name = "home", ParentId = userDirectory.Id };
+            DirectoryFolder mailDirectory = new() { Name = "mail", ParentId = homeDirectory.Id };
+            mailDirectory.Entities = new()
+            {
+                new DirectoryFile()
+                {
+                    Name = "welcome-to-terminal-os",
+                    Extension = "mail",
+                    Contents = "This is a mail file in Terminal OS. Welcome!",
+                    ParentId = mailDirectory.Id
+                }
+            };
+
+            homeDirectory.Entities = new() { mailDirectory };
+
             userDirectory.Entities = new()
             {
-                new() { Name = "config", IsDirectory = true, ParentId = userDirectory.Id },
-                new() { Name = "home", IsDirectory = true, ParentId = userDirectory.Id },
-                new() { Name = "programs", IsDirectory = true, ParentId = userDirectory.Id },
-            };
-
-            DirectoryEntity tempDirectory = rootDirectory.Entities.First(entity => entity.Name == "temp");
-            tempDirectory.Entities = new()
-            {
-                new() { Name = "logs", IsDirectory = true, ParentId = tempDirectory.Id }
+                new DirectoryFolder() { Name = "config", ParentId = userDirectory.Id },
+                homeDirectory,
+                new DirectoryFolder() { Name = "programs", ParentId = userDirectory.Id },
             };
 
             return new() { rootDirectory };

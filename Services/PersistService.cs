@@ -24,6 +24,7 @@ namespace Terminal.Services
         public override void _Ready()
         {
             FileSystem = DirectoryService.CreateNewFileSystem();
+            FileSystem.CurrentDirectoryId = GetHomeDirectory().Id;
             LoadGame();
         }
 
@@ -39,9 +40,9 @@ namespace Terminal.Services
             CommandMemory.AddLast(command);
         }
 
-        public void SetCurrentDirectory(DirectoryEntity newCurrentDirectory)
+        public void SetCurrentDirectory(IDirectoryEntity newCurrentDirectory)
         {
-            if (newCurrentDirectory == null)
+            if (newCurrentDirectory?.IsDirectory != true)
             {
                 return;
             }
@@ -57,7 +58,7 @@ namespace Terminal.Services
             }
 
             List<string> directoryTokensInPath = newDirectoryPath.Split('/').ToList();
-            DirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault());
+            IDirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault());
             if (newCurrentDirectory == null)
             {
                 newCurrentDirectory = GetRootDirectory().FindDirectory(newDirectoryPath);
@@ -66,15 +67,17 @@ namespace Terminal.Services
             SetCurrentDirectory(newCurrentDirectory);
         }
 
-        public DirectoryEntity GetParentDirectory(DirectoryEntity currentDirectory) => GetRootDirectory().FindDirectory(currentDirectory.ParentId) ?? GetRootDirectory();
+        public IDirectoryEntity GetParentDirectory(IDirectoryEntity currentDirectory) => GetRootDirectory().FindDirectory(currentDirectory.ParentId) ?? GetRootDirectory();
 
-        public DirectoryEntity GetRootDirectory() => FileSystem?.Directories?.FirstOrDefault(entity => entity.IsRoot) ?? FileSystem?.Directories?.First();
+        public IDirectoryEntity GetRootDirectory() => FileSystem?.Root;
 
-        public DirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem.CurrentDirectoryId) ?? GetRootDirectory();
+        public IDirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem.CurrentDirectoryId) ?? GetRootDirectory();
 
         public string GetCurrentDirectoryPath() => FileSystem.GetDirectoryPath(GetCurrentDirectory());
 
-        public DirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users").FindDirectory("user").FindDirectory("home");
+        public IDirectoryEntity GetFile(string fileName) => GetCurrentDirectory().FindFile(fileName);
+
+        public IDirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users").FindDirectory("user").FindDirectory("home");
 
         public void LoadGame()
         {

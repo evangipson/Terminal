@@ -7,22 +7,22 @@ namespace Terminal.Models
 {
     public class FileSystem
     {
-        public List<DirectoryEntity> Directories { get; set; } = new();
+        public List<IDirectoryEntity> Directories { get; set; } = new();
 
         public Guid CurrentDirectoryId { get; set; }
 
-        private DirectoryEntity Root => Directories.First(entity => entity.IsRoot);
+        public IDirectoryEntity Root => Directories.First(entity => entity.IsRoot);
 
-        public string GetDirectoryPath(DirectoryEntity directory) => string.Concat(GetAbsoluteDirectory(directory));
+        public string GetDirectoryPath(IDirectoryEntity directory) => string.Concat(GetAbsoluteDirectory(directory));
 
-        public List<DirectoryEntity> GetAbsoluteDirectory(DirectoryEntity directory)
+        public List<IDirectoryEntity> GetAbsoluteDirectory(IDirectoryEntity directory)
         {
             if (directory?.IsDirectory != true)
             {
                 return new() { Root };
             }
 
-            List<DirectoryEntity> directoryPath = new();
+            List<IDirectoryEntity> directoryPath = new();
             var foundDirectory = directory;
             while (foundDirectory != null)
             {
