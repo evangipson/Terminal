@@ -193,7 +193,7 @@ namespace Terminal.Inputs
             {
                 EmitSignal(SignalName.ListDirectoryCommand);
             }
-            if ((command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("ls", System.StringComparison.OrdinalIgnoreCase)) || (command == Enums.UserCommand.ViewFile && parsedTokens.Count == 1))
+            if ((command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("view", System.StringComparison.OrdinalIgnoreCase)) || (command == Enums.UserCommand.ViewFile && parsedTokens.Count == 1))
             {
                 Dictionary<string, string> outputTokens = new()
                 {
