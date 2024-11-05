@@ -13,24 +13,7 @@ namespace Terminal.Models
 
         private DirectoryEntity Root => Directories.First(entity => entity.IsRoot);
 
-        public string GetDirectoryPath(DirectoryEntity directory)
-        {
-            if (directory?.IsDirectory != true)
-            {
-                return string.Empty;
-            }
-
-            List<DirectoryEntity> directoryPath = new();
-            var foundDirectory = directory;
-            while (foundDirectory != null)
-            {
-                directoryPath.Add(foundDirectory);
-                foundDirectory = Root.FindDirectory(foundDirectory.ParentId);
-            }
-
-            directoryPath.Reverse();
-            return string.Concat(directoryPath);
-        }
+        public string GetDirectoryPath(DirectoryEntity directory) => string.Concat(GetAbsoluteDirectory(directory));
 
         public List<DirectoryEntity> GetAbsoluteDirectory(DirectoryEntity directory)
         {
@@ -47,6 +30,7 @@ namespace Terminal.Models
                 foundDirectory = Root.FindDirectory(foundDirectory.ParentId);
             }
 
+            directoryPath.Reverse();
             return new(directoryPath);
         }
     }

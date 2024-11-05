@@ -68,7 +68,7 @@ namespace Terminal.Services
 
         public DirectoryEntity GetParentDirectory(DirectoryEntity currentDirectory) => GetRootDirectory().FindDirectory(currentDirectory.ParentId) ?? GetRootDirectory();
 
-        public DirectoryEntity GetRootDirectory() => FileSystem?.Directories?.FirstOrDefault(entity => entity.Name.Equals("/")) ?? FileSystem?.Directories?.First();
+        public DirectoryEntity GetRootDirectory() => FileSystem?.Directories?.FirstOrDefault(entity => entity.IsRoot) ?? FileSystem?.Directories?.First();
 
         public DirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem.CurrentDirectoryId) ?? GetRootDirectory();
 

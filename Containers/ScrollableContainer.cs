@@ -107,6 +107,12 @@ namespace Terminal.Containers
                 return;
             }
 
+            if (newDirectory.Equals("root"))
+            {
+                _persistService.SetCurrentDirectory(_persistService.GetRootDirectory());
+                return;
+            }
+
             _persistService.SetCurrentDirectory(newDirectory);
         }
 
