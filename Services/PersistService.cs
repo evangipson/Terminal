@@ -57,23 +57,13 @@ namespace Terminal.Services
             }
 
             List<string> directoryTokensInPath = newDirectoryPath.Split('/').ToList();
-            List<DirectoryEntity> directoriesInPath = directoryTokensInPath.Select(token => GetRootDirectory().FindDirectory(token)).ToList();
-            DirectoryEntity directoryToSet = directoriesInPath.FirstOrDefault();
-            if (directoryToSet == null)
+            DirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault());
+            if (newCurrentDirectory == null)
             {
-                return;
+                newCurrentDirectory = GetRootDirectory().FindDirectory(newDirectoryPath);
             }
 
-            foreach (var directory in directoriesInPath)
-            {
-                var nextDirectory = directoryToSet.FindDirectory(directory.Id);
-                if (directoryToSet != null)
-                {
-                    directoryToSet = nextDirectory;
-                }
-            }
-
-            SetCurrentDirectory(directoryToSet);
+            SetCurrentDirectory(newCurrentDirectory);
         }
 
         public DirectoryEntity GetParentDirectory(DirectoryEntity currentDirectory) => GetRootDirectory().FindDirectory(currentDirectory.ParentId) ?? GetRootDirectory();

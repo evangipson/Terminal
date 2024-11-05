@@ -5,7 +5,7 @@ namespace Terminal.Models
 {
     public class DirectoryEntity
     {
-        public Guid Id = Guid.NewGuid();
+        public Guid Id { get; } = Guid.NewGuid();
 
         public string Name { get; set; }
 
@@ -19,12 +19,12 @@ namespace Terminal.Models
 
         public override string ToString()
         {
-            if(IsRoot)
+            if (IsRoot)
             {
                 return "/";
             }
 
-            if(IsDirectory)
+            if (IsDirectory)
             {
                 return $"{Name}/";
             }

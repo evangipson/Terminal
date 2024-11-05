@@ -11,9 +11,11 @@ namespace Terminal.Models
 
         public Guid CurrentDirectoryId { get; set; }
 
+        private DirectoryEntity Root => Directories.First(entity => entity.IsRoot);
+
         public string GetDirectoryPath(DirectoryEntity directory)
         {
-            if(directory?.IsDirectory != true)
+            if (directory?.IsDirectory != true)
             {
                 return string.Empty;
             }
@@ -23,11 +25,29 @@ namespace Terminal.Models
             while (foundDirectory != null)
             {
                 directoryPath.Add(foundDirectory);
-                foundDirectory = Directories.First(entity => entity.IsRoot).FindDirectory(foundDirectory.ParentId);
+                foundDirectory = Root.FindDirectory(foundDirectory.ParentId);
             }
 
             directoryPath.Reverse();
             return string.Concat(directoryPath);
+        }
+
+        public List<DirectoryEntity> GetAbsoluteDirectory(DirectoryEntity directory)
+        {
+            if (directory?.IsDirectory != true)
+            {
+                return new() { Root };
+            }
+
+            List<DirectoryEntity> directoryPath = new();
+            var foundDirectory = directory;
+            while (foundDirectory != null)
+            {
+                directoryPath.Add(foundDirectory);
+                foundDirectory = Root.FindDirectory(foundDirectory.ParentId);
+            }
+
+            return new(directoryPath);
         }
     }
 }
