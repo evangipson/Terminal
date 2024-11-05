@@ -1,11 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using System.Linq;
 using Godot;
 using Dictionary = Godot.Collections.Dictionary;
 
 using Terminal.Constants;
+using Terminal.Models;
 
 namespace Terminal.Services
 {
@@ -13,12 +15,17 @@ namespace Terminal.Services
     {
         public Color CurrentColor = ColorConstants.TerminalColors.First().Value;
         public LinkedList<string> CommandMemory = new();
+        public FileSystem FileSystem;
 
         private readonly string _path = ProjectSettings.GlobalizePath("user://");
         private readonly string _fileName = "savegame.json";
         private readonly int _commandMemoryLimit = 10;
 
-        public override void _Ready() => LoadGame();
+        public override void _Ready()
+        {
+            FileSystem = DirectoryService.CreateNewFileSystem();
+            LoadGame();
+        }
 
         public void AddCommandToMemory(string command)
         {
@@ -31,6 +38,53 @@ namespace Terminal.Services
 
             CommandMemory.AddLast(command);
         }
+
+        public void SetCurrentDirectory(DirectoryEntity newCurrentDirectory)
+        {
+            if (newCurrentDirectory == null)
+            {
+                return;
+            }
+
+            FileSystem.CurrentDirectoryId = newCurrentDirectory.Id;
+        }
+
+        public void SetCurrentDirectory(string newDirectoryPath)
+        {
+            if (string.IsNullOrEmpty(newDirectoryPath))
+            {
+                return;
+            }
+
+            List<string> directoryTokensInPath = newDirectoryPath.Split('/').ToList();
+            List<DirectoryEntity> directoriesInPath = directoryTokensInPath.Select(token => GetRootDirectory().FindDirectory(token)).ToList();
+            DirectoryEntity directoryToSet = directoriesInPath.FirstOrDefault();
+            if (directoryToSet == null)
+            {
+                return;
+            }
+
+            foreach (var directory in directoriesInPath)
+            {
+                var nextDirectory = directoryToSet.FindDirectory(directory.Id);
+                if (directoryToSet != null)
+                {
+                    directoryToSet = nextDirectory;
+                }
+            }
+
+            SetCurrentDirectory(directoryToSet);
+        }
+
+        public DirectoryEntity GetParentDirectory(DirectoryEntity currentDirectory) => GetRootDirectory().FindDirectory(currentDirectory.ParentId) ?? GetRootDirectory();
+
+        public DirectoryEntity GetRootDirectory() => FileSystem?.Directories?.FirstOrDefault(entity => entity.Name.Equals("/")) ?? FileSystem?.Directories?.First();
+
+        public DirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem.CurrentDirectoryId) ?? GetRootDirectory();
+
+        public string GetCurrentDirectoryPath() => FileSystem.GetDirectoryPath(GetCurrentDirectory());
+
+        public DirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users").FindDirectory("user").FindDirectory("home");
 
         public void LoadGame()
         {
@@ -48,9 +102,19 @@ namespace Terminal.Services
                 return;
             }
 
-            Dictionary loadedData = (Dictionary)jsonLoader.Data;
-            CurrentColor = (Color)loadedData["TerminalColor"];
-            CommandMemory = new LinkedList<string>(loadedData["CommandMemory"].ToString().Split(','));
+            Dictionary loadedData = (Dictionary)jsonLoader?.Data;
+            if (loadedData?.ContainsKey("TerminalColor") == true)
+            {
+                CurrentColor = (Color)loadedData["TerminalColor"];
+            }
+            if (loadedData?.ContainsKey("CommandMemory") == true && !string.IsNullOrEmpty(loadedData["CommandMemory"].ToString()))
+            {
+                CommandMemory = new LinkedList<string>(loadedData["CommandMemory"].ToString().Split(','));
+            }
+            if (loadedData?.ContainsKey("FileSystem") == true && !string.IsNullOrEmpty(loadedData["FileSystem"].ToString()))
+            {
+                FileSystem = JsonSerializer.Deserialize<FileSystem>(loadedData["FileSystem"].ToString());
+            }
         }
 
         public void SaveGame()
@@ -58,7 +122,8 @@ namespace Terminal.Services
             Dictionary saveData = new()
             {
                 ["TerminalColor"] = CurrentColor.ToHtml(false),
-                ["CommandMemory"] = string.Join(',', CommandMemory)
+                ["CommandMemory"] = string.Join(',', CommandMemory),
+                ["FileSystem"] = JsonSerializer.Serialize(FileSystem)
             };
 
             var saveDataJson = Json.Stringify(saveData);

@@ -1,5 +1,5 @@
 using Godot;
-
+using System.Linq;
 using Terminal.Constants;
 using Terminal.Inputs;
 using Terminal.Services;
@@ -55,6 +55,9 @@ namespace Terminal.Containers
             newUserInput.KnownCommand += CreateResponse;
             newUserInput.ColorCommand += ColorCommandResponse;
             newUserInput.SaveCommand += SaveCommandResponse;
+            newUserInput.ListDirectoryCommand += ListDirectoryCommandResponse;
+            newUserInput.ChangeDirectoryCommand += ChangeDirectoryCommandResponse;
+
             AddChild(newUserInput);
             newUserInput.Owner = this;
 
@@ -77,6 +80,34 @@ namespace Terminal.Containers
         {
             _persistService.SaveGame();
             CreateResponse("Progress saved.");
+        }
+
+        private void ListDirectoryCommandResponse()
+        {
+            CreateResponse(string.Join(' ', _persistService.GetCurrentDirectory().Entities));
+        }
+
+        private void ChangeDirectoryCommandResponse(string newDirectory)
+        {
+            if (newDirectory.Equals("."))
+            {
+                return;
+            }
+
+            if (newDirectory.Equals(".."))
+            {
+                var parentDirectory = _persistService.GetParentDirectory(_persistService.GetCurrentDirectory());
+                _persistService.SetCurrentDirectory(parentDirectory);
+                return;
+            }
+
+            if (newDirectory.Equals("~"))
+            {
+                _persistService.SetCurrentDirectory(_persistService.GetHomeDirectory());
+                return;
+            }
+
+            _persistService.SetCurrentDirectory(newDirectory);
         }
 
         private void CreateResponse(string message)

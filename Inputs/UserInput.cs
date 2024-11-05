@@ -22,9 +22,14 @@ namespace Terminal.Inputs
         [Signal]
         public delegate void SaveCommandEventHandler();
 
+        [Signal]
+        public delegate void ListDirectoryCommandEventHandler();
+
+        [Signal]
+        public delegate void ChangeDirectoryCommandEventHandler(string newDirectory);
+
         private KeyboardSounds _keyboardSounds;
         private PersistService _persistService;
-        private string _directory;
         private bool _hasFocus = false;
         private int _commandMemoryIndex;
 
@@ -34,7 +39,7 @@ namespace Terminal.Inputs
             _keyboardSounds = GetTree().Root.GetNode<KeyboardSounds>(KeyboardSounds.AbsolutePath);
             _commandMemoryIndex = _persistService.CommandMemory.Count;
 
-            SetDirectory();
+            SetInitialDirectory();
             SetCaretColumn(Text.Length);
             SetCaretLine(1);
         }
@@ -73,7 +78,7 @@ namespace Terminal.Inputs
                 {
                     _commandMemoryIndex = _persistService.CommandMemory.Count - 1;
                 }
-                Text = $"{_directory} {_persistService.CommandMemory.ElementAtOrDefault(_commandMemoryIndex)}";
+                Text = string.Join(' ', GetDirectoryWithPrompt(), _persistService.CommandMemory.ElementAtOrDefault(_commandMemoryIndex));
                 SetCaretColumn(Text.Length);
                 GetTree().Root.SetInputAsHandled();
                 return;
@@ -86,14 +91,14 @@ namespace Terminal.Inputs
                 {
                     _commandMemoryIndex = 0;
                 }
-                Text = $"{_directory} {_persistService.CommandMemory.ElementAtOrDefault(_commandMemoryIndex)}";
+                Text = string.Join(' ', GetDirectoryWithPrompt(), _persistService.CommandMemory.ElementAtOrDefault(_commandMemoryIndex));
                 SetCaretColumn(Text.Length);
             }
 
             if (Input.IsPhysicalKeyPressed(Key.Backspace) || Input.IsPhysicalKeyPressed(Key.Left) || Input.IsPhysicalKeyPressed(Key.Home))
             {
                 var caretPosition = GetCaretColumn();
-                if (caretPosition <= _directory.Length + 1)
+                if (caretPosition <= GetDirectoryWithPrompt().Length)
                 {
                     GetTree().Root.SetInputAsHandled();
                     return;
@@ -101,20 +106,24 @@ namespace Terminal.Inputs
             }
         }
 
-        private void SetDirectory(string directory = null)
-        {
-            _directory = (directory ?? "~>");
-            Text = $"{_directory} ";
-        }
+        private void SetInitialDirectory() => Text = GetDirectoryWithPrompt();
 
         private void EvaluateCommand()
         {
-            var inputWithoutDirectory = Text.Replace(_directory, string.Empty).Trim(' ');
+            var inputWithoutDirectory = Text.Replace(GetDirectoryWithPrompt(), string.Empty).Trim(' ');
             _persistService.AddCommandToMemory(inputWithoutDirectory);
             _commandMemoryIndex = 0;
 
             var parsedTokens = UserCommandService.ParseInputToTokens(inputWithoutDirectory);
             var command = UserCommandService.EvaluateUserInput(inputWithoutDirectory);
+            if (command == Enums.UserCommand.ListDirectory)
+            {
+                EmitSignal(SignalName.ListDirectoryCommand);
+            }
+            if (command == Enums.UserCommand.ChangeDirectory && parsedTokens.Count < 3)
+            {
+                EmitSignal(SignalName.ChangeDirectoryCommand, parsedTokens.Last());
+            }
             if (command == Enums.UserCommand.Help && parsedTokens.All(token => token.Equals("help", System.StringComparison.OrdinalIgnoreCase)))
             {
                 Dictionary<string, string> outputTokens = new()
@@ -190,5 +199,7 @@ namespace Terminal.Inputs
         private static string GetOutputFromTokens(Dictionary<string, string> outputTokens) => string.Join("\n\n", outputTokens.Select(token => string.Join('\n', token.Key, $"\t{token.Value}")));
 
         private void PlayKeyboardSound() => _keyboardSounds.PlayKeyboardSound();
+
+        private string GetDirectoryWithPrompt() => $"{_persistService.GetCurrentDirectoryPath()} {DirectoryConstants.TerminalPromptCharacter} ";
     }
 }

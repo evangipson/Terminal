@@ -7,6 +7,8 @@ namespace Terminal.Enums
         Color,
         Save,
         Commands,
+        ListDirectory,
+        ChangeDirectory,
         Unknown
     };
 }

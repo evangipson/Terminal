@@ -18,6 +18,8 @@ namespace Terminal.Services
                 "save" => UserCommand.Save,
                 "commands" => UserCommand.Commands,
                 "exit" => UserCommand.Exit,
+                "ls" => UserCommand.ListDirectory,
+                "cd" => UserCommand.ChangeDirectory,
                 _ => UserCommand.Unknown
             };
 
