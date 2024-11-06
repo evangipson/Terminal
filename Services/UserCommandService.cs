@@ -11,22 +11,22 @@ namespace Terminal.Services
         {
             var tokens = ParseInputToTokens(userInput);
             var firstToken = tokens.FirstOrDefault()?.ToLowerInvariant();
-            var userCommand = firstToken switch
-            {
-                "help" => UserCommand.Help,
-                "color" => UserCommand.Color,
-                "save" => UserCommand.Save,
-                "commands" => UserCommand.Commands,
-                "exit" => UserCommand.Exit,
-                "ls" => UserCommand.ListDirectory,
-                "cd" => UserCommand.ChangeDirectory,
-                "view" => UserCommand.ViewFile,
-                _ => UserCommand.Unknown
-            };
-
-            return userCommand;
+            return EvaluateToken(firstToken);
         }
 
         public static List<string> ParseInputToTokens(string userInput) => userInput.Split(' ').ToList();
+
+        public static UserCommand EvaluateToken(string token) => token switch
+        {
+            "help" => UserCommand.Help,
+            "color" => UserCommand.Color,
+            "save" => UserCommand.Save,
+            "commands" => UserCommand.Commands,
+            "exit" => UserCommand.Exit,
+            "ls" => UserCommand.ListDirectory,
+            "cd" => UserCommand.ChangeDirectory,
+            "view" => UserCommand.ViewFile,
+            _ => UserCommand.Unknown
+        };
     }
 }

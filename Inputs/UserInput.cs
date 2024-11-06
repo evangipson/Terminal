@@ -1,6 +1,5 @@
 using System.Linq;
 using Godot;
-using Godot.Collections;
 
 using Terminal.Audio;
 using Terminal.Constants;
@@ -30,6 +29,7 @@ namespace Terminal.Inputs
 
         private KeyboardSounds _keyboardSounds;
         private PersistService _persistService;
+        private UserCommandEvaluator _userCommandEvaluator;
         private bool _hasFocus = false;
         private int _commandMemoryIndex;
 
@@ -39,7 +39,16 @@ namespace Terminal.Inputs
             _keyboardSounds = GetTree().Root.GetNode<KeyboardSounds>(KeyboardSounds.AbsolutePath);
             _commandMemoryIndex = _persistService.CommandMemory.Count;
 
-            SetInitialDirectory();
+            _userCommandEvaluator = new();
+            _userCommandEvaluator.SimpleMessageCommand += CreateSimpleTerminalResponse;
+            _userCommandEvaluator.SaveProgressCommand += SaveProgress;
+            _userCommandEvaluator.ExitCommand += Exit;
+            _userCommandEvaluator.ColorChangeCommand += ChangeColor;
+            _userCommandEvaluator.ChangeDirectoryCommand += ChangeDirectory;
+            _userCommandEvaluator.ListDirectoryCommand += ListDirectory;
+            _userCommandEvaluator.ViewFileCommand += ViewFile;
+
+            Text = GetDirectoryWithPrompt();
             SetCaretColumn(Text.Length);
             SetCaretLine(1);
         }
@@ -65,6 +74,11 @@ namespace Terminal.Inputs
                 CallDeferred("PlayKeyboardSound");
             }
 
+            EvaluateKeyboardInput();
+        }
+
+        private void EvaluateKeyboardInput()
+        {
             if (Input.IsPhysicalKeyPressed(Key.Enter))
             {
                 EvaluateCommand();
@@ -106,136 +120,39 @@ namespace Terminal.Inputs
             }
         }
 
-        private void SetInitialDirectory() => Text = GetDirectoryWithPrompt();
-
         private void EvaluateCommand()
         {
-            var inputWithoutDirectory = Text.Replace(GetDirectoryWithPrompt(), string.Empty).Trim(' ');
-            _persistService.AddCommandToMemory(inputWithoutDirectory);
             _commandMemoryIndex = 0;
 
-            var parsedTokens = UserCommandService.ParseInputToTokens(inputWithoutDirectory);
-            var command = UserCommandService.EvaluateUserInput(inputWithoutDirectory);
-            if (command == Enums.UserCommand.Help && parsedTokens.All(token => token.Equals("help", System.StringComparison.OrdinalIgnoreCase)))
-            {
-                Dictionary<string, string> outputTokens = new()
-                {
-                    ["TOPIC"] = "Terminal OS help system.",
-                    ["REMARKS"] = "Displays help about Terminal OS commands.",
-                    ["EXAMPLES"] = "help commands\t: Display information about the terminal commands."
-                };
-                EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
-            }
-            if (command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("exit", System.StringComparison.OrdinalIgnoreCase))
-            {
-                Dictionary<string, string> outputTokens = new()
-                {
-                    ["COMMAND"] = "exit",
-                    ["REMARKS"] = "Exits Terminal OS.",
-                };
-                EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
-            }
-            if ((command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("color", System.StringComparison.OrdinalIgnoreCase)) || (command == Enums.UserCommand.Color && parsedTokens.Count == 1))
-            {
-                Dictionary<string, string> outputTokens = new()
-                {
-                    ["COMMAND"] = "color",
-                    ["REMARKS"] = "Changes the color of the terminal output.",
-                    ["COLORS"] = string.Join(", ", ColorConstants.TerminalColors.Keys),
-                    ["EXAMPLES"] = $"color {ColorConstants.TerminalColors.Keys.First()}\t: Change the terminal output to {ColorConstants.TerminalColors.Keys.First()}."
-                };
-                EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
-            }
-            if (command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("save", System.StringComparison.OrdinalIgnoreCase))
-            {
-                Dictionary<string, string> outputTokens = new()
-                {
-                    ["COMMAND"] = "save",
-                    ["REMARKS"] = "Saves the state of the terminal."
-                };
-                EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
-            }
-            if ((command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("commands", System.StringComparison.OrdinalIgnoreCase)) || command == Enums.UserCommand.Commands)
-            {
-                Dictionary<string, string> outputTokens = new()
-                {
-                    ["COMMAND"] = "commands",
-                    ["REMARKS"] = "Displays information about the terminal commands. Use help [command] to get more information about each command.",
-                    ["COMMANDS"] = "help, commands, ls, cd, view, exit, save, color"
-                };
-                EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
-            }
-            if (command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("cd", System.StringComparison.OrdinalIgnoreCase) || (command == Enums.UserCommand.ChangeDirectory && parsedTokens.Count == 1))
-            {
-                Dictionary<string, string> outputTokens = new()
-                {
-                    ["COMMAND"] = "cd",
-                    ["REMARKS"] = "Changes directory.",
-                    ["EXAMPLES"] = $"cd ~\t: Change directory to the default home directory for the current user."
-                };
-                EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
-            }
-            if (command == Enums.UserCommand.ChangeDirectory && parsedTokens.Count < 3)
-            {
-                EmitSignal(SignalName.ChangeDirectoryCommand, parsedTokens.Last());
-            }
-            if (command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("ls", System.StringComparison.OrdinalIgnoreCase))
-            {
-                Dictionary<string, string> outputTokens = new()
-                {
-                    ["COMMAND"] = "ls",
-                    ["REMARKS"] = "Lists contents of a directory.",
-                    ["EXAMPLES"] = "ls\t: List the contents of the current directory."
-                };
-                EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
-            }
-            if (command == Enums.UserCommand.ListDirectory)
-            {
-                EmitSignal(SignalName.ListDirectoryCommand);
-            }
-            if ((command == Enums.UserCommand.Help && parsedTokens.Take(2).Last().Equals("view", System.StringComparison.OrdinalIgnoreCase)) || (command == Enums.UserCommand.ViewFile && parsedTokens.Count == 1))
-            {
-                Dictionary<string, string> outputTokens = new()
-                {
-                    ["COMMAND"] = "view",
-                    ["REMARKS"] = "View the contents of a file.",
-                    ["EXAMPLES"] = "view file.ext\t: List the contents of the file.ext file."
-                };
-                EmitSignal(SignalName.KnownCommand, GetOutputFromTokens(outputTokens));
-            }
-            if (command == Enums.UserCommand.ViewFile && parsedTokens.Count == 2)
-            {
-                var fileName = parsedTokens.Take(2).Last();
-                var file = _persistService.GetFile(fileName);
-                EmitSignal(SignalName.KnownCommand, file?.Contents ?? $"\"{fileName}\" does not exist.");
-            }
-            if (command == Enums.UserCommand.Color && parsedTokens.Count == 2)
-            {
-                EmitSignal(SignalName.ColorCommand, parsedTokens.Last());
-            }
-            if (command == Enums.UserCommand.Save)
-            {
-                EmitSignal(SignalName.SaveCommand);
-            }
-            if (command == Enums.UserCommand.Unknown && !parsedTokens.All(token => string.IsNullOrEmpty(token)))
-            {
-                EmitSignal(SignalName.KnownCommand, $"\n\"{parsedTokens.First()}\" is an unknown command.\n");
-            }
-            if (command == Enums.UserCommand.Exit)
-            {
-                GetTree().Quit();
-                return;
-            }
+            var inputWithoutDirectory = Text.Replace(GetDirectoryWithPrompt(), string.Empty).Trim(' ');
+            _persistService.AddCommandToMemory(inputWithoutDirectory);
+            _userCommandEvaluator.EvaluateCommand(inputWithoutDirectory);
 
             EmitSignal(SignalName.Evaluated);
             SetProcessInput(false);
             GetTree().Root.SetInputAsHandled();
         }
 
-        private static string GetOutputFromTokens(Dictionary<string, string> outputTokens) => string.Join("\n\n", outputTokens.Select(token => string.Join('\n', token.Key, $"\t{token.Value}")));
-
         private void PlayKeyboardSound() => _keyboardSounds.PlayKeyboardSound();
 
         private string GetDirectoryWithPrompt() => $"{_persistService.GetCurrentDirectoryPath()} {DirectoryConstants.TerminalPromptCharacter} ";
+
+        private void CreateSimpleTerminalResponse(string message) => EmitSignal(SignalName.KnownCommand, message);
+
+        private void SaveProgress() => EmitSignal(SignalName.SaveCommand);
+
+        private void Exit() => GetTree().Quit();
+
+        private void ChangeColor(string newColor) => EmitSignal(SignalName.ColorCommand, newColor);
+
+        private void ChangeDirectory(string newDirectory) => EmitSignal(SignalName.ChangeDirectoryCommand, newDirectory);
+
+        private void ListDirectory() => EmitSignal(SignalName.ListDirectoryCommand);
+
+        private void ViewFile(string fileName)
+        {
+            var file = _persistService.GetFile(fileName);
+            EmitSignal(SignalName.KnownCommand, file?.Contents ?? $"\"{fileName}\" does not exist.");
+        }
     }
 }
