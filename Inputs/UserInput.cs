@@ -92,7 +92,7 @@ namespace Terminal.Inputs
                 {
                     _commandMemoryIndex = _persistService.CommandMemory.Count - 1;
                 }
-                Text = string.Join(' ', GetDirectoryWithPrompt(), _persistService.CommandMemory.ElementAtOrDefault(_commandMemoryIndex));
+                Text = string.Concat(GetDirectoryWithPrompt(), _persistService.CommandMemory.ElementAtOrDefault(_commandMemoryIndex));
                 SetCaretColumn(Text.Length);
                 GetTree().Root.SetInputAsHandled();
                 return;
@@ -105,7 +105,7 @@ namespace Terminal.Inputs
                 {
                     _commandMemoryIndex = 0;
                 }
-                Text = string.Join(' ', GetDirectoryWithPrompt(), _persistService.CommandMemory.ElementAtOrDefault(_commandMemoryIndex));
+                Text = string.Concat(GetDirectoryWithPrompt(), _persistService.CommandMemory.ElementAtOrDefault(_commandMemoryIndex));
                 SetCaretColumn(Text.Length);
             }
 
