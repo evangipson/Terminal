@@ -85,6 +85,12 @@ namespace Terminal.Inputs
                 return;
             }
 
+            if (Input.IsPhysicalKeyPressed(Key.Tab))
+            {
+                AutocompletePhrase();
+                return;
+            }
+
             if (Input.IsPhysicalKeyPressed(Key.Up))
             {
                 _commandMemoryIndex -= 1;
@@ -118,9 +124,37 @@ namespace Terminal.Inputs
                     return;
                 }
             }
-        }
+		}
 
-        private void EvaluateCommand()
+        private void AutocompletePhrase()
+        {
+            var inputWithoutDirectory = Text.Replace(GetDirectoryWithPrompt(), string.Empty).Split(' ');
+            if (inputWithoutDirectory.FirstOrDefault() == "cd")
+            {
+                var matchingEntity = _persistService.GetCurrentDirectory().Entities.FirstOrDefault(entity => entity.IsDirectory && entity.Name.Contains(inputWithoutDirectory.Last()));
+                Text = string.Concat(GetDirectoryWithPrompt(), $"{inputWithoutDirectory.FirstOrDefault()} {matchingEntity}");
+                SetCaretColumn(Text.Length);
+			}
+            else if (inputWithoutDirectory.FirstOrDefault() == "view")
+			{
+				var matchingEntity = _persistService.GetCurrentDirectory().Entities.FirstOrDefault(entity => !entity.IsDirectory && entity.Name.Contains(inputWithoutDirectory.Last()));
+				Text = string.Concat(GetDirectoryWithPrompt(), $"{inputWithoutDirectory.FirstOrDefault()} {matchingEntity}");
+				SetCaretColumn(Text.Length);
+			}
+            else
+            {
+				var matchingEntities = _persistService.GetCurrentDirectory().Entities.Where(entity => entity.Name.Contains(inputWithoutDirectory.Last()));
+				if (matchingEntities != null)
+				{
+					EmitSignal(SignalName.KnownCommand, string.Join(' ', matchingEntities));
+					EmitSignal(SignalName.Evaluated);
+				}
+			}
+
+			GetTree().Root.SetInputAsHandled();
+		}
+
+		private void EvaluateCommand()
         {
             _commandMemoryIndex = 0;
 

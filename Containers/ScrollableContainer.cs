@@ -1,6 +1,5 @@
 using Godot;
-using System.Collections.Generic;
-using System.Linq;
+
 using Terminal.Constants;
 using Terminal.Inputs;
 using Terminal.Services;

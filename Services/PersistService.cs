@@ -58,11 +58,8 @@ namespace Terminal.Services
             }
 
             List<string> directoryTokensInPath = newDirectoryPath.Split('/').ToList();
-            IDirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault());
-            if (newCurrentDirectory == null)
-            {
-                newCurrentDirectory = GetRootDirectory().FindDirectory(newDirectoryPath);
-            }
+            IDirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault().TrimEnd('/'));
+            newCurrentDirectory ??= GetRootDirectory().FindDirectory(newDirectoryPath.TrimEnd('/'));
 
             SetCurrentDirectory(newCurrentDirectory);
         }
