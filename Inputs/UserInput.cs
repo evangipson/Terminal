@@ -169,7 +169,7 @@ namespace Terminal.Inputs
             var matchingEntities = _persistService.GetCurrentDirectory().Entities.Where(entity => entity.Name.Contains(inputWithoutDirectory.Last()));
             if (matchingEntities != null)
             {
-                EmitSignal(SignalName.KnownCommand, string.Join(' ', matchingEntities));
+				ListDirectory();
                 EmitSignal(SignalName.Evaluated);
             }
             GetTree().Root.SetInputAsHandled();
@@ -204,11 +204,7 @@ namespace Terminal.Inputs
 
         private void ListDirectory() => EmitSignal(SignalName.ListDirectoryCommand);
 
-        private void ViewFile(string fileName)
-        {
-            var file = _persistService.GetFile(fileName);
-            EmitSignal(SignalName.KnownCommand, file?.Contents ?? $"\"{fileName}\" does not exist.");
-        }
+        private void ViewFile(string fileName) => EmitSignal(SignalName.KnownCommand, _persistService.GetFile(fileName)?.Contents ?? $"\"{fileName}\" does not exist.");
 
         private void MakeFile(string fileName) => EmitSignal(SignalName.MakeFileCommand, fileName);
 

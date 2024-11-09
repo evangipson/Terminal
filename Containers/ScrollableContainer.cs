@@ -1,7 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 using Terminal.Constants;
 using Terminal.Inputs;
+using Terminal.Models;
 using Terminal.Services;
 
 namespace Terminal.Containers
@@ -72,6 +75,66 @@ namespace Terminal.Containers
             EmitSignal(SignalName.ChildEnteredTree);
         }
 
+        private void CreateResponse(string message)
+        {
+            var commandResponse = new Label()
+            {
+                Name = $"Response-{GetChildCount()}",
+                GrowHorizontal = GrowDirection.End,
+                GrowVertical = GrowDirection.End,
+                Theme = _defaultUserInputTheme,
+                Text = message,
+                FocusMode = FocusModeEnum.None,
+                AutowrapMode = TextServer.AutowrapMode.WordSmart
+            };
+
+            commandResponse.AddThemeColorOverride("font_color", _persistService.CurrentColor);
+            commandResponse.AddThemeColorOverride("caret_color", _persistService.CurrentColor);
+            commandResponse.AddThemeConstantOverride("outline_size", 0);
+            commandResponse.AddThemeConstantOverride("caret_width", 8);
+            commandResponse.AddThemeStyleboxOverride("normal", _emptyStyleBox);
+            commandResponse.AddThemeStyleboxOverride("focus", _emptyStyleBox);
+
+            AddChild(commandResponse);
+            commandResponse.Owner = this;
+
+            EmitSignal(SignalName.ChildEnteredTree);
+        }
+
+        private void CreateListDirectoryResponse(List<DirectoryEntity> entities)
+        {
+            var directoryResponse = new RichTextLabel()
+            {
+                Name = $"Response-{GetChildCount()}",
+                GrowHorizontal = GrowDirection.End,
+                GrowVertical = GrowDirection.End,
+                FitContent = true,
+                ScrollActive = false,
+                ShortcutKeysEnabled = false,
+                MouseFilter = MouseFilterEnum.Ignore,
+                Theme = _defaultUserInputTheme,
+                FocusMode = FocusModeEnum.None,
+                AutowrapMode = TextServer.AutowrapMode.WordSmart
+            };
+
+            List<string> entityList = entities.Select(entity =>
+            {
+                if (entity.Permissions.Contains(Permission.UserExecutable) || entity.Permissions.Contains(Permission.AdminExecutable))
+                {
+                    return $"[color=#{_persistService.ExecutableColor.ToHtml(false)}]{entity}[/color]";
+                }
+
+                return $"{entity}";
+            }).ToList();
+            directoryResponse.AppendText(string.Join(' ', entityList));
+            directoryResponse.AddThemeColorOverride("default_color", _persistService.CurrentColor);
+
+            AddChild(directoryResponse);
+            directoryResponse.Owner = this;
+
+            EmitSignal(SignalName.ChildEnteredTree);
+        }
+
         private void ColorCommandResponse(string colorName)
         {
             if (!ColorConstants.TerminalColors.TryGetValue(colorName, out Color newColor))
@@ -80,7 +143,14 @@ namespace Terminal.Containers
                 return;
             }
 
+            if(!ColorConstants.ColorToExecutableColorMap.TryGetValue(colorName, out Color executableColor))
+            {
+                GD.PrintErr($"Unable to find executable color mapping for '{colorName}'.");
+                return;
+            }
+
             _persistService.CurrentColor = newColor;
+            _persistService.ExecutableColor = executableColor;
             CreateResponse($"Color updated to {colorName}.");
         }
 
@@ -90,7 +160,7 @@ namespace Terminal.Containers
             CreateResponse("Progress saved.");
         }
 
-        private void ListDirectoryCommandResponse() => CreateResponse(string.Join(' ', _persistService.GetCurrentDirectory().Entities));
+        private void ListDirectoryCommandResponse() => CreateListDirectoryResponse(_persistService.GetCurrentDirectory().Entities);
 
         private void ChangeDirectoryCommandResponse(string newDirectory)
         {
@@ -208,32 +278,6 @@ namespace Terminal.Containers
                 CreateResponse(closeMessage);
                 AddNewUserInput();
             }
-        }
-
-        private void CreateResponse(string message)
-        {
-            var commandResponse = new Label()
-            {
-                Name = $"Response-{GetChildCount()}",
-                GrowHorizontal = GrowDirection.End,
-                GrowVertical = GrowDirection.End,
-                Theme = _defaultUserInputTheme,
-                Text = message,
-                FocusMode = FocusModeEnum.None,
-                AutowrapMode = TextServer.AutowrapMode.WordSmart
-            };
-
-            commandResponse.AddThemeColorOverride("font_color", _persistService.CurrentColor);
-            commandResponse.AddThemeColorOverride("caret_color", _persistService.CurrentColor);
-            commandResponse.AddThemeConstantOverride("outline_size", 0);
-            commandResponse.AddThemeConstantOverride("caret_width", 8);
-            commandResponse.AddThemeStyleboxOverride("normal", _emptyStyleBox);
-            commandResponse.AddThemeStyleboxOverride("focus", _emptyStyleBox);
-
-            AddChild(commandResponse);
-            commandResponse.Owner = this;
-
-            EmitSignal(SignalName.ChildEnteredTree);
         }
     }
 }

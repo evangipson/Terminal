@@ -2,6 +2,6 @@
 {
     public class DirectoryFile : DirectoryEntity
     {
-        public override string ToString() => string.Join('.', Name, Extension);
+        public override string ToString() => string.IsNullOrEmpty(Extension) ? Name : string.Join('.', Name, Extension);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Terminal.Constants;
 
 namespace Terminal.Models
 {
@@ -18,10 +19,10 @@ namespace Terminal.Models
         {
             if (IsRoot)
             {
-                return "/";
+                return DirectoryConstants.DirectorySeparator;
             }
 
-            return $"{Name}/";
+            return string.Concat(Name, DirectoryConstants.DirectorySeparator);
         }
     }
 }

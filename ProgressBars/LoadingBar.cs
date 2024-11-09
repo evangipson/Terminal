@@ -26,7 +26,7 @@ namespace Terminal.Game.ProgressBars
             _flatStyleBox = new()
             {
                 BgColor = _persistService.CurrentColor,
-                BorderColor = ColorConstants.Black
+                BorderColor = ColorConstants.TerminalBlack
             };
             AddThemeStyleboxOverride("fill", _flatStyleBox);
 

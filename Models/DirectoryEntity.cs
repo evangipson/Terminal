@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Terminal.Constants;
+
 namespace Terminal.Models
 {
     public class DirectoryEntity
@@ -15,6 +17,8 @@ namespace Terminal.Models
 
         public bool IsDirectory { get; set; } = false;
 
+        public List<Permission> Permissions { get; set; } = new() { Permission.None };
+
         public bool IsRoot { get; set; } = false;
 
         public Guid ParentId { get; set; }
@@ -27,13 +31,13 @@ namespace Terminal.Models
             {
                 if (IsRoot)
                 {
-                    return "/";
+                    return DirectoryConstants.DirectorySeparator;
                 }
 
-                return $"{Name}/";
+                return string.Concat(Name, DirectoryConstants.DirectorySeparator);
             }
 
-            return $"{Name}.{Extension}";
+            return string.IsNullOrEmpty(Extension) ? Name : string.Join('.', Name, Extension);
         }
     }
 }

@@ -14,6 +14,7 @@ namespace Terminal.Services
     public partial class PersistService : Node
     {
         public Color CurrentColor = ColorConstants.TerminalColors.First().Value;
+        public Color ExecutableColor = ColorConstants.ColorToExecutableColorMap.First().Value;
         public LinkedList<string> CommandMemory = new();
         public FileSystem FileSystem;
 
@@ -134,6 +135,10 @@ namespace Terminal.Services
             {
                 CurrentColor = (Color)loadedData["TerminalColor"];
             }
+            if (loadedData?.ContainsKey("ExecutableColor") == true)
+            {
+                ExecutableColor = (Color)loadedData["ExecutableColor"];
+            }
             if (loadedData?.ContainsKey("CommandMemory") == true && !string.IsNullOrEmpty(loadedData["CommandMemory"].ToString()))
             {
                 CommandMemory = new LinkedList<string>(loadedData["CommandMemory"].ToString().Split(','));
@@ -149,6 +154,7 @@ namespace Terminal.Services
             Dictionary saveData = new()
             {
                 ["TerminalColor"] = CurrentColor.ToHtml(false),
+                ["ExecutableColor"] = ExecutableColor.ToHtml(false),
                 ["CommandMemory"] = string.Join(',', CommandMemory),
                 ["FileSystem"] = JsonSerializer.Serialize(FileSystem)
             };
