@@ -7,17 +7,59 @@ using Terminal.Enums;
 
 namespace Terminal.Services
 {
+    /// <summary>
+    /// An evaluator that will evaluate user input and invoke a command.
+    /// </summary>
     public class UserCommandEvaluator
     {
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to create a simple response in the terminal.
+        /// </summary>
         public event Action<string> SimpleMessageCommand;
+
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to save progress.
+        /// </summary>
         public event Action SaveProgressCommand;
+
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to exit the terminal.
+        /// </summary>
         public event Action ExitCommand;
+
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to change the terminal color.
+        /// </summary>
         public event Action<string> ColorChangeCommand;
+
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to change the current directory.
+        /// </summary>
         public event Action<string> ChangeDirectoryCommand;
+
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to list the contents of the current directory.
+        /// </summary>
         public event Action ListDirectoryCommand;
+
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to view the contents of a file.
+        /// </summary>
         public event Action<string> ViewFileCommand;
+
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to create a new file.
+        /// </summary>
         public event Action<string> MakeFileCommand;
+
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to create a new folder.
+        /// </summary>
         public event Action<string> MakeDirectoryCommand;
+
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to launch the file editor and edit an existing file.
+        /// </summary>
         public event Action<string> EditFileCommand;
 
         private readonly List<UserCommand> _commandsThatNeedAdditionalArguments = new()
@@ -30,6 +72,12 @@ namespace Terminal.Services
             UserCommand.EditFile
         };
 
+        /// <summary>
+        /// Evalutes the provided <paramref name="command"/>, and invokes an <see langword="event"/> if it's successfully evaluated.
+        /// </summary>
+        /// <param name="command">
+        /// The command to evaluate and invoke an <see langword="event"/> for.
+        /// </param>
         public void EvaluateCommand(string command)
         {
             var parsedTokens = UserCommandService.ParseInputToTokens(command);
