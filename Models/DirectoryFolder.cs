@@ -1,30 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace Terminal.Models
 {
-    public class DirectoryFolder : IDirectoryEntity
+    public class DirectoryFolder : DirectoryEntity
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public DirectoryFolder()
+        {
+            IsDirectory = true;
+        }
 
-        public string Name { get; set; } = string.Empty;
+        public List<DirectoryEntity> Directories => Entities.Where(entity => entity.IsDirectory).ToList();
 
-        public string Contents { get; set; } = string.Empty;
-
-        public string Extension { get; set; } = string.Empty;
-
-        public bool IsDirectory { get; set; } = true;
-
-        public bool IsRoot { get; set; } = false;
-
-        public Guid ParentId { get; set; }
-
-        public List<IDirectoryEntity> Directories => Entities.Where(entity => entity.IsDirectory).ToList();
-
-        public List<IDirectoryEntity> Files => Entities.Except(Directories).ToList();
-
-        public List<IDirectoryEntity> Entities { get; set; } = new();
+        public List<DirectoryEntity> Files => Entities.Except(Directories).ToList();
 
         public override string ToString()
         {

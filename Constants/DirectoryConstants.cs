@@ -9,7 +9,7 @@ namespace Terminal.Constants
 
         public const string TerminalPromptCharacter = ">";
 
-        public static List<IDirectoryEntity> GetDefaultDirectoryStructure()
+        public static List<DirectoryEntity> GetDefaultDirectoryStructure()
         {
             DirectoryFolder rootDirectory = new() { Name = "/", IsRoot = true };
             DirectoryFolder rootSystemDirectory = new() { Name = "system", ParentId = rootDirectory.Id };

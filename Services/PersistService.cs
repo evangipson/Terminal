@@ -40,7 +40,7 @@ namespace Terminal.Services
 			CommandMemory.AddLast(command);
 		}
 
-		public void SetCurrentDirectory(IDirectoryEntity newCurrentDirectory)
+		public void SetCurrentDirectory(DirectoryEntity newCurrentDirectory)
 		{
 			if (newCurrentDirectory?.IsDirectory != true)
 			{
@@ -63,23 +63,55 @@ namespace Terminal.Services
 			}
 
 			List<string> directoryTokensInPath = newDirectoryPath.Split('/').ToList();
-			IDirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault().TrimEnd('/'));
+			DirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault().TrimEnd('/'));
 			newCurrentDirectory ??= GetRootDirectory().FindDirectory(newDirectoryPath.TrimEnd('/'));
 
 			SetCurrentDirectory(newCurrentDirectory);
 		}
 
-		public IDirectoryEntity GetParentDirectory(IDirectoryEntity currentDirectory) => GetRootDirectory().FindDirectory(currentDirectory.ParentId) ?? GetRootDirectory();
+		public DirectoryEntity GetParentDirectory(DirectoryEntity currentDirectory) => GetRootDirectory().FindDirectory(currentDirectory.ParentId) ?? GetRootDirectory();
 
-		public IDirectoryEntity GetRootDirectory() => FileSystem?.Root;
+		public DirectoryEntity GetRootDirectory() => FileSystem?.Root;
 
-		public IDirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem.CurrentDirectoryId) ?? GetRootDirectory();
+		public DirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem.CurrentDirectoryId) ?? GetRootDirectory();
 
 		public string GetCurrentDirectoryPath() => FileSystem.GetDirectoryPath(GetCurrentDirectory());
 
-		public IDirectoryEntity GetFile(string fileName) => GetCurrentDirectory().FindFile(fileName);
+		public DirectoryEntity GetFile(string fileName) => GetCurrentDirectory().FindFile(fileName);
 
-		public IDirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users").FindDirectory("user").FindDirectory("home");
+		public DirectoryEntity GetDirectory(string directoryName) => GetCurrentDirectory().FindDirectory(directoryName);
+
+		public DirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users").FindDirectory("user").FindDirectory("home");
+
+		public void CreateFile(string fileName)
+		{
+			var newFile = new DirectoryFile()
+			{
+				ParentId = GetCurrentDirectory().Id
+			};
+
+			var name = fileName;
+			var fileTokens = fileName.Split('.');
+			if (fileTokens.Length > 1)
+			{
+				name = string.Join('.', fileTokens.Take(fileTokens.Length - 1));
+				newFile.Extension = fileTokens.Last();
+			}
+
+			newFile.Name = name;
+			GetCurrentDirectory().Entities.Add(newFile);
+		}
+
+		public void CreateDirectory(string directoryName)
+		{
+			var newDirectory = new DirectoryFolder()
+			{
+				Name = directoryName,
+				ParentId = GetCurrentDirectory().Id
+			};
+
+			GetCurrentDirectory().Entities.Add(newDirectory);
+		}
 
 		public void LoadGame()
 		{

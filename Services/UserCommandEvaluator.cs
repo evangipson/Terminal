@@ -16,12 +16,23 @@ namespace Terminal.Services
         public event Action<string> ChangeDirectoryCommand;
         public event Action ListDirectoryCommand;
         public event Action<string> ViewFileCommand;
+		public event Action<string> MakeFileCommand;
+		public event Action<string> MakeDirectoryCommand;
 
-        public void EvaluateCommand(string command)
+		private readonly List<UserCommand> _commandsThatNeedAdditionalArguments = new()
+		{
+			UserCommand.Color,
+			UserCommand.ChangeDirectory,
+			UserCommand.ViewFile,
+			UserCommand.MakeFile,
+			UserCommand.MakeDirectory
+		};
+
+		public void EvaluateCommand(string command)
         {
             var parsedTokens = UserCommandService.ParseInputToTokens(command);
             var userCommand = UserCommandService.EvaluateUserInput(command);
-            var unqualifiedCommand = (userCommand == UserCommand.Color || userCommand == UserCommand.ChangeDirectory || userCommand == UserCommand.ViewFile) && parsedTokens.Count == 1;
+            var unqualifiedCommand = _commandsThatNeedAdditionalArguments.Contains(userCommand) && parsedTokens.Count == 1;
             if (userCommand == UserCommand.Help || userCommand == UserCommand.Commands || unqualifiedCommand)
             {
                 var helpContextToken = userCommand;
@@ -48,8 +59,18 @@ namespace Terminal.Services
             {
                 ViewFileCommand?.Invoke(parsedTokens.Take(2).Last());
                 return;
-            }
-            if (userCommand == UserCommand.Color)
+			}
+			if (userCommand == UserCommand.MakeFile)
+			{
+				MakeFileCommand?.Invoke(parsedTokens.Take(2).Last());
+				return;
+			}
+			if (userCommand == UserCommand.MakeDirectory)
+			{
+				MakeDirectoryCommand?.Invoke(parsedTokens.Take(2).Last());
+				return;
+			}
+			if (userCommand == UserCommand.Color)
             {
                 ColorChangeCommand?.Invoke(parsedTokens.Take(2).Last());
                 return;
@@ -63,9 +84,9 @@ namespace Terminal.Services
             {
                 ExitCommand?.Invoke();
                 return;
-            }
+			}
 
-            SimpleMessageCommand?.Invoke($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.");
+			SimpleMessageCommand?.Invoke($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.");
         }
 
         private static string EvaluateHelpCommand(UserCommand? typeOfHelp = UserCommand.Help)
@@ -119,7 +140,19 @@ namespace Terminal.Services
                     ["REMARKS"] = "View the contents of a file.",
                     ["EXAMPLES"] = "view file.ext    : List the contents of the file.ext file."
                 }),
-                _ => string.Empty
+				UserCommand.MakeFile => GetOutputFromTokens(new()
+				{
+					["COMMAND"] = "mf",
+					["REMARKS"] = "Make a file.",
+					["EXAMPLES"] = "make new.txt    : Creates a blank file called 'new.txt' in the current directory."
+				}),
+				UserCommand.MakeDirectory => GetOutputFromTokens(new()
+				{
+					["COMMAND"] = "md",
+					["REMARKS"] = "Make a directory.",
+					["EXAMPLES"] = "md newdir    : Creates an empty directory called 'newdir' in the current directory."
+				}),
+				_ => string.Empty
             };
         }
         private static string GetOutputFromTokens(Dictionary<string, string> outputTokens) => string.Join('\n', outputTokens.Select(token => string.Join('\n', token.Key, $"    {token.Value}")));

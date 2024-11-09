@@ -27,6 +27,12 @@ namespace Terminal.Inputs
         [Signal]
         public delegate void ChangeDirectoryCommandEventHandler(string newDirectory);
 
+        [Signal]
+        public delegate void MakeFileCommandEventHandler(string fileName);
+
+        [Signal]
+        public delegate void MakeDirectoryCommandEventHandler(string directoryName);
+
         private KeyboardSounds _keyboardSounds;
         private PersistService _persistService;
         private UserCommandEvaluator _userCommandEvaluator;
@@ -47,6 +53,8 @@ namespace Terminal.Inputs
             _userCommandEvaluator.ChangeDirectoryCommand += ChangeDirectory;
             _userCommandEvaluator.ListDirectoryCommand += ListDirectory;
             _userCommandEvaluator.ViewFileCommand += ViewFile;
+            _userCommandEvaluator.MakeFileCommand += MakeFile;
+            _userCommandEvaluator.MakeDirectoryCommand += MakeDirectory;
 
             Text = GetDirectoryWithPrompt();
             SetCaretColumn(Text.Length);
@@ -187,6 +195,10 @@ namespace Terminal.Inputs
         {
             var file = _persistService.GetFile(fileName);
             EmitSignal(SignalName.KnownCommand, file?.Contents ?? $"\"{fileName}\" does not exist.");
-        }
-    }
+		}
+
+		private void MakeFile(string fileName) => EmitSignal(SignalName.MakeFileCommand, fileName);
+
+		private void MakeDirectory(string directoryName) => EmitSignal(SignalName.MakeDirectoryCommand, directoryName);
+	}
 }

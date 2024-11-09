@@ -1,28 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using Terminal.Services;
 
 namespace Terminal.Models
 {
     public class FileSystem
     {
-        public List<IDirectoryEntity> Directories { get; set; } = new();
+        public List<DirectoryEntity> Directories { get; set; } = new();
 
         public Guid CurrentDirectoryId { get; set; }
 
-        public IDirectoryEntity Root => Directories.First(entity => entity.IsRoot);
+        [JsonIgnore]
+        public DirectoryEntity Root => Directories.First(entity => entity.IsRoot);
 
-        public string GetDirectoryPath(IDirectoryEntity directory) => string.Concat(GetAbsoluteDirectory(directory));
+        public string GetDirectoryPath(DirectoryEntity directory) => string.Concat(GetAbsoluteDirectory(directory));
 
-        public List<IDirectoryEntity> GetAbsoluteDirectory(IDirectoryEntity directory)
+        public List<DirectoryEntity> GetAbsoluteDirectory(DirectoryEntity directory)
         {
             if (directory?.IsDirectory != true)
             {
                 return new() { Root };
             }
 
-            List<IDirectoryEntity> directoryPath = new();
+            List<DirectoryEntity> directoryPath = new();
             var foundDirectory = directory;
             while (foundDirectory != null)
             {

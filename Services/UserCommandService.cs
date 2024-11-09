@@ -26,7 +26,9 @@ namespace Terminal.Services
             "ls" => UserCommand.ListDirectory,
             "cd" => UserCommand.ChangeDirectory,
             "view" => UserCommand.ViewFile,
-            _ => UserCommand.Unknown
+            "mf" => UserCommand.MakeFile,
+			"md" => UserCommand.MakeDirectory,
+			_ => UserCommand.Unknown
         };
     }
 }

@@ -12,7 +12,7 @@ namespace Terminal.Services
             Directories = DirectoryConstants.GetDefaultDirectoryStructure()
         };
 
-        public static IDirectoryEntity FindFile(this IDirectoryEntity node, string fileName)
+        public static DirectoryEntity FindFile(this DirectoryEntity node, string fileName)
         {
             if (node == null)
             {
@@ -36,7 +36,7 @@ namespace Terminal.Services
             return null;
         }
 
-        public static IDirectoryEntity FindDirectory(this IDirectoryEntity node, string name)
+        public static DirectoryEntity FindDirectory(this DirectoryEntity node, string name)
         {
             if (node == null)
             {
@@ -60,7 +60,7 @@ namespace Terminal.Services
             return null;
         }
 
-        public static IDirectoryEntity FindDirectory(this IDirectoryEntity node, Guid id)
+        public static DirectoryEntity FindDirectory(this DirectoryEntity node, Guid id)
         {
             if (node == null)
             {

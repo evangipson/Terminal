@@ -10,6 +10,8 @@ namespace Terminal.Enums
         ListDirectory,
         ChangeDirectory,
         ViewFile,
+        MakeFile,
+        MakeDirectory,
         Unknown
     };
 }

@@ -57,6 +57,8 @@ namespace Terminal.Containers
             newUserInput.SaveCommand += SaveCommandResponse;
             newUserInput.ListDirectoryCommand += ListDirectoryCommandResponse;
             newUserInput.ChangeDirectoryCommand += ChangeDirectoryCommandResponse;
+            newUserInput.MakeFileCommand += MakeFileCommandResponse;
+            newUserInput.MakeDirectoryCommand += MakeDirectoryCommandResponse;
 
             AddChild(newUserInput);
             newUserInput.Owner = this;
@@ -114,6 +116,44 @@ namespace Terminal.Containers
             }
 
             _persistService.SetCurrentDirectory(newDirectory);
+        }
+
+        private void MakeFileCommandResponse(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                CreateResponse("File can't be made without a name.");
+                return;
+            }
+
+            var existingFile = _persistService.GetFile(fileName);
+            if (existingFile != null)
+            {
+                CreateResponse($"File with the name of '{fileName}' already exists.");
+                return;
+            }
+
+            _persistService.CreateFile(fileName);
+            CreateResponse($"New file '{fileName}' created.");
+        }
+
+        private void MakeDirectoryCommandResponse(string directoryName)
+        {
+            if (string.IsNullOrEmpty(directoryName))
+            {
+                CreateResponse("Directory can't be made without a name.");
+                return;
+            }
+
+            var existingDirectory = _persistService.GetDirectory(directoryName);
+            if (existingDirectory != null)
+            {
+                CreateResponse($"Directory with the name of '{directoryName}' already exists.");
+                return;
+            }
+
+            _persistService.CreateDirectory(directoryName);
+            CreateResponse($"New directory '{directoryName}' created.");
         }
 
         private void CreateResponse(string message)
