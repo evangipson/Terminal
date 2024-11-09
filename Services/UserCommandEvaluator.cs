@@ -175,7 +175,7 @@ namespace Terminal.Services
                 {
                     ["COMMAND"] = "commands",
                     ["REMARKS"] = "Displays information about the terminal commands. Use help [command] to get more information about each command.",
-                    ["COMMANDS"] = "help, commands, list, change, view, makefile, makedirectory, edit, save, color, exit"
+                    ["COMMANDS"] = string.Join(", ", UserCommandService.GetAllCommands())
                 }),
                 UserCommand.ChangeDirectory => GetOutputFromTokens(new()
                 {

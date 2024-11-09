@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Terminal.Models;
+using Terminal.Services;
 
 namespace Terminal.Constants
 {
@@ -41,21 +43,14 @@ namespace Terminal.Constants
                 rootTempDirectory
             };
 
+            // Fill the "/system/programs/" folder with all commands as executable files
             DirectoryFolder systemProgramsDirectory = new() { Name = "programs", ParentId = rootSystemDirectory.Id, Permissions = adminReadWritePermissions };
-            systemProgramsDirectory.Entities = new()
+            systemProgramsDirectory.Entities = UserCommandService.GetAllCommands().Select(command => new DirectoryEntity()
             {
-                new DirectoryFile() { Name = "exit", ParentId = systemProgramsDirectory.Id, Permissions = userExecutablePermissions },
-                new DirectoryFile() { Name = "help", ParentId = systemProgramsDirectory.Id, Permissions = userExecutablePermissions },
-                new DirectoryFile() { Name = "color", ParentId = systemProgramsDirectory.Id, Permissions = userExecutablePermissions },
-                new DirectoryFile() { Name = "save", ParentId = systemProgramsDirectory.Id, Permissions = userExecutablePermissions },
-                new DirectoryFile() { Name = "commands", ParentId = systemProgramsDirectory.Id, Permissions = userExecutablePermissions },
-                new DirectoryFile() { Name = "list", ParentId = systemProgramsDirectory.Id, Permissions = userExecutablePermissions },
-                new DirectoryFile() { Name = "changedir", ParentId = systemProgramsDirectory.Id, Permissions = userExecutablePermissions },
-                new DirectoryFile() { Name = "view", ParentId = systemProgramsDirectory.Id, Permissions = userExecutablePermissions },
-                new DirectoryFile() { Name = "makefile", ParentId = systemProgramsDirectory.Id, Permissions = userExecutablePermissions },
-                new DirectoryFile() { Name = "makedir", ParentId = systemProgramsDirectory.Id, Permissions = userExecutablePermissions },
-                new DirectoryFile() { Name = "edit", ParentId = systemProgramsDirectory.Id, Permissions = userExecutablePermissions }
-            };
+                Name = command,
+                ParentId = systemProgramsDirectory.Id,
+                Permissions = userExecutablePermissions
+            }).ToList();
 
             rootSystemDirectory.Entities = new()
             {

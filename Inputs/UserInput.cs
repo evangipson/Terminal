@@ -204,7 +204,23 @@ namespace Terminal.Inputs
 
         private void ListDirectory() => EmitSignal(SignalName.ListDirectoryCommand);
 
-        private void ViewFile(string fileName) => EmitSignal(SignalName.KnownCommand, _persistService.GetFile(fileName)?.Contents ?? $"\"{fileName}\" does not exist.");
+        private void ViewFile(string fileName)
+        {
+            var file = _persistService.GetFile(fileName);
+            if(file == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"\"{fileName}\" does not exist.");
+                return;
+            }
+
+            if(file.Permissions.Contains(Permission.AdminExecutable) || file.Permissions.Contains(Permission.UserExecutable))
+            {
+                EmitSignal(SignalName.KnownCommand, $"\"{fileName}\" is an executable.");
+                return;
+            }
+
+            EmitSignal(SignalName.KnownCommand, _persistService.GetFile(fileName)?.Contents ?? $"\"{fileName}\" does not exist.");
+        }
 
         private void MakeFile(string fileName) => EmitSignal(SignalName.MakeFileCommand, fileName);
 
