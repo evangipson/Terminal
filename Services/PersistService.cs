@@ -11,187 +11,187 @@ using Terminal.Models;
 
 namespace Terminal.Services
 {
-	public partial class PersistService : Node
-	{
-		public Color CurrentColor = ColorConstants.TerminalColors.First().Value;
-		public LinkedList<string> CommandMemory = new();
-		public FileSystem FileSystem;
+    public partial class PersistService : Node
+    {
+        public Color CurrentColor = ColorConstants.TerminalColors.First().Value;
+        public LinkedList<string> CommandMemory = new();
+        public FileSystem FileSystem;
 
-		private readonly string _path = ProjectSettings.GlobalizePath("user://");
-		private readonly string _fileName = "savegame.json";
-		private readonly int _commandMemoryLimit = 10;
+        private readonly string _path = ProjectSettings.GlobalizePath("user://");
+        private readonly string _fileName = "savegame.json";
+        private readonly int _commandMemoryLimit = 10;
 
-		public override void _Ready()
-		{
-			FileSystem = DirectoryService.CreateNewFileSystem();
-			FileSystem.CurrentDirectoryId = GetHomeDirectory().Id;
-			LoadGame();
-		}
+        public override void _Ready()
+        {
+            FileSystem = DirectoryService.CreateNewFileSystem();
+            FileSystem.CurrentDirectoryId = GetHomeDirectory().Id;
+            LoadGame();
+        }
 
-		public void AddCommandToMemory(string command)
-		{
-			if (CommandMemory.Count > _commandMemoryLimit)
-			{
-				CommandMemory.RemoveFirst();
-				CommandMemory.AddLast(command);
-				return;
-			}
+        public void AddCommandToMemory(string command)
+        {
+            if (CommandMemory.Count > _commandMemoryLimit)
+            {
+                CommandMemory.RemoveFirst();
+                CommandMemory.AddLast(command);
+                return;
+            }
 
-			CommandMemory.AddLast(command);
-		}
+            CommandMemory.AddLast(command);
+        }
 
-		public void SetCurrentDirectory(DirectoryEntity newCurrentDirectory)
-		{
-			if (newCurrentDirectory?.IsDirectory != true)
-			{
-				return;
-			}
+        public void SetCurrentDirectory(DirectoryEntity newCurrentDirectory)
+        {
+            if (newCurrentDirectory?.IsDirectory != true)
+            {
+                return;
+            }
 
-			FileSystem.CurrentDirectoryId = newCurrentDirectory.Id;
-		}
+            FileSystem.CurrentDirectoryId = newCurrentDirectory.Id;
+        }
 
-		public void SetCurrentDirectory(string newDirectoryPath)
-		{
-			if (string.IsNullOrEmpty(newDirectoryPath))
-			{
-				return;
-			}
+        public void SetCurrentDirectory(string newDirectoryPath)
+        {
+            if (string.IsNullOrEmpty(newDirectoryPath))
+            {
+                return;
+            }
 
-			if (newDirectoryPath == "/")
-			{
-				SetCurrentDirectory(GetRootDirectory());
-			}
+            if (newDirectoryPath == "/")
+            {
+                SetCurrentDirectory(GetRootDirectory());
+            }
 
-			List<string> directoryTokensInPath = newDirectoryPath.Split('/').ToList();
-			DirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault().TrimEnd('/'));
-			newCurrentDirectory ??= GetRootDirectory().FindDirectory(newDirectoryPath.TrimEnd('/'));
+            List<string> directoryTokensInPath = newDirectoryPath.Split('/').ToList();
+            DirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault().TrimEnd('/'));
+            newCurrentDirectory ??= GetRootDirectory().FindDirectory(newDirectoryPath.TrimEnd('/'));
 
-			SetCurrentDirectory(newCurrentDirectory);
-		}
+            SetCurrentDirectory(newCurrentDirectory);
+        }
 
-		public DirectoryEntity GetParentDirectory(DirectoryEntity currentDirectory) => GetRootDirectory().FindDirectory(currentDirectory.ParentId) ?? GetRootDirectory();
+        public DirectoryEntity GetParentDirectory(DirectoryEntity currentDirectory) => GetRootDirectory().FindDirectory(currentDirectory.ParentId) ?? GetRootDirectory();
 
-		public DirectoryEntity GetRootDirectory() => FileSystem?.Root;
+        public DirectoryEntity GetRootDirectory() => FileSystem?.Root;
 
-		public DirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem.CurrentDirectoryId) ?? GetRootDirectory();
+        public DirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem.CurrentDirectoryId) ?? GetRootDirectory();
 
-		public string GetCurrentDirectoryPath() => FileSystem.GetDirectoryPath(GetCurrentDirectory());
+        public string GetCurrentDirectoryPath() => FileSystem.GetDirectoryPath(GetCurrentDirectory());
 
-		public DirectoryEntity GetFile(string fileName) => GetCurrentDirectory().FindFile(fileName);
+        public DirectoryEntity GetFile(string fileName) => GetCurrentDirectory().FindFile(fileName);
 
-		public DirectoryEntity GetDirectory(string directoryName) => GetCurrentDirectory().FindDirectory(directoryName);
+        public DirectoryEntity GetDirectory(string directoryName) => GetCurrentDirectory().FindDirectory(directoryName);
 
-		public DirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users").FindDirectory("user").FindDirectory("home");
+        public DirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users").FindDirectory("user").FindDirectory("home");
 
-		public void CreateFile(string fileName)
-		{
-			var newFile = new DirectoryFile()
-			{
-				ParentId = GetCurrentDirectory().Id
-			};
+        public void CreateFile(string fileName)
+        {
+            var newFile = new DirectoryFile()
+            {
+                ParentId = GetCurrentDirectory().Id
+            };
 
-			var name = fileName;
-			var fileTokens = fileName.Split('.');
-			if (fileTokens.Length > 1)
-			{
-				name = string.Join('.', fileTokens.Take(fileTokens.Length - 1));
-				newFile.Extension = fileTokens.Last();
-			}
+            var name = fileName;
+            var fileTokens = fileName.Split('.');
+            if (fileTokens.Length > 1)
+            {
+                name = string.Join('.', fileTokens.Take(fileTokens.Length - 1));
+                newFile.Extension = fileTokens.Last();
+            }
 
-			newFile.Name = name;
-			GetCurrentDirectory().Entities.Add(newFile);
-		}
+            newFile.Name = name;
+            GetCurrentDirectory().Entities.Add(newFile);
+        }
 
-		public void CreateDirectory(string directoryName)
-		{
-			var newDirectory = new DirectoryFolder()
-			{
-				Name = directoryName,
-				ParentId = GetCurrentDirectory().Id
-			};
+        public void CreateDirectory(string directoryName)
+        {
+            var newDirectory = new DirectoryFolder()
+            {
+                Name = directoryName,
+                ParentId = GetCurrentDirectory().Id
+            };
 
-			GetCurrentDirectory().Entities.Add(newDirectory);
-		}
+            GetCurrentDirectory().Entities.Add(newDirectory);
+        }
 
-		public void LoadGame()
-		{
-			var saveDataJson = LoadDataFromFile(_path, _fileName);
-			if (string.IsNullOrEmpty(saveDataJson))
-			{
-				return;
-			}
+        public void LoadGame()
+        {
+            var saveDataJson = LoadDataFromFile(_path, _fileName);
+            if (string.IsNullOrEmpty(saveDataJson))
+            {
+                return;
+            }
 
-			Json jsonLoader = new();
-			Error error = jsonLoader.Parse(saveDataJson);
-			if (error != Error.Ok)
-			{
-				GD.PrintErr("Unable to parse save game.");
-				return;
-			}
+            Json jsonLoader = new();
+            Error error = jsonLoader.Parse(saveDataJson);
+            if (error != Error.Ok)
+            {
+                GD.PrintErr("Unable to parse save game.");
+                return;
+            }
 
-			Dictionary loadedData = (Dictionary)jsonLoader?.Data;
-			if (loadedData?.ContainsKey("TerminalColor") == true)
-			{
-				CurrentColor = (Color)loadedData["TerminalColor"];
-			}
-			if (loadedData?.ContainsKey("CommandMemory") == true && !string.IsNullOrEmpty(loadedData["CommandMemory"].ToString()))
-			{
-				CommandMemory = new LinkedList<string>(loadedData["CommandMemory"].ToString().Split(','));
-			}
-			if (loadedData?.ContainsKey("FileSystem") == true && !string.IsNullOrEmpty(loadedData["FileSystem"].ToString()))
-			{
-				FileSystem = JsonSerializer.Deserialize<FileSystem>(loadedData["FileSystem"].ToString());
-			}
-		}
+            Dictionary loadedData = (Dictionary)jsonLoader?.Data;
+            if (loadedData?.ContainsKey("TerminalColor") == true)
+            {
+                CurrentColor = (Color)loadedData["TerminalColor"];
+            }
+            if (loadedData?.ContainsKey("CommandMemory") == true && !string.IsNullOrEmpty(loadedData["CommandMemory"].ToString()))
+            {
+                CommandMemory = new LinkedList<string>(loadedData["CommandMemory"].ToString().Split(','));
+            }
+            if (loadedData?.ContainsKey("FileSystem") == true && !string.IsNullOrEmpty(loadedData["FileSystem"].ToString()))
+            {
+                FileSystem = JsonSerializer.Deserialize<FileSystem>(loadedData["FileSystem"].ToString());
+            }
+        }
 
-		public void SaveGame()
-		{
-			Dictionary saveData = new()
-			{
-				["TerminalColor"] = CurrentColor.ToHtml(false),
-				["CommandMemory"] = string.Join(',', CommandMemory),
-				["FileSystem"] = JsonSerializer.Serialize(FileSystem)
-			};
+        public void SaveGame()
+        {
+            Dictionary saveData = new()
+            {
+                ["TerminalColor"] = CurrentColor.ToHtml(false),
+                ["CommandMemory"] = string.Join(',', CommandMemory),
+                ["FileSystem"] = JsonSerializer.Serialize(FileSystem)
+            };
 
-			var saveDataJson = Json.Stringify(saveData);
-			SaveDataToFile(_path, _fileName, saveDataJson);
-		}
+            var saveDataJson = Json.Stringify(saveData);
+            SaveDataToFile(_path, _fileName, saveDataJson);
+        }
 
-		private static void SaveDataToFile(string path, string fileName, string data)
-		{
-			if (!Directory.Exists(path))
-			{
-				Directory.CreateDirectory(path);
-			}
+        private static void SaveDataToFile(string path, string fileName, string data)
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
 
-			var saveFileLocation = Path.Join(path, fileName);
-			try
-			{
-				File.WriteAllText(saveFileLocation, data);
-			}
-			catch (Exception exception)
-			{
-				GD.PrintErr("Could not write save game file: ", exception.Message);
-			}
-		}
+            var saveFileLocation = Path.Join(path, fileName);
+            try
+            {
+                File.WriteAllText(saveFileLocation, data);
+            }
+            catch (Exception exception)
+            {
+                GD.PrintErr("Could not write save game file: ", exception.Message);
+            }
+        }
 
-		private static string LoadDataFromFile(string path, string fileName)
-		{
-			if (!Directory.Exists(path))
-			{
-				return string.Empty;
-			}
+        private static string LoadDataFromFile(string path, string fileName)
+        {
+            if (!Directory.Exists(path))
+            {
+                return string.Empty;
+            }
 
-			var saveFileLocation = Path.Join(path, fileName);
-			try
-			{
-				return File.ReadAllText(saveFileLocation);
-			}
-			catch (Exception exception)
-			{
-				GD.PrintErr("Could not read save game file: ", exception.Message);
-				return string.Empty;
-			}
-		}
-	}
+            var saveFileLocation = Path.Join(path, fileName);
+            try
+            {
+                return File.ReadAllText(saveFileLocation);
+            }
+            catch (Exception exception)
+            {
+                GD.PrintErr("Could not read save game file: ", exception.Message);
+                return string.Empty;
+            }
+        }
+    }
 }

@@ -1,8 +1,11 @@
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
 using Terminal.Audio;
 using Terminal.Constants;
+using Terminal.Enums;
+using Terminal.Models;
 using Terminal.Services;
 
 namespace Terminal.Inputs
@@ -33,11 +36,15 @@ namespace Terminal.Inputs
         [Signal]
         public delegate void MakeDirectoryCommandEventHandler(string directoryName);
 
+        [Signal]
+        public delegate void EditFileCommandEventHandler(string fileName);
+
         private KeyboardSounds _keyboardSounds;
         private PersistService _persistService;
         private UserCommandEvaluator _userCommandEvaluator;
         private bool _hasFocus = false;
         private int _commandMemoryIndex;
+        private DirectoryEntity _autocompletedEntity;
 
         public override void _Ready()
         {
@@ -55,6 +62,7 @@ namespace Terminal.Inputs
             _userCommandEvaluator.ViewFileCommand += ViewFile;
             _userCommandEvaluator.MakeFileCommand += MakeFile;
             _userCommandEvaluator.MakeDirectoryCommand += MakeDirectory;
+            _userCommandEvaluator.EditFileCommand += EditFile;
 
             Text = GetDirectoryWithPrompt();
             SetCaretColumn(Text.Length);
@@ -132,37 +140,42 @@ namespace Terminal.Inputs
                     return;
                 }
             }
-		}
+        }
 
         private void AutocompletePhrase()
         {
             var inputWithoutDirectory = Text.Replace(GetDirectoryWithPrompt(), string.Empty).Split(' ');
-            if (inputWithoutDirectory.FirstOrDefault() == "cd")
+            var userCommand = UserCommandService.EvaluateToken(inputWithoutDirectory.FirstOrDefault());
+
+            DirectoryEntity matchingEntity = _persistService.GetCurrentDirectory().Entities.FirstOrDefault(entity =>
             {
-                var matchingEntity = _persistService.GetCurrentDirectory().Entities.FirstOrDefault(entity => entity.IsDirectory && entity.Name.Contains(inputWithoutDirectory.Last()));
+                return (entity.IsDirectory == (userCommand == UserCommand.ChangeDirectory)) && entity.Name.Contains(inputWithoutDirectory.Last());
+            });
+            if (_autocompletedEntity != null)
+            {
+                matchingEntity = _persistService.GetCurrentDirectory().Entities.SkipWhile(p => p.Name != _autocompletedEntity.Name).Skip(1).FirstOrDefault()
+                    ?? _persistService.GetCurrentDirectory().Entities.FirstOrDefault();
+            }
+
+            if (userCommand == UserCommand.ChangeDirectory || userCommand == UserCommand.ViewFile || userCommand == UserCommand.EditFile)
+            {
                 Text = string.Concat(GetDirectoryWithPrompt(), $"{inputWithoutDirectory.FirstOrDefault()} {matchingEntity}");
                 SetCaretColumn(Text.Length);
-			}
-            else if (inputWithoutDirectory.FirstOrDefault() == "view")
-			{
-				var matchingEntity = _persistService.GetCurrentDirectory().Entities.FirstOrDefault(entity => !entity.IsDirectory && entity.Name.Contains(inputWithoutDirectory.Last()));
-				Text = string.Concat(GetDirectoryWithPrompt(), $"{inputWithoutDirectory.FirstOrDefault()} {matchingEntity}");
-				SetCaretColumn(Text.Length);
-			}
-            else
+                _autocompletedEntity = matchingEntity;
+                GetTree().Root.SetInputAsHandled();
+                return;
+            }
+
+            var matchingEntities = _persistService.GetCurrentDirectory().Entities.Where(entity => entity.Name.Contains(inputWithoutDirectory.Last()));
+            if (matchingEntities != null)
             {
-				var matchingEntities = _persistService.GetCurrentDirectory().Entities.Where(entity => entity.Name.Contains(inputWithoutDirectory.Last()));
-				if (matchingEntities != null)
-				{
-					EmitSignal(SignalName.KnownCommand, string.Join(' ', matchingEntities));
-					EmitSignal(SignalName.Evaluated);
-				}
-			}
+                EmitSignal(SignalName.KnownCommand, string.Join(' ', matchingEntities));
+                EmitSignal(SignalName.Evaluated);
+            }
+            GetTree().Root.SetInputAsHandled();
+        }
 
-			GetTree().Root.SetInputAsHandled();
-		}
-
-		private void EvaluateCommand()
+        private void EvaluateCommand()
         {
             _commandMemoryIndex = 0;
 
@@ -195,10 +208,12 @@ namespace Terminal.Inputs
         {
             var file = _persistService.GetFile(fileName);
             EmitSignal(SignalName.KnownCommand, file?.Contents ?? $"\"{fileName}\" does not exist.");
-		}
+        }
 
-		private void MakeFile(string fileName) => EmitSignal(SignalName.MakeFileCommand, fileName);
+        private void MakeFile(string fileName) => EmitSignal(SignalName.MakeFileCommand, fileName);
 
-		private void MakeDirectory(string directoryName) => EmitSignal(SignalName.MakeDirectoryCommand, directoryName);
-	}
+        private void MakeDirectory(string directoryName) => EmitSignal(SignalName.MakeDirectoryCommand, directoryName);
+
+        private void EditFile(string fileName) => EmitSignal(SignalName.EditFileCommand, fileName);
+    }
 }

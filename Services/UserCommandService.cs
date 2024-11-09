@@ -23,12 +23,13 @@ namespace Terminal.Services
             "save" => UserCommand.Save,
             "commands" => UserCommand.Commands,
             "exit" => UserCommand.Exit,
-            "ls" => UserCommand.ListDirectory,
-            "cd" => UserCommand.ChangeDirectory,
-            "view" => UserCommand.ViewFile,
-            "mf" => UserCommand.MakeFile,
-			"md" => UserCommand.MakeDirectory,
-			_ => UserCommand.Unknown
+            "ls" or "list" or "listdir" => UserCommand.ListDirectory,
+            "cd" or "change" or "changedir" => UserCommand.ChangeDirectory,
+            "vw" or "view" => UserCommand.ViewFile,
+            "mf" or "makefile" => UserCommand.MakeFile,
+            "md" or "makedirectory" or "makedir" => UserCommand.MakeDirectory,
+            "edit" => UserCommand.EditFile,
+            _ => UserCommand.Unknown
         };
     }
 }

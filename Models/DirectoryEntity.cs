@@ -20,5 +20,20 @@ namespace Terminal.Models
         public Guid ParentId { get; set; }
 
         public List<DirectoryEntity> Entities { get; set; } = new();
-	}
+
+        public override string ToString()
+        {
+            if(IsDirectory)
+            {
+                if (IsRoot)
+                {
+                    return "/";
+                }
+
+                return $"{Name}/";
+            }
+
+            return $"{Name}.{Extension}";
+        }
+    }
 }

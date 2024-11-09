@@ -12,6 +12,7 @@ namespace Terminal.Enums
         ViewFile,
         MakeFile,
         MakeDirectory,
+        EditFile,
         Unknown
     };
 }

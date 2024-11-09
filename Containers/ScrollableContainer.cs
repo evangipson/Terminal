@@ -12,12 +12,17 @@ namespace Terminal.Containers
         private Theme _defaultUserInputTheme;
         private PersistService _persistService;
         private StyleBoxEmpty _emptyStyleBox = new();
+        private FileInput _fileInput;
 
         public override void _Ready()
         {
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
             _defaultUserInputTheme = GD.Load<Theme>(ThemePathConstants.MonospaceFontThemePath);
             _userInput = GetNode<UserInput>("UserInput");
+            _fileInput = GetNode<FileInput>("%FileInput");
+            _fileInput.SaveFileCommand += SaveFileCommandResponse;
+            _fileInput.CloseFileCommand += CloseFileCommandResponse;
+
             AddNewUserInput();
         }
 
@@ -59,6 +64,7 @@ namespace Terminal.Containers
             newUserInput.ChangeDirectoryCommand += ChangeDirectoryCommandResponse;
             newUserInput.MakeFileCommand += MakeFileCommandResponse;
             newUserInput.MakeDirectoryCommand += MakeDirectoryCommandResponse;
+            newUserInput.EditFileCommand += EditFileCommandResponse;
 
             AddChild(newUserInput);
             newUserInput.Owner = this;
@@ -84,10 +90,7 @@ namespace Terminal.Containers
             CreateResponse("Progress saved.");
         }
 
-        private void ListDirectoryCommandResponse()
-        {
-            CreateResponse(string.Join(' ', _persistService.GetCurrentDirectory().Entities));
-        }
+        private void ListDirectoryCommandResponse() => CreateResponse(string.Join(' ', _persistService.GetCurrentDirectory().Entities));
 
         private void ChangeDirectoryCommandResponse(string newDirectory)
         {
@@ -122,7 +125,7 @@ namespace Terminal.Containers
         {
             if (string.IsNullOrEmpty(fileName))
             {
-                CreateResponse("File can't be made without a name.");
+                GD.PrintErr("File can't be made without a name.");
                 return;
             }
 
@@ -141,7 +144,7 @@ namespace Terminal.Containers
         {
             if (string.IsNullOrEmpty(directoryName))
             {
-                CreateResponse("Directory can't be made without a name.");
+                GD.PrintErr("Directory can't be made without a name.");
                 return;
             }
 
@@ -154,6 +157,57 @@ namespace Terminal.Containers
 
             _persistService.CreateDirectory(directoryName);
             CreateResponse($"New directory '{directoryName}' created.");
+        }
+
+        private void EditFileCommandResponse(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                GD.PrintErr("File can't be edited without a name.");
+                return;
+            }
+
+            var existingFile = _persistService.GetFile(fileName);
+            if (existingFile == null)
+            {
+                CreateResponse($"No file with the name '{fileName}' exists.");
+                return;
+            }
+
+            _fileInput.OpenFileEditor(existingFile);
+        }
+
+        private void SaveFileCommandResponse(string fileName, bool closeEditor, string saveMessage)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                GD.PrintErr("File can't be saved without a name.");
+                return;
+            }
+
+            var existingFile = _persistService.GetFile(fileName);
+            if (existingFile == null)
+            {
+                GD.PrintErr($"No file with the name '{fileName}' can be saved.");
+                return;
+            }
+
+            _fileInput.SaveFile(existingFile, closeEditor);
+            if(!string.IsNullOrEmpty(saveMessage))
+            {
+                CreateResponse(saveMessage);
+                AddNewUserInput();
+            }
+        }
+
+        private void CloseFileCommandResponse(string closeMessage)
+        {
+            _fileInput.CloseFileEditor();
+            if (!string.IsNullOrEmpty(closeMessage))
+            {
+                CreateResponse(closeMessage);
+                AddNewUserInput();
+            }
         }
 
         private void CreateResponse(string message)

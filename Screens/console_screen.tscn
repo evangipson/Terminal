@@ -1,9 +1,12 @@
-[gd_scene load_steps=7 format=3 uid="uid://nddd2eqotbpa"]
+[gd_scene load_steps=10 format=3 uid="uid://nddd2eqotbpa"]
 
+[ext_resource type="Theme" uid="uid://ba5w7ya6juxmy" path="res://Themes/monospace-font-small-theme.tres" id="1_8afjc"]
 [ext_resource type="Theme" uid="uid://cvvwknver7ddr" path="res://Themes/monospace-font-theme.tres" id="1_nqty1"]
 [ext_resource type="Script" path="res://Containers/ScrollbarContainer.cs" id="2_axcl1"]
 [ext_resource type="Script" path="res://Containers/ScrollableContainer.cs" id="2_tnv23"]
 [ext_resource type="Script" path="res://Inputs/UserInput.cs" id="2_v8x6y"]
+[ext_resource type="FontVariation" uid="uid://nupgvefl6pwp" path="res://Themes/monospace-font-bold-theme.tres" id="3_g1gp3"]
+[ext_resource type="Script" path="res://Inputs/FileInput.cs" id="5_qyxm6"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kwaur"]
 
@@ -19,8 +22,89 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("1_nqty1")
+theme = ExtResource("1_8afjc")
 color = Color(0.0646965, 0.0646965, 0.0646965, 1)
+
+[node name="FileEditorContainer" type="VBoxContainer" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 256.0
+offset_top = 128.0
+offset_right = -256.0
+offset_bottom = -136.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="FileInput" type="TextEdit" parent="FileEditorContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+theme = ExtResource("1_nqty1")
+context_menu_enabled = false
+shortcut_keys_enabled = false
+selecting_enabled = false
+drag_and_drop_selection_enabled = false
+middle_mouse_paste_enabled = false
+caret_blink = true
+caret_move_on_right_click = false
+caret_multiple = false
+script = ExtResource("5_qyxm6")
+
+[node name="ActionsBar" type="HBoxContainer" parent="FileEditorContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="SaveLabel" type="RichTextLabel" parent="FileEditorContainer/ActionsBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme = ExtResource("1_8afjc")
+theme_override_fonts/bold_font = ExtResource("3_g1gp3")
+bbcode_enabled = true
+text = "[b][CTRL+S][/b] Save"
+fit_content = true
+scroll_active = false
+shortcut_keys_enabled = false
+deselect_on_focus_loss_enabled = false
+drag_and_drop_selection_enabled = false
+
+[node name="ExitLabel" type="RichTextLabel" parent="FileEditorContainer/ActionsBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme = ExtResource("1_8afjc")
+theme_override_fonts/bold_font = ExtResource("3_g1gp3")
+bbcode_enabled = true
+text = "[center][b][CTRL+W][/b] Exit[/center]"
+fit_content = true
+scroll_active = false
+shortcut_keys_enabled = false
+deselect_on_focus_loss_enabled = false
+drag_and_drop_selection_enabled = false
+
+[node name="SaveAndExitLabel" type="RichTextLabel" parent="FileEditorContainer/ActionsBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme = ExtResource("1_8afjc")
+theme_override_fonts/bold_font = ExtResource("3_g1gp3")
+bbcode_enabled = true
+text = "[right][b][Ctrl+X][/b] Save & exit[/right]"
+fit_content = true
+scroll_active = false
+shortcut_keys_enabled = false
+deselect_on_focus_loss_enabled = false
+drag_and_drop_selection_enabled = false
 
 [node name="ScrollbarContainer" type="ScrollContainer" parent="."]
 show_behind_parent = true
@@ -42,6 +126,7 @@ vertical_scroll_mode = 3
 script = ExtResource("2_axcl1")
 
 [node name="ScrollableContainer" type="VBoxContainer" parent="ScrollbarContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -52,7 +137,7 @@ visible = false
 layout_direction = 2
 layout_mode = 2
 size_flags_horizontal = 3
-theme = ExtResource("1_nqty1")
+theme = ExtResource("1_8afjc")
 theme_override_colors/font_color = Color(0.215686, 0.478431, 0.109804, 1)
 theme_override_colors/caret_color = Color(0.215686, 0.478431, 0.109804, 1)
 theme_override_constants/outline_size = 0

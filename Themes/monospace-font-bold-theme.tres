@@ -1,0 +1,7 @@
+[gd_resource type="FontVariation" load_steps=2 format=3 uid="uid://nupgvefl6pwp"]
+
+[ext_resource type="FontFile" uid="uid://psfg3ajiukkm" path="res://Fonts/b612mono.ttf" id="1_tkrwi"]
+
+[resource]
+base_font = ExtResource("1_tkrwi")
+variation_embolden = 1.44
