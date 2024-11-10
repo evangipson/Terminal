@@ -11,9 +11,11 @@ config_version=5
 [application]
 
 config/name="Terminal"
+config/description="A terminal game that involves discovering and solving puzzles on an old computer running an unfamiliar operating system."
+config/version="0.0.1"
 run/main_scene="res://Screens/root.tscn"
 config/features=PackedStringArray("4.3", "C#", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://icon.png"
 
 [autoload]
 
