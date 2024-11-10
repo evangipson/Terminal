@@ -49,6 +49,9 @@ namespace Terminal.Inputs
         [Signal]
         public delegate void ChangePermissionsCommandEventHandler(string entityName, string newPermissionSet);
 
+        [Signal]
+        public delegate void NetworkCommandEventHandler();
+
 
         private static readonly List<UserCommand> _validAutoCompleteCommands = new()
         {
@@ -87,6 +90,7 @@ namespace Terminal.Inputs
             _userCommandEvaluator.ListHardwareCommand += ListHardware;
             _userCommandEvaluator.ViewPermissionsCommand += ViewPermissions;
             _userCommandEvaluator.ChangePermissionsCommand += ChangePermissions;
+            _userCommandEvaluator.NetworkCommand += Network;
 
             Text = GetDirectoryWithPrompt();
             SetCaretColumn(Text.Length);
@@ -361,5 +365,7 @@ namespace Terminal.Inputs
         private void ViewPermissions(string entityName) => EmitSignal(SignalName.ViewPermissionsCommand, entityName);
 
         private void ChangePermissions(string entityName, string newPermissionsSet) => EmitSignal(SignalName.ChangePermissionsCommand, entityName, newPermissionsSet);
+
+        private void Network() => EmitSignal(SignalName.NetworkCommand);
     }
 }

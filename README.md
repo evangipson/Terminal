@@ -19,5 +19,6 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 - Get the current date and time using the `now` command
     - Get the current date using the `date` command
     - Get the current time using the `time` command
+- Get the current networking information using the `network` command
 - Save your game by using the `save` command
 - Exit the terminal using the `exit` command (but not before using `save` to save your game)

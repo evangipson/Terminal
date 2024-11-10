@@ -57,12 +57,32 @@ namespace Terminal.Constants
             }).ToList();
 
             DirectoryEntity systemDeviceDirectory = GetDefaultSystemDeviceDirectory(rootSystemDirectory.Id);
+
+            DirectoryFolder systemNetworkDirectory = new() { Name = "network", ParentId = rootSystemDirectory.Id, Permissions = _adminReadWritePermissions };
+            systemNetworkDirectory.Entities = new()
+            {
+                new DirectoryFile()
+                {
+                    Name = "ethernet",
+                    Contents = "device:eth-0\ncapacity:1073741824\nactive:true\nipv6:2bae::a93c::dd1e::8ane\nipv8:zEw-F_92!#2A3(3j",
+                    ParentId = systemNetworkDirectory.Id,
+                    Permissions = _adminReadWritePermissions
+                },
+                new DirectoryFile()
+                {
+                    Name = "loopback",
+                    Contents = "device:local-0\ncapacity:0\nactive:true\nipv6:fe02::29aa::39ba::f12e\nipv8:a!9v(J#M8W*E3@inld",
+                    ParentId = systemNetworkDirectory.Id,
+                    Permissions = _adminReadWritePermissions
+                }
+            };
+
             rootSystemDirectory.Entities = new()
             {
                 new DirectoryFolder() { Name = "config", ParentId = rootSystemDirectory.Id, Permissions = _adminReadWritePermissions },
                 systemDeviceDirectory,
                 new DirectoryFolder() { Name = "logs", ParentId = rootSystemDirectory.Id, Permissions = _adminReadWritePermissions },
-                new DirectoryFolder() { Name = "network", ParentId = rootSystemDirectory.Id, Permissions = _adminReadWritePermissions },
+                systemNetworkDirectory,
                 systemProgramsDirectory
             };
 

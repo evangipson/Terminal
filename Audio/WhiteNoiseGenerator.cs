@@ -49,7 +49,7 @@ namespace Terminal.Audio
             if (_elapsedTonalShiftTime >= _timeBeforeTonalShift)
             {
                 _amountToChangePitchScale = _random.Next(-10, 10) / 1000f;
-                _pitchScale = (float)Mathf.Clamp(_pitchScale + _amountToChangePitchScale, 0.008, 0.035);
+                _pitchScale = (float)Mathf.Clamp(_pitchScale + _amountToChangePitchScale, 0.01, 0.035);
                 _pitchScaleShiftSpeed = _random.Next(500, 1000) / 100f;
                 _tween = CreateTween().SetTrans(Tween.TransitionType.Linear);
                 _tween.TweenProperty(this, "pitch_scale", _pitchScale, _pitchScaleShiftSpeed);

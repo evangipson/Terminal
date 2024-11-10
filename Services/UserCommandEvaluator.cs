@@ -76,6 +76,11 @@ namespace Terminal.Services
         /// </summary>
         public event Action<string, string> ChangePermissionsCommand;
 
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to list current networking information.
+        /// </summary>
+        public event Action NetworkCommand;
+
         private readonly List<UserCommand> _commandsThatNeedAdditionalArguments = new()
         {
             UserCommand.Color,
@@ -173,6 +178,11 @@ namespace Terminal.Services
                 SimpleMessageCommand?.Invoke(string.Join(", ", now.ToLongTimeString(), now.ToLongDateString()));
                 return;
             }
+            if(userCommand == UserCommand.Network)
+            {
+                NetworkCommand?.Invoke();
+                return;
+            }
             if (userCommand == UserCommand.Color)
             {
                 ColorChangeCommand?.Invoke(parsedTokens.Take(2).Last());
@@ -214,6 +224,7 @@ namespace Terminal.Services
                 UserCommand.Date => GetOutputFromTokens(allCommands["date"]),
                 UserCommand.Time => GetOutputFromTokens(allCommands["time"]),
                 UserCommand.Now => GetOutputFromTokens(allCommands["now"]),
+                UserCommand.Network => GetOutputFromTokens(allCommands["network"]),
                 _ => string.Empty
             };
         }

@@ -72,6 +72,7 @@ namespace Terminal.Containers
             newUserInput.ListHardwareCommand += ListHardwareCommandResponse;
             newUserInput.ViewPermissionsCommand += ViewPermissionsCommandResponse;
             newUserInput.ChangePermissionsCommand += ChangePermissionsCommandResponse;
+            newUserInput.NetworkCommand += NetworkCommandResponse;
 
             AddChild(newUserInput);
             newUserInput.Owner = this;
@@ -282,8 +283,12 @@ namespace Terminal.Containers
                 return new KeyValuePair<string, List<IEnumerable<string>>>(entity.Name, hardwareEntityList);
             }).ToList();
 
-            List<Tuple<string, string, string>> hardwareFourColumnOutput = new() { new("Device", "Class", "Manufacturer"), new("------", "----", "------------") };
-            hardwareFourColumnOutput.AddRange(hardwareResponse.SelectMany(hwr =>
+            List<Tuple<string, string, string>> hardwareColumnsOutput = new()
+            {
+                new("Device", "Class", "Manufacturer"),
+                new("------", "-----", "------------")
+            };
+            hardwareColumnsOutput.AddRange(hardwareResponse.SelectMany(hwr =>
             {
                 var device = $"{hwr.Key}";
                 return hwr.Value.Select(hwri => new Tuple<string, string, string>(
@@ -294,7 +299,7 @@ namespace Terminal.Containers
             }).ToList());
 
             //var deviceList = hardwareResponse.Select(hwr => $"{hwr.Key}\n{string.Concat(hwr.Key.Select(hwrc => '-'))}\n{string.Join("\n\n", hwr.Value.Select(hwri => string.Join('\n', hwri)))}");
-            CreateResponse(string.Join("\n", hardwareFourColumnOutput.Select(hardwareOutputTuple => $"{hardwareOutputTuple.Item1,-15}{hardwareOutputTuple.Item2,-15}{hardwareOutputTuple.Item3}")));
+            CreateResponse(string.Join("\n", hardwareColumnsOutput.Select(hardwareOutputTuple => $"{hardwareOutputTuple.Item1,-15}{hardwareOutputTuple.Item2,-15}{hardwareOutputTuple.Item3}")));
         }
 
         private void ViewPermissionsCommandResponse(string entityName)
@@ -343,6 +348,32 @@ namespace Terminal.Containers
 
             entity.Permissions = newPermissions;
             CreateResponse($"\"{entityName}\" permissions updated to {PermissionsService.GetPermissionDisplay(entity.Permissions)}");
+        }
+
+        private void NetworkCommandResponse()
+        {
+            var networkDirectory = _persistService.GetRootDirectory().FindDirectory("system").FindDirectory("network");
+            var networkResponse = networkDirectory.Entities.Where(entity => !entity.IsDirectory).Select(entity =>
+            {
+                var networkEntityList = entity.Contents.Split('\n');
+                return new KeyValuePair<string, List<string>>(entity.Name, networkEntityList.ToList());
+            }).ToList();
+
+            List<Tuple<string, string, string, string>> networkColumnsOutput = new()
+            {
+                new("Name", "Device", "Address (ipv6)", "Address (ipv8)"),
+                new("----", "------", "--------------", "--------------")
+            };
+            networkColumnsOutput.AddRange(networkResponse.Select(nri =>
+            {
+                var name = $"{nri.Key}";
+                var device = $"{nri.Value.First(value => value.Contains("device:")).Replace("device:", string.Empty).Trim()}";
+                var ipv6 = $"{nri.Value.First(value => value.Contains("ipv6:")).Replace("ipv6:", string.Empty).Trim()}";
+                var ipv8 = $"{nri.Value.First(value => value.Contains("ipv8:")).Replace("ipv8:", string.Empty).Trim()}";
+                return new Tuple<string, string, string, string>(name, device, ipv6, ipv8);
+            }).ToList());
+
+            CreateResponse(string.Join("\n", networkColumnsOutput.Select(networkOutput => $"{networkOutput.Item1,-10}{networkOutput.Item2,-10}{networkOutput.Item3,-24}{networkOutput.Item4}")));
         }
     }
 }

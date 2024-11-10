@@ -35,7 +35,8 @@ namespace Terminal.Services
             "changepermissions",
             "date",
             "time",
-            "now"
+            "now",
+            "network"
         };
 
         /// <summary>
@@ -93,6 +94,7 @@ namespace Terminal.Services
             "date" => UserCommand.Date,
             "time" => UserCommand.Time,
             "now" or "datetime" or "dt" or "current" => UserCommand.Now,
+            "network" or "net" => UserCommand.Network,
             _ => UserCommand.Unknown
         };
 
@@ -196,20 +198,22 @@ namespace Terminal.Services
             ["date"] = new()
             {
                 ["COMMAND"] = "date",
-                ["REMARKS"] = "View the current date.",
-                ["EXAMPLES"] = "date    : Prints the current date."
+                ["REMARKS"] = "View the current date."
             },
             ["time"] = new()
             {
                 ["COMMAND"] = "time",
-                ["REMARKS"] = "View the current time.",
-                ["EXAMPLES"] = "time    : Prints the current time."
+                ["REMARKS"] = "View the current time."
             },
             ["now"] = new()
             {
                 ["COMMAND"] = "now [dt] [datetime] [current]",
-                ["REMARKS"] = "View the current date and time.",
-                ["EXAMPLES"] = "now    : Prints the current date and time."
+                ["REMARKS"] = "View the current date and time."
+            },
+            ["network"] = new()
+            {
+                ["COMMAND"] = "network [net]",
+                ["REMARKS"] = "View current networking information."
             }
         };
     }

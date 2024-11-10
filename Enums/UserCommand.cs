@@ -27,6 +27,7 @@ namespace Terminal.Enums
         Date,
         Time,
         Now,
+        Network,
         Unknown
     };
 }
