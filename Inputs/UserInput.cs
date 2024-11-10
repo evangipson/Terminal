@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -39,6 +38,9 @@ namespace Terminal.Inputs
         [Signal]
         public delegate void EditFileCommandEventHandler(string fileName);
 
+        [Signal]
+        public delegate void ListHardwareCommandEventHandler();
+
         private KeyboardSounds _keyboardSounds;
         private PersistService _persistService;
         private UserCommandEvaluator _userCommandEvaluator;
@@ -63,6 +65,7 @@ namespace Terminal.Inputs
             _userCommandEvaluator.MakeFileCommand += MakeFile;
             _userCommandEvaluator.MakeDirectoryCommand += MakeDirectory;
             _userCommandEvaluator.EditFileCommand += EditFile;
+            _userCommandEvaluator.ListHardwareCommand += ListHardware;
 
             Text = GetDirectoryWithPrompt();
             SetCaretColumn(Text.Length);
@@ -169,7 +172,7 @@ namespace Terminal.Inputs
             var matchingEntities = _persistService.GetCurrentDirectory().Entities.Where(entity => entity.Name.Contains(inputWithoutDirectory.Last()));
             if (matchingEntities != null)
             {
-				ListDirectory();
+                ListDirectory();
                 EmitSignal(SignalName.Evaluated);
             }
             GetTree().Root.SetInputAsHandled();
@@ -227,5 +230,7 @@ namespace Terminal.Inputs
         private void MakeDirectory(string directoryName) => EmitSignal(SignalName.MakeDirectoryCommand, directoryName);
 
         private void EditFile(string fileName) => EmitSignal(SignalName.EditFileCommand, fileName);
+
+        private void ListHardware() => EmitSignal(SignalName.ListHardwareCommand);
     }
 }

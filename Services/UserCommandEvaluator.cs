@@ -62,6 +62,11 @@ namespace Terminal.Services
         /// </summary>
         public event Action<string> EditFileCommand;
 
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to list the hardware of the system.
+        /// </summary>
+        public event Action ListHardwareCommand;
+
         private readonly List<UserCommand> _commandsThatNeedAdditionalArguments = new()
         {
             UserCommand.Color,
@@ -123,6 +128,11 @@ namespace Terminal.Services
             if (userCommand == UserCommand.EditFile)
             {
                 EditFileCommand?.Invoke(parsedTokens.Take(2).Last());
+                return;
+            }
+            if (userCommand == UserCommand.ListHardware)
+            {
+                ListHardwareCommand?.Invoke();
                 return;
             }
             if (userCommand == UserCommand.Color)
@@ -212,6 +222,12 @@ namespace Terminal.Services
                     ["COMMAND"] = "edit",
                     ["REMARKS"] = "Edit a file.",
                     ["EXAMPLES"] = "edit new.txt    : Edits the 'new.txt' file in the current directory."
+                }),
+                UserCommand.ListHardware => GetOutputFromTokens(new()
+                {
+                    ["COMMAND"] = "lhw [listhardware]",
+                    ["REMARKS"] = "View a list of hardware for the system.",
+                    ["EXAMPLES"] = "lhw    : List all the hardware for the system."
                 }),
                 _ => string.Empty
             };

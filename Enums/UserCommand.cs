@@ -21,6 +21,7 @@ namespace Terminal.Enums
         MakeFile,
         MakeDirectory,
         EditFile,
+        ListHardware,
         Unknown
     };
 }

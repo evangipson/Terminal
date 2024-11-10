@@ -59,6 +59,7 @@ namespace Terminal.Services
             "mf" or "makefile" => UserCommand.MakeFile,
             "md" or "makedirectory" or "makedir" => UserCommand.MakeDirectory,
             "edit" => UserCommand.EditFile,
+            "lhw" or "listhardware" => UserCommand.ListHardware,
             _ => UserCommand.Unknown
         };
 
@@ -83,7 +84,8 @@ namespace Terminal.Services
             "view",
             "makefile",
             "makedirectory",
-            "edit"
+            "edit",
+            "listhardware",
         };
     }
 }

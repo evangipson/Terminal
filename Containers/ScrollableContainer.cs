@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -68,6 +69,7 @@ namespace Terminal.Containers
             newUserInput.MakeFileCommand += MakeFileCommandResponse;
             newUserInput.MakeDirectoryCommand += MakeDirectoryCommandResponse;
             newUserInput.EditFileCommand += EditFileCommandResponse;
+            newUserInput.ListHardwareCommand += ListHardwareCommandResponse;
 
             AddChild(newUserInput);
             newUserInput.Owner = this;
@@ -278,6 +280,49 @@ namespace Terminal.Containers
                 CreateResponse(closeMessage);
                 AddNewUserInput();
             }
+        }
+
+        private void ListHardwareCommandResponse()
+        {
+            var deviceDirectory = _persistService.GetRootDirectory().FindDirectory("system").FindDirectory("device");
+            var hardwareResponse = deviceDirectory.Entities.Where(entity => entity.IsDirectory).Select(entity =>
+            {
+                var hardwareEntities = entity.Entities
+                    .Where(entity => !entity.IsDirectory)
+                    .Select(hardware => new KeyValuePair<string, DirectoryEntity>(entity.Name, hardware));
+
+                var hardwareEntityList = hardwareEntities.Select(hwe =>
+                {
+                    var hardwareInfoLines = hwe.Value.Contents.Split('\n');
+                    return hardwareInfoLines.Select(hwel =>
+                    {
+                        var nameAndValue = hwel.Split(':');
+
+                        if (nameAndValue.Length != 2)
+                        {
+                            return string.Empty;
+                        }
+
+                        return $"{nameAndValue.First()}: {nameAndValue.Last()}";
+                    });
+                }).ToList();
+
+                return new KeyValuePair<string, List<IEnumerable<string>>>(entity.Name, hardwareEntityList);
+            }).ToList();
+
+            List<Tuple<string, string, string>> hardwareFourColumnOutput = new() { new("Device", "Class", "Manufacturer"), new("------", "----", "------------") };
+            hardwareFourColumnOutput.AddRange(hardwareResponse.SelectMany(hwr =>
+            {
+                var device = $"{hwr.Key}";
+                return hwr.Value.Select(hwri => new Tuple<string, string, string>(
+                    device,
+                    hwri.First(x => x.Contains("name:")).Split(':').Last().Trim(),
+                    hwri.First(x => x.Contains("manufacturer:")).Split(':').Last().Trim()
+                ));
+            }).ToList());
+
+            //var deviceList = hardwareResponse.Select(hwr => $"{hwr.Key}\n{string.Concat(hwr.Key.Select(hwrc => '-'))}\n{string.Join("\n\n", hwr.Value.Select(hwri => string.Join('\n', hwri)))}");
+            CreateResponse(string.Join("\n", hardwareFourColumnOutput.Select(hardwareOutputTuple => $"{hardwareOutputTuple.Item1,-15}{hardwareOutputTuple.Item2,-15}{hardwareOutputTuple.Item3}")));
         }
     }
 }
