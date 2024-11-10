@@ -43,6 +43,12 @@ namespace Terminal.Inputs
         [Signal]
         public delegate void ListHardwareCommandEventHandler();
 
+        [Signal]
+        public delegate void ViewPermissionsCommandEventHandler(string entityName);
+
+        [Signal]
+        public delegate void ChangePermissionsCommandEventHandler(string entityName, string newPermissionSet);
+
 
         private static readonly List<UserCommand> _validAutoCompleteCommands = new()
         {
@@ -77,6 +83,8 @@ namespace Terminal.Inputs
             _userCommandEvaluator.MakeDirectoryCommand += MakeDirectory;
             _userCommandEvaluator.EditFileCommand += EditFile;
             _userCommandEvaluator.ListHardwareCommand += ListHardware;
+            _userCommandEvaluator.ViewPermissionsCommand += ViewPermissions;
+            _userCommandEvaluator.ChangePermissionsCommand += ChangePermissions;
 
             Text = GetDirectoryWithPrompt();
             SetCaretColumn(Text.Length);
@@ -343,5 +351,9 @@ namespace Terminal.Inputs
         }
 
         private void ListHardware() => EmitSignal(SignalName.ListHardwareCommand);
+
+        private void ViewPermissions(string entityName) => EmitSignal(SignalName.ViewPermissionsCommand, entityName);
+
+        private void ChangePermissions(string entityName, string newPermissionsSet) => EmitSignal(SignalName.ChangePermissionsCommand, entityName, newPermissionsSet);
     }
 }

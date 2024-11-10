@@ -67,6 +67,16 @@ namespace Terminal.Services
         /// </summary>
         public event Action ListHardwareCommand;
 
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to view the permissions of an entity.
+        /// </summary>
+        public event Action<string> ViewPermissionsCommand;
+
+        /// <summary>
+        /// An <see cref="Action"/> that will be invoked to change the permissions of an entity.
+        /// </summary>
+        public event Action<string, string> ChangePermissionsCommand;
+
         private readonly List<UserCommand> _commandsThatNeedAdditionalArguments = new()
         {
             UserCommand.Color,
@@ -74,7 +84,9 @@ namespace Terminal.Services
             UserCommand.ViewFile,
             UserCommand.MakeFile,
             UserCommand.MakeDirectory,
-            UserCommand.EditFile
+            UserCommand.EditFile,
+            UserCommand.ViewPermissions,
+            UserCommand.ChangePermissions
         };
 
         /// <summary>
@@ -135,6 +147,17 @@ namespace Terminal.Services
                 ListHardwareCommand?.Invoke();
                 return;
             }
+            if (userCommand == UserCommand.ViewPermissions)
+            {
+                ViewPermissionsCommand?.Invoke(parsedTokens.Take(2).Last());
+                return;
+            }
+            if (userCommand == UserCommand.ChangePermissions)
+            {
+                var fileNameAndPermissionSet = parsedTokens.Skip(1).Take(2);
+                ChangePermissionsCommand?.Invoke(fileNameAndPermissionSet.FirstOrDefault(), fileNameAndPermissionSet.LastOrDefault());
+                return;
+            }
             if (userCommand == UserCommand.Color)
             {
                 ColorChangeCommand?.Invoke(parsedTokens.Take(2).Last());
@@ -171,6 +194,8 @@ namespace Terminal.Services
                 UserCommand.MakeDirectory => GetOutputFromTokens(allCommands["makedirectory"]),
                 UserCommand.EditFile => GetOutputFromTokens(allCommands["edit"]),
                 UserCommand.ListHardware => GetOutputFromTokens(allCommands["listhardware"]),
+                UserCommand.ViewPermissions => GetOutputFromTokens(allCommands["viewpermissions"]),
+                UserCommand.ChangePermissions => GetOutputFromTokens(allCommands["changepermissions"]),
                 _ => string.Empty
             };
         }

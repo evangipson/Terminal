@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Terminal.Constants;
+using Terminal.Enums;
 
 namespace Terminal.Models
 {

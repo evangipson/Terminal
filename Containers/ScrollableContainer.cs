@@ -4,6 +4,7 @@ using System.Linq;
 using Godot;
 
 using Terminal.Constants;
+using Terminal.Enums;
 using Terminal.Inputs;
 using Terminal.Models;
 using Terminal.Services;
@@ -69,6 +70,8 @@ namespace Terminal.Containers
             newUserInput.MakeDirectoryCommand += MakeDirectoryCommandResponse;
             newUserInput.EditFileCommand += EditFileCommandResponse;
             newUserInput.ListHardwareCommand += ListHardwareCommandResponse;
+            newUserInput.ViewPermissionsCommand += ViewPermissionsCommandResponse;
+            newUserInput.ChangePermissionsCommand += ChangePermissionsCommandResponse;
 
             AddChild(newUserInput);
             newUserInput.Owner = this;
@@ -292,6 +295,38 @@ namespace Terminal.Containers
 
             //var deviceList = hardwareResponse.Select(hwr => $"{hwr.Key}\n{string.Concat(hwr.Key.Select(hwrc => '-'))}\n{string.Join("\n\n", hwr.Value.Select(hwri => string.Join('\n', hwri)))}");
             CreateResponse(string.Join("\n", hardwareFourColumnOutput.Select(hardwareOutputTuple => $"{hardwareOutputTuple.Item1,-15}{hardwareOutputTuple.Item2,-15}{hardwareOutputTuple.Item3}")));
+        }
+
+        private void ViewPermissionsCommandResponse(string entityName)
+        {
+            var entity = _persistService.GetFile(entityName) ?? _persistService.GetRelativeDirectory(entityName);
+            if(entity == null)
+            {
+                CreateResponse($"No folder or file with the name \"{entityName}\" exists.");
+                return;
+            }
+
+            CreateResponse(PermissionsService.GetPermissionDisplay(entity.Permissions));
+        }
+
+        private void ChangePermissionsCommandResponse(string entityName, string newPermissionSet)
+        {
+            var entity = _persistService.GetFile(entityName) ?? _persistService.GetRelativeDirectory(entityName);
+            if(entity == null)
+            {
+                CreateResponse($"No folder or file with the name \"{entityName}\" exists.");
+                return;
+            }
+
+            var newPermissions = PermissionsService.GetPermissionFromInput(newPermissionSet);
+            if(newPermissions == null)
+            {
+                CreateResponse($"Permissions set \"{newPermissionSet}\" was in an incorrect format. Permission sets are 6 bits (011011).");
+                return;
+            }
+
+            entity.Permissions = newPermissions;
+            CreateResponse($"\"{entityName}\" permissions updated to {PermissionsService.GetPermissionDisplay(entity.Permissions)}");
         }
     }
 }

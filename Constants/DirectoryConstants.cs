@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Terminal.Enums;
 using Terminal.Models;
 using Terminal.Services;
 
@@ -54,10 +55,11 @@ namespace Terminal.Constants
                 Permissions = _userExecutablePermissions
             }).ToList();
 
+            DirectoryEntity systemDeviceDirectory = GetDefaultSystemDeviceDirectory(rootSystemDirectory.Id);
             rootSystemDirectory.Entities = new()
             {
                 new DirectoryFolder() { Name = "config", ParentId = rootSystemDirectory.Id, Permissions = _adminReadWritePermissions },
-                GetDefaultSystemDeviceDirectory(rootSystemDirectory.Id),
+                systemDeviceDirectory,
                 new DirectoryFolder() { Name = "logs", ParentId = rootSystemDirectory.Id, Permissions = _adminReadWritePermissions },
                 new DirectoryFolder() { Name = "network", ParentId = rootSystemDirectory.Id, Permissions = _adminReadWritePermissions },
                 systemProgramsDirectory

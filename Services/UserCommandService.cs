@@ -30,7 +30,9 @@ namespace Terminal.Services
             "makefile",
             "makedirectory",
             "edit",
-            "listhardware"
+            "listhardware",
+            "viewpermissions",
+            "changepermissions"
         };
 
         /// <summary>
@@ -83,6 +85,8 @@ namespace Terminal.Services
             "md" or "makedirectory" or "makedir" => UserCommand.MakeDirectory,
             "edit" => UserCommand.EditFile,
             "lhw" or "listhardware" => UserCommand.ListHardware,
+            "vp" or "viewperm" or "viewpermissions" => UserCommand.ViewPermissions,
+            "chp" or "changeperm" or "changepermissions" => UserCommand.ChangePermissions,
             _ => UserCommand.Unknown
         };
 
@@ -167,6 +171,22 @@ namespace Terminal.Services
                 ["COMMAND"] = "lhw [listhardware]",
                 ["REMARKS"] = "View a list of hardware for the system."
             },
+            ["viewpermissions"] = new()
+            {
+                ["COMMAND"] = "vp [viewperm] [viewpermissions]",
+                ["REMARKS"] = "View the permissions of a file or directory.",
+                ["FORMAT"] = "Permission sets are 6 bits in order: \"admin executable\", \"admin write\", \"admin read\", \"user executable\", \"user write\", and \"user read\". If no bits are set, the permissions are \"none\".",
+                ["EXAMPLE SETS"] = "111111: \"admin executable\", \"admin write\", \"admin read\", \"user executable\", \"user write\", and \"user read\".\n000000: \"none\".",
+                ["EXAMPLES"] = "vp new.txt    : Shows the permissions for the 'new.txt' file in the current directory."
+            },
+            ["changepermissions"] = new()
+            {
+                ["COMMAND"] = "chp [changeperm] [changepermissions]",
+                ["REMARKS"] = "Changes the permissions of a file or directory.",
+                ["FORMAT"] = "Permission sets are 6 bits in order: \"admin executable\", \"admin write\", \"admin read\", \"user executable\", \"user write\", and \"user read\". If no bits are set, the permissions are \"none\".",
+                ["EXAMPLE SETS"] = "111111: \"admin executable\", \"admin write\", \"admin read\", \"user executable\", \"user write\", and \"user read\".\n000000: \"none\".",
+                ["EXAMPLES"] = "chp new.txt 010100    : Updates the permissions for the 'new.txt' file to \"admin write\" and \"user executable\"."
+            }
         };
     }
 }

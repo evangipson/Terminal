@@ -1,4 +1,4 @@
-﻿namespace Terminal.Models
+﻿namespace Terminal.Enums
 {
     /// <summary>
     /// A collection of available permissions for the terminal.
