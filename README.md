@@ -11,6 +11,8 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 - Change your current directory using the `change` command
 - View a file using the `view` command
 - Launch the file editor and edit a file using the `edit` command
+- Make a file in the current directory using the `makefile` command
+- Make a directory in the current directory using the `makedirectory` command
 - List the hardware using the `listhardware` command
 - View the permissions of a file or directory using the `viewpermissions` command
 - Change the permissions of a file or directory using the `changepermissions` command
