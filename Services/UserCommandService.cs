@@ -32,7 +32,10 @@ namespace Terminal.Services
             "edit",
             "listhardware",
             "viewpermissions",
-            "changepermissions"
+            "changepermissions",
+            "date",
+            "time",
+            "now"
         };
 
         /// <summary>

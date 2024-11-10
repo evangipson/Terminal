@@ -22,6 +22,42 @@ namespace Terminal.Services
         };
 
         /// <summary>
+        /// Finds a file or folder in a <see cref="DirectoryEntity"/>.
+        /// </summary>
+        /// <param name="node">
+        /// The <see cref="DirectoryEntity"/> to begin the search from.
+        /// </param>
+        /// <param name="entityName">
+        /// The name of the entity to find.
+        /// </param>
+        /// <returns>
+        /// The file or folder that is found, defaults to <see langword="null"/>.
+        /// </returns>
+        public static DirectoryEntity FindEntity(this DirectoryEntity node, string entityName)
+        {
+            if (node == null)
+            {
+                return null;
+            }
+
+            if (node.ToString().Equals(entityName, StringComparison.OrdinalIgnoreCase))
+            {
+                return node;
+            }
+
+            foreach (var child in node.Entities)
+            {
+                var found = child.FindEntity(entityName);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Finds a file in a <see cref="DirectoryEntity"/>.
         /// </summary>
         /// <param name="node">

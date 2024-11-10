@@ -54,7 +54,9 @@ namespace Terminal.Inputs
         {
             UserCommand.ChangeDirectory,
             UserCommand.ViewFile,
-            UserCommand.EditFile
+            UserCommand.EditFile,
+            UserCommand.ViewPermissions,
+            UserCommand.ChangePermissions
         };
 
         private KeyboardSounds _keyboardSounds;
@@ -215,20 +217,24 @@ namespace Terminal.Inputs
                 return;
             }
 
-            // fill in the results of the autocomplete search, folders for change directory, and files otherwise
-            var matchingEntity = filteredEntities.FirstOrDefault(entity => entity.IsDirectory == (userCommand == UserCommand.ChangeDirectory));
+            // fill in the results of the autocomplete search, folders for change directory, and files for view or edit file
+            if (userCommand == UserCommand.ChangeDirectory || userCommand == UserCommand.ViewFile || userCommand == UserCommand.EditFile)
+            {
+                filteredEntities = filteredEntities.Where(entity => entity.IsDirectory == (userCommand == UserCommand.ChangeDirectory));
+            }
+
+            DirectoryEntity matchingEntity = filteredEntities.FirstOrDefault();
             if (_autocompletedEntity != null)
             {
                 // wrap the autocomplete results
                 matchingEntity = filteredEntities.SkipWhile(p => p.Name != _autocompletedEntity.Name).Skip(1).FirstOrDefault() ?? filteredEntities.FirstOrDefault();
             }
 
-            // determine which path to show as a result, file or folder, based on the user command
-            var autoCompletedPath = isAbsoluteSearch ? _persistService.GetAbsoluteDirectoryPath(matchingEntity) : _persistService.GetRelativeDirectoryPath(matchingEntity);
-            if(userCommand != UserCommand.ChangeDirectory)
-            {
-                autoCompletedPath = $"{matchingEntity}";
-            }
+            // determine which path to show as a result
+            var autoCompletedPath = isAbsoluteSearch
+                ? _persistService.GetAbsoluteEntityPath(matchingEntity)
+                : _persistService.GetRelativeEntityPath(matchingEntity);
+
             Text = string.Concat(GetDirectoryWithPrompt(), $"{inputWithoutDirectory.FirstOrDefault()} {autoCompletedPath}");
             SetCaretColumn(Text.Length);
             _autocompletedEntity = matchingEntity;
@@ -292,7 +298,7 @@ namespace Terminal.Inputs
 
         private void ViewFile(string fileName)
         {
-            var file = _persistService.GetFile(fileName);
+            var file = _persistService.GetRelativeFile(fileName);
             if(file == null)
             {
                 EmitSignal(SignalName.KnownCommand, $"\"{fileName}\" does not exist.");

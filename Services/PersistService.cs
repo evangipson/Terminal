@@ -8,6 +8,7 @@ using Dictionary = Godot.Collections.Dictionary;
 
 using Terminal.Constants;
 using Terminal.Models;
+using Terminal.Enums;
 
 namespace Terminal.Services
 {
@@ -82,7 +83,15 @@ namespace Terminal.Services
 
         public string GetRelativeDirectoryPath(DirectoryEntity directory) => FileSystem?.GetDirectoryPath(directory).Replace(GetCurrentDirectoryPath(), string.Empty);
 
-        public DirectoryEntity GetFile(string fileName) => GetCurrentDirectory().FindFile(fileName);
+        public string GetAbsoluteEntityPath(DirectoryEntity entity) => FileSystem?.GetEntityPath(entity);
+
+        public string GetRelativeEntityPath(DirectoryEntity entity) => FileSystem?.GetEntityPath(entity).Replace(GetCurrentDirectoryPath(), string.Empty);
+
+        public DirectoryEntity GetRelativeEntity(string entityName) => GetCurrentDirectory().FindEntity(entityName);
+
+        public DirectoryEntity GetRelativeFile(string fileName) => GetCurrentDirectory().FindFile(fileName);
+
+        public DirectoryEntity GetAbsoluteFile(string fileName) => GetRootDirectory().FindFile(fileName);
 
         public DirectoryEntity GetRelativeDirectory(string directoryName) => GetCurrentDirectory().FindDirectory(directoryName.TrimEnd('/'));
 
@@ -94,7 +103,8 @@ namespace Terminal.Services
         {
             var newFile = new DirectoryFile()
             {
-                ParentId = GetCurrentDirectory().Id
+                ParentId = GetCurrentDirectory().Id,
+                Permissions = new() { Permission.UserRead, Permission.UserWrite }
             };
 
             var name = fileName;

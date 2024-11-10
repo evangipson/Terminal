@@ -39,6 +39,17 @@ namespace Terminal.Models
         public string GetDirectoryPath(DirectoryEntity directory) => string.Concat(GetAbsoluteDirectory(directory));
 
         /// <summary>
+        /// Gets an absolute path for a <see cref="DirectoryEntity"/> in a <see cref="FileSystem"/>.
+        /// </summary>
+        /// <param name="entity">
+        /// The <see cref="DirectoryEntity"/> to get an absolute path for.
+        /// </param>
+        /// <returns>
+        /// An absolute path for a <see cref="DirectoryEntity"/> in a <see cref="FileSystem"/>.
+        /// </returns>
+        public string GetEntityPath(DirectoryEntity entity) => string.Concat(GetAbsoluteEntity(entity));
+
+        /// <summary>
         /// Navigates from <see cref="Root"/> and finds the provided <paramref name="directory"/>.
         /// </summary>
         /// <param name="directory">
@@ -47,7 +58,7 @@ namespace Terminal.Models
         /// <returns>
         /// A collection of <see cref="DirectoryEntity"/>, ending with the provided <paramref name="directory"/>.
         /// </returns>
-        public List<DirectoryEntity> GetAbsoluteDirectory(DirectoryEntity directory)
+        private List<DirectoryEntity> GetAbsoluteDirectory(DirectoryEntity directory)
         {
             if (directory?.IsDirectory != true)
             {
@@ -60,6 +71,29 @@ namespace Terminal.Models
             {
                 directoryPath.Add(foundDirectory);
                 foundDirectory = Root.FindDirectory(foundDirectory.ParentId);
+            }
+
+            directoryPath.Reverse();
+            return new(directoryPath);
+        }
+
+        /// <summary>
+        /// Navigates from <see cref="Root"/> and finds the provided <paramref name="entity"/>.
+        /// </summary>
+        /// <param name="entity">
+        /// The <see cref="DirectoryEntity"/> to find.
+        /// </param>
+        /// <returns>
+        /// A collection of <see cref="DirectoryEntity"/>, ending with the provided <paramref name="entity"/>.
+        /// </returns>
+        private List<DirectoryEntity> GetAbsoluteEntity(DirectoryEntity entity)
+        {
+            List<DirectoryEntity> directoryPath = new();
+            var foundEntity = entity;
+            while (foundEntity != null)
+            {
+                directoryPath.Add(foundEntity);
+                foundEntity = Root.FindDirectory(foundEntity.ParentId);
             }
 
             directoryPath.Reverse();

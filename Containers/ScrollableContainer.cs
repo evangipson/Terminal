@@ -146,7 +146,7 @@ namespace Terminal.Containers
                 return;
             }
 
-            if(!ColorConstants.ColorToExecutableColorMap.TryGetValue(colorName, out Color executableColor))
+            if (!ColorConstants.ColorToExecutableColorMap.TryGetValue(colorName, out Color executableColor))
             {
                 GD.PrintErr($"Unable to find executable color mapping for '{colorName}'.");
                 return;
@@ -173,7 +173,7 @@ namespace Terminal.Containers
                 return;
             }
 
-            var existingFile = _persistService.GetFile(fileName);
+            var existingFile = _persistService.GetRelativeFile(fileName);
             if (existingFile != null)
             {
                 CreateResponse($"File with the name of '{fileName}' already exists.");
@@ -211,7 +211,7 @@ namespace Terminal.Containers
                 return;
             }
 
-            var existingFile = _persistService.GetFile(fileName);
+            var existingFile = _persistService.GetRelativeFile(fileName);
             if (existingFile == null)
             {
                 CreateResponse($"No file with the name '{fileName}' exists.");
@@ -229,7 +229,7 @@ namespace Terminal.Containers
                 return;
             }
 
-            var existingFile = _persistService.GetFile(fileName);
+            var existingFile = _persistService.GetRelativeFile(fileName);
             if (existingFile == null)
             {
                 GD.PrintErr($"No file with the name '{fileName}' can be saved.");
@@ -237,7 +237,7 @@ namespace Terminal.Containers
             }
 
             _fileInput.SaveFile(existingFile, closeEditor);
-            if(!string.IsNullOrEmpty(saveMessage))
+            if (!string.IsNullOrEmpty(saveMessage))
             {
                 CreateResponse(saveMessage);
                 AddNewUserInput();
@@ -299,8 +299,16 @@ namespace Terminal.Containers
 
         private void ViewPermissionsCommandResponse(string entityName)
         {
-            var entity = _persistService.GetFile(entityName) ?? _persistService.GetRelativeDirectory(entityName);
-            if(entity == null)
+            var entity = entityName.StartsWith('/')
+                ? _persistService.GetAbsoluteFile(entityName) ?? _persistService.GetAbsoluteDirectory(entityName.TrimEnd('/'))
+                : _persistService.GetRelativeFile(entityName) ?? _persistService.GetRelativeDirectory(entityName.TrimEnd('/'));
+
+            if (entityName == "/" || entityName == "root")
+            {
+                entity = _persistService.GetRootDirectory();
+            }
+
+            if (entity == null)
             {
                 CreateResponse($"No folder or file with the name \"{entityName}\" exists.");
                 return;
@@ -311,15 +319,23 @@ namespace Terminal.Containers
 
         private void ChangePermissionsCommandResponse(string entityName, string newPermissionSet)
         {
-            var entity = _persistService.GetFile(entityName) ?? _persistService.GetRelativeDirectory(entityName);
-            if(entity == null)
+            var entity = entityName.StartsWith('/')
+                ? _persistService.GetAbsoluteFile(entityName) ?? _persistService.GetAbsoluteDirectory(entityName.TrimEnd('/'))
+                : _persistService.GetRelativeFile(entityName) ?? _persistService.GetRelativeDirectory(entityName.TrimEnd('/'));
+
+            if (entityName == "/" || entityName == "root")
+            {
+                entity = _persistService.GetRootDirectory();
+            }
+
+            if (entity == null)
             {
                 CreateResponse($"No folder or file with the name \"{entityName}\" exists.");
                 return;
             }
 
             var newPermissions = PermissionsService.GetPermissionFromInput(newPermissionSet);
-            if(newPermissions == null)
+            if (newPermissions == null)
             {
                 CreateResponse($"Permissions set \"{newPermissionSet}\" was in an incorrect format. Permission sets are 6 bits (011011).");
                 return;
