@@ -232,9 +232,7 @@ namespace Terminal.Services
                 _ => string.Empty
             };
         }
-        private static string GetOutputFromTokens(Dictionary<string, string> outputTokens) => string.Join('\n', outputTokens.Select(token =>
-        {
-            return string.Join('\n', token.Key, $"    {token.Value}");
-        }));
+
+        private static string GetOutputFromTokens(Dictionary<string, string> outputTokens) => string.Join('\n', outputTokens.Select(token => string.Join('\n', token.Key, token.Value)));
     }
 }
