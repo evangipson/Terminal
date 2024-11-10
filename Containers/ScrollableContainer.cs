@@ -184,7 +184,7 @@ namespace Terminal.Containers
                 return;
             }
 
-            if (newDirectory.Equals("root"))
+            if (newDirectory.Equals("root") || newDirectory.Equals(DirectoryConstants.DirectorySeparator))
             {
                 _persistService.SetCurrentDirectory(_persistService.GetRootDirectory());
                 return;

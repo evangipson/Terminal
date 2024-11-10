@@ -156,79 +156,21 @@ namespace Terminal.Services
 
         private static string EvaluateHelpCommand(UserCommand? typeOfHelp = UserCommand.Help)
         {
+            var allCommands = UserCommandService.GetAllCommands();
             return typeOfHelp switch
             {
-                UserCommand.Help => GetOutputFromTokens(new()
-                {
-                    ["TOPIC"] = "Terminal OS help system.",
-                    ["REMARKS"] = "Displays help about Terminal OS commands.",
-                    ["EXAMPLES"] = "help commands    : Display information about the terminal commands."
-                }),
-                UserCommand.Exit => GetOutputFromTokens(new()
-                {
-                    ["COMMAND"] = "exit",
-                    ["REMARKS"] = "Exits Terminal OS.",
-                }),
-                UserCommand.Color => GetOutputFromTokens(new()
-                {
-                    ["COMMAND"] = "color",
-                    ["REMARKS"] = "Changes the color of the terminal output.",
-                    ["COLORS"] = string.Join(", ", ColorConstants.TerminalColors.Keys),
-                    ["EXAMPLES"] = $"color {ColorConstants.TerminalColors.Keys.First()}    : Change the terminal output to {ColorConstants.TerminalColors.Keys.First()}."
-                }),
-                UserCommand.Save => GetOutputFromTokens(new()
-                {
-                    ["COMMAND"] = "save",
-                    ["REMARKS"] = "Saves the state of the terminal."
-                }),
-                UserCommand.Commands => GetOutputFromTokens(new()
-                {
-                    ["COMMAND"] = "commands",
-                    ["REMARKS"] = "Displays information about the terminal commands. Use help [command] to get more information about each command.",
-                    ["COMMANDS"] = string.Join(", ", UserCommandService.GetAllCommands())
-                }),
-                UserCommand.ChangeDirectory => GetOutputFromTokens(new()
-                {
-                    ["COMMAND"] = "cd [change] [changedir]",
-                    ["REMARKS"] = "Changes directory.",
-                    ["EXAMPLES"] = $"cd ~    : Change directory to the default home directory for the current user."
-                }),
-                UserCommand.ListDirectory => GetOutputFromTokens(new()
-                {
-                    ["COMMAND"] = "ls [list]",
-                    ["REMARKS"] = "Lists contents of a directory.",
-                    ["EXAMPLES"] = "ls    : List the contents of the current directory."
-                }),
-                UserCommand.ViewFile => GetOutputFromTokens(new()
-                {
-                    ["COMMAND"] = "vw [view]",
-                    ["REMARKS"] = "View the contents of a file.",
-                    ["EXAMPLES"] = "view file.ext    : List the contents of the file.ext file."
-                }),
-                UserCommand.MakeFile => GetOutputFromTokens(new()
-                {
-                    ["COMMAND"] = "mf [makefile]",
-                    ["REMARKS"] = "Make a file.",
-                    ["EXAMPLES"] = "make new.txt    : Creates a blank file called 'new.txt' in the current directory."
-                }),
-                UserCommand.MakeDirectory => GetOutputFromTokens(new()
-                {
-                    ["COMMAND"] = "md [makedir] [makedirectory]",
-                    ["REMARKS"] = "Make a directory.",
-                    ["EXAMPLES"] = "md newdir    : Creates an empty directory called 'newdir' in the current directory."
-                }),
-                UserCommand.EditFile => GetOutputFromTokens(new()
-                {
-                    ["COMMAND"] = "edit",
-                    ["REMARKS"] = "Edit a file.",
-                    ["EXAMPLES"] = "edit new.txt    : Edits the 'new.txt' file in the current directory."
-                }),
-                UserCommand.ListHardware => GetOutputFromTokens(new()
-                {
-                    ["COMMAND"] = "lhw [listhardware]",
-                    ["REMARKS"] = "View a list of hardware for the system.",
-                    ["EXAMPLES"] = "lhw    : List all the hardware for the system."
-                }),
+                UserCommand.Help => GetOutputFromTokens(allCommands["help"]),
+                UserCommand.Exit => GetOutputFromTokens(allCommands["exit"]),
+                UserCommand.Color => GetOutputFromTokens(allCommands["color"]),
+                UserCommand.Save => GetOutputFromTokens(allCommands["save"]),
+                UserCommand.Commands => GetOutputFromTokens(allCommands["commands"]),
+                UserCommand.ChangeDirectory => GetOutputFromTokens(allCommands["change"]),
+                UserCommand.ListDirectory => GetOutputFromTokens(allCommands["list"]),
+                UserCommand.ViewFile => GetOutputFromTokens(allCommands["view"]),
+                UserCommand.MakeFile => GetOutputFromTokens(allCommands["makefile"]),
+                UserCommand.MakeDirectory => GetOutputFromTokens(allCommands["makedirectory"]),
+                UserCommand.EditFile => GetOutputFromTokens(allCommands["edit"]),
+                UserCommand.ListHardware => GetOutputFromTokens(allCommands["listhardware"]),
                 _ => string.Empty
             };
         }

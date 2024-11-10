@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using Terminal.Constants;
 using Terminal.Enums;
 
 namespace Terminal.Services
@@ -10,6 +11,28 @@ namespace Terminal.Services
     /// </summary>
     public static class UserCommandService
     {
+        /// <summary>
+        /// Used to list all available commands in <see cref="GetAllCommands"/>.
+        /// <para>
+        /// Mirrors all values of <see cref="UserCommand"/>.
+        /// </para>
+        /// </summary>
+        private static readonly List<string> _allCommandKeys = new()
+        {
+            "exit",
+            "help",
+            "color",
+            "save",
+            "commands",
+            "list",
+            "change",
+            "view",
+            "makefile",
+            "makedirectory",
+            "edit",
+            "listhardware"
+        };
+
         /// <summary>
         /// Parses the provided <paramref name="userInput"/> into tokens, and evalutes the first one.
         /// </summary>
@@ -64,28 +87,86 @@ namespace Terminal.Services
         };
 
         /// <summary>
-        /// A list of human-readable commands available to the user.
+        /// Gets all user commands supplemented with additional information about each command.
         /// <para>
         /// Mirrors all values of <see cref="UserCommand"/>.
         /// </para>
         /// </summary>
         /// <returns>
-        /// A <see langword="string"/> representation of every user command.
+        /// A collection of key value pairs, where the key is a <see langword="string"/> representation
+        /// of a user command, and the value is a key value pair of information about that command.
         /// </returns>
-        public static List<string> GetAllCommands() => new()
+        public static Dictionary<string, Dictionary<string, string>> GetAllCommands() => new()
         {
-            "exit",
-            "help",
-            "color",
-            "save",
-            "commands",
-            "list",
-            "change",
-            "view",
-            "makefile",
-            "makedirectory",
-            "edit",
-            "listhardware",
+            ["exit"] = new()
+            {
+                ["COMMAND"] = "exit",
+                ["REMARKS"] = "Exits Terminal OS.",
+            },
+            ["help"] = new()
+            {
+                ["COMMAND"] = "help",
+                ["REMARKS"] = "Displays help about Terminal OS commands.",
+                ["EXAMPLES"] = "help commands    : Display information about the terminal commands."
+            },
+            ["color"] = new()
+            {
+                ["COMMAND"] = "color",
+                ["REMARKS"] = "Changes the color of the terminal output.",
+                ["COLORS"] = string.Join(", ", ColorConstants.TerminalColors.Keys),
+                ["EXAMPLES"] = $"color {ColorConstants.TerminalColors.Keys.First()}    : Change the terminal output to {ColorConstants.TerminalColors.Keys.First()}."
+            },
+            ["save"] = new()
+            {
+                ["COMMAND"] = "save",
+                ["REMARKS"] = "Saves the state of the terminal."
+            },
+            ["commands"] = new()
+            {
+                ["COMMAND"] = "commands",
+                ["REMARKS"] = "Displays information about the terminal commands. Use help [command] to get more information about each command.",
+                ["COMMANDS"] = string.Join(", ", _allCommandKeys)
+            },
+            ["list"] = new()
+            {
+                ["COMMAND"] = "ls [list]",
+                ["REMARKS"] = "Lists contents of a directory."
+            },
+            ["change"] = new()
+            {
+                ["COMMAND"] = "cd [change] [changedir]",
+                ["REMARKS"] = "Changes directory.",
+                ["EXAMPLES"] = $"cd ~    : Change directory to the default home directory for the current user."
+            },
+            ["view"] = new()
+            {
+                ["COMMAND"] = "vw [view]",
+                ["REMARKS"] = "View the contents of a file.",
+                ["EXAMPLES"] = "view file.ext    : List the contents of the file.ext file."
+            },
+            ["makefile"] = new()
+            {
+                ["COMMAND"] = "mf [makefile]",
+                ["REMARKS"] = "Make a file.",
+                ["EXAMPLES"] = "mf new.txt    : Creates a blank file called 'new.txt' in the current directory."
+            },
+            ["makedirectory"] = new()
+            {
+                ["COMMAND"] = "md [makedir] [makedirectory]",
+                ["REMARKS"] = "Make a directory.",
+                ["EXAMPLES"] = "md newdir    : Creates an empty directory called 'newdir' in the current directory."
+            },
+            ["edit"] = new()
+            {
+                ["COMMAND"] = "edit",
+                ["REMARKS"] = "Edit a file.",
+                ["EXAMPLES"] = "edit new.txt    : Edits the 'new.txt' file in the current directory."
+            },
+            ["listhardware"] = new()
+            {
+                ["COMMAND"] = "lhw [listhardware]",
+                ["REMARKS"] = "View a list of hardware for the system."
+            },
         };
     }
 }

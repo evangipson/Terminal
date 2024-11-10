@@ -48,7 +48,8 @@ namespace Terminal.Constants
             DirectoryFolder systemProgramsDirectory = new() { Name = "programs", ParentId = rootSystemDirectory.Id, Permissions = _adminReadWritePermissions };
             systemProgramsDirectory.Entities = UserCommandService.GetAllCommands().Select(command => new DirectoryEntity()
             {
-                Name = command,
+                Name = command.Key,
+                Contents = string.Join("\n", command.Value.Select(commandInfo => $"[\"{commandInfo.Key}\": \"{commandInfo.Value}\"]")),
                 ParentId = systemProgramsDirectory.Id,
                 Permissions = _userExecutablePermissions
             }).ToList();
