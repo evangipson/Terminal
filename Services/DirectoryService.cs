@@ -1,184 +1,118 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Godot;
 
 using Terminal.Constants;
+using Terminal.Enums;
+using Terminal.Extensions;
 using Terminal.Models;
 
 namespace Terminal.Services
 {
     /// <summary>
-    /// A <see langword="static"/> service that manages navigating a <see cref="DirectoryEntity"/> and creating a new <see cref="FileSystem"/>.
+    /// A collection of constant values for managing a directory.
     /// </summary>
-    public static class DirectoryService
+    public partial class DirectoryService : Node
     {
-        /// <summary>
-        /// Creates a new <see cref="FileSystem"/>. Intended to be used when no file system exists.
-        /// </summary>
-        /// <returns>
-        /// A new <see cref="FileSystem"/> that has it's <see cref="FileSystem.Directories"/> populated.
-        /// </returns>
-        public static FileSystem CreateNewFileSystem() => new()
+        public FileSystem FileSystem;
+
+        public override void _Ready()
         {
-            Directories = DirectoryConstants.GetDefaultDirectoryStructure()
-        };
-
-        /// <summary>
-        /// Finds a file or folder in a <see cref="DirectoryEntity"/>.
-        /// </summary>
-        /// <param name="node">
-        /// The <see cref="DirectoryEntity"/> to begin the search from.
-        /// </param>
-        /// <param name="entityName">
-        /// The name of the entity to find.
-        /// </param>
-        /// <returns>
-        /// The file or folder that is found, defaults to <see langword="null"/>.
-        /// </returns>
-        public static DirectoryEntity FindEntity(this DirectoryEntity node, string entityName)
-        {
-            if (node == null)
+            FileSystem = new()
             {
-                return null;
-            }
+                Directories = DirectoryConstants.GetDefaultDirectoryStructure()
+            };
 
-            if (node.ToString().Equals(entityName, StringComparison.OrdinalIgnoreCase))
-            {
-                return node;
-            }
-
-            foreach (var child in node.Entities)
-            {
-                var found = child.FindEntity(entityName);
-                if (found != null)
-                {
-                    return found;
-                }
-            }
-
-            return null;
+            SetCurrentDirectory(GetHomeDirectory());
         }
 
-        /// <summary>
-        /// Finds a file in a <see cref="DirectoryEntity"/>.
-        /// </summary>
-        /// <param name="node">
-        /// The <see cref="DirectoryEntity"/> to begin the search from.
-        /// </param>
-        /// <param name="fileName">
-        /// The name of the file to find.
-        /// </param>
-        /// <returns>
-        /// The file that is found, defaults to <see langword="null"/>.
-        /// </returns>
-        public static DirectoryEntity FindFile(this DirectoryEntity node, string fileName)
+        public void SetCurrentDirectory(DirectoryEntity newCurrentDirectory)
         {
-            if (node == null)
+            if (newCurrentDirectory?.IsDirectory != true || FileSystem == null)
             {
-                return null;
+                return;
             }
 
-            if (node.ToString().Equals(fileName, StringComparison.OrdinalIgnoreCase) && !node.IsDirectory)
-            {
-                return node;
-            }
-
-            foreach (var child in node.Entities)
-            {
-                var found = child.FindFile(fileName);
-                if (found != null)
-                {
-                    return found;
-                }
-            }
-
-            return null;
+            FileSystem.CurrentDirectoryId = newCurrentDirectory.Id;
         }
 
-        /// <summary>
-        /// Finds a folder in a <see cref="DirectoryEntity"/> by name.
-        /// </summary>
-        /// <param name="node">
-        /// The <see cref="DirectoryEntity"/> to begin the search from.
-        /// </param>
-        /// <param name="name">
-        /// The name of the folder to find.
-        /// </param>
-        /// <returns>
-        /// The folder that is found, defaults to <see langword="null"/>.
-        /// </returns>
-        public static DirectoryEntity FindDirectory(this DirectoryEntity node, string name)
+        public void SetCurrentDirectory(string newDirectoryPath)
         {
-            if (node == null)
+            if (string.IsNullOrEmpty(newDirectoryPath))
             {
-                return null;
+                return;
             }
 
-            if (node.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && node.IsDirectory)
+            if (newDirectoryPath == "/")
             {
-                return node;
+                SetCurrentDirectory(GetRootDirectory());
             }
 
-            if (name.Contains('/'))
-            {
-                var nextDirectory = name.StartsWith('/')
-                    ? name.TrimStart('/').Split('/').First()
-                    : name.Split('/').First();
+            List<string> directoryTokensInPath = newDirectoryPath.Split('/').ToList();
+            DirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault().TrimEnd('/'));
+            newCurrentDirectory ??= GetRootDirectory().FindDirectory(newDirectoryPath.TrimEnd('/'));
 
-                var subDirectory = node.FindDirectory(nextDirectory);
-                if (subDirectory != null)
-                {
-                    return subDirectory.FindDirectory(string.Join('/', name.Split('/').Skip(1)));
-                }
-
-                return null;
-            }
-
-            foreach (var child in node.Entities)
-            {
-                var found = child.FindDirectory(name);
-                if (found != null)
-                {
-                    return found;
-                }
-            }
-
-            return null;
+            SetCurrentDirectory(newCurrentDirectory);
         }
 
-        /// <summary>
-        /// Finds a folder in a <see cref="DirectoryEntity"/> by unique identifier.
-        /// </summary>
-        /// <param name="node">
-        /// The <see cref="DirectoryEntity"/> to begin the search from.
-        /// </param>
-        /// <param name="id">
-        /// The unique identifier of the folder to find.
-        /// </param>
-        /// <returns>
-        /// The folder that is found, defaults to <see langword="null"/>.
-        /// </returns>
-        public static DirectoryEntity FindDirectory(this DirectoryEntity node, Guid id)
+        public DirectoryEntity GetParentDirectory(DirectoryEntity currentDirectory) => GetRootDirectory().FindDirectory(currentDirectory.ParentId) ?? GetRootDirectory();
+
+        public DirectoryEntity GetRootDirectory() => FileSystem?.Root;
+
+        public DirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem?.CurrentDirectoryId ?? Guid.Empty) ?? GetRootDirectory();
+
+        public string GetCurrentDirectoryPath() => FileSystem?.GetDirectoryPath(GetCurrentDirectory());
+
+        public string GetAbsoluteDirectoryPath(DirectoryEntity directory) => FileSystem?.GetDirectoryPath(directory);
+
+        public string GetRelativeDirectoryPath(DirectoryEntity directory) => FileSystem?.GetDirectoryPath(directory).Replace(GetCurrentDirectoryPath(), string.Empty);
+
+        public string GetAbsoluteEntityPath(DirectoryEntity entity) => FileSystem?.GetEntityPath(entity);
+
+        public string GetRelativeEntityPath(DirectoryEntity entity) => FileSystem?.GetEntityPath(entity).Replace(GetCurrentDirectoryPath(), string.Empty);
+
+        public DirectoryEntity GetRelativeEntity(string entityName) => GetCurrentDirectory().FindEntity(entityName);
+
+        public DirectoryEntity GetRelativeFile(string fileName) => GetCurrentDirectory().FindFile(fileName);
+
+        public DirectoryEntity GetAbsoluteFile(string fileName) => GetRootDirectory().FindFile(fileName);
+
+        public DirectoryEntity GetRelativeDirectory(string directoryName) => GetCurrentDirectory().FindDirectory(directoryName.TrimEnd('/'));
+
+        public DirectoryEntity GetAbsoluteDirectory(string directoryPath) => GetRootDirectory().FindDirectory(directoryPath);
+
+        public DirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users/user/home");
+
+        public void CreateFile(string fileName)
         {
-            if (node == null)
+            var newFile = new DirectoryFile()
             {
-                return null;
+                ParentId = GetCurrentDirectory().Id,
+                Permissions = new() { Permission.UserRead, Permission.UserWrite }
+            };
+
+            var name = fileName;
+            var fileTokens = fileName.Split('.');
+            if (fileTokens.Length > 1)
+            {
+                name = string.Join('.', fileTokens.Take(fileTokens.Length - 1));
+                newFile.Extension = fileTokens.Last();
             }
 
-            if (node.Id.Equals(id) && node.IsDirectory)
-            {
-                return node;
-            }
+            newFile.Name = name;
+            GetCurrentDirectory().Entities.Add(newFile);
+        }
 
-            foreach (var child in node.Entities)
+        public void CreateDirectory(string directoryName)
+        {
+            var newDirectory = new DirectoryFolder()
             {
-                var found = child.FindDirectory(id);
-                if (found != null)
-                {
-                    return found;
-                }
-            }
+                Name = directoryName,
+                ParentId = GetCurrentDirectory().Id
+            };
 
-            return null;
+            GetCurrentDirectory().Entities.Add(newDirectory);
         }
     }
 }

@@ -19,6 +19,9 @@ config/icon="res://icon.png"
 
 [autoload]
 
+DirectoryService="*res://Services/DirectoryService.cs"
+UserCommandService="*res://Services/UserCommandService.cs"
+ConfigService="*res://Services/ConfigService.cs"
 PersistService="*res://Services/PersistService.cs"
 ScreenNavigator="*res://Navigators/ScreenNavigator.cs"
 

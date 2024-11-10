@@ -62,9 +62,22 @@ namespace Terminal.Inputs
             UserCommand.ChangePermissions
         };
 
+        private static readonly List<UserCommand> _commandsThatNeedAdditionalArguments = new()
+        {
+            UserCommand.Color,
+            UserCommand.ChangeDirectory,
+            UserCommand.ViewFile,
+            UserCommand.MakeFile,
+            UserCommand.MakeDirectory,
+            UserCommand.EditFile,
+            UserCommand.ViewPermissions,
+            UserCommand.ChangePermissions
+        };
+
         private KeyboardSounds _keyboardSounds;
         private PersistService _persistService;
-        private UserCommandEvaluator _userCommandEvaluator;
+        private UserCommandService _userCommandService;
+        private DirectoryService _directoryService;
         private bool _hasFocus = false;
         private int _commandMemoryIndex;
         private DirectoryEntity _autocompletedEntity;
@@ -72,25 +85,11 @@ namespace Terminal.Inputs
 
         public override void _Ready()
         {
+            _userCommandService = GetNode<UserCommandService>(ServicePathConstants.UserCommandServicePath);
+            _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
             _keyboardSounds = GetTree().Root.GetNode<KeyboardSounds>(KeyboardSounds.AbsolutePath);
             _commandMemoryIndex = _persistService.CommandMemory.Count;
-
-            _userCommandEvaluator = new();
-            _userCommandEvaluator.SimpleMessageCommand += CreateSimpleTerminalResponse;
-            _userCommandEvaluator.SaveProgressCommand += SaveProgress;
-            _userCommandEvaluator.ExitCommand += Exit;
-            _userCommandEvaluator.ColorChangeCommand += ChangeColor;
-            _userCommandEvaluator.ChangeDirectoryCommand += ChangeDirectory;
-            _userCommandEvaluator.ListDirectoryCommand += ListDirectory;
-            _userCommandEvaluator.ViewFileCommand += ViewFile;
-            _userCommandEvaluator.MakeFileCommand += MakeFile;
-            _userCommandEvaluator.MakeDirectoryCommand += MakeDirectory;
-            _userCommandEvaluator.EditFileCommand += EditFile;
-            _userCommandEvaluator.ListHardwareCommand += ListHardware;
-            _userCommandEvaluator.ViewPermissionsCommand += ViewPermissions;
-            _userCommandEvaluator.ChangePermissionsCommand += ChangePermissions;
-            _userCommandEvaluator.NetworkCommand += Network;
 
             Text = GetDirectoryWithPrompt();
             SetCaretColumn(Text.Length);
@@ -120,6 +119,134 @@ namespace Terminal.Inputs
 
             EvaluateKeyboardInput();
         }
+
+        /// <summary>
+        /// Evalutes the provided <paramref name="command"/>, and invokes the correct method if it's successfully evaluated.
+        /// </summary>
+        /// <param name="command">
+        /// The command to evaluate and invoke a method for.
+        /// </param>
+        public void RouteCommand(string command)
+        {
+            var parsedTokens = UserCommandService.ParseInputToTokens(command);
+            var userCommand = UserCommandService.EvaluateUserInput(command);
+            var unqualifiedCommand = _commandsThatNeedAdditionalArguments.Contains(userCommand) && parsedTokens.Count == 1;
+            if (userCommand == UserCommand.Help || userCommand == UserCommand.Commands || unqualifiedCommand)
+            {
+                var helpContextToken = userCommand;
+                if (parsedTokens.Count == 2 && UserCommandService.EvaluateToken(parsedTokens.Take(2).Last()) != UserCommand.Unknown)
+                {
+                    var parsedContextToken = UserCommandService.EvaluateToken(parsedTokens.Take(2).Last());
+                    helpContextToken = parsedContextToken == UserCommand.Unknown ? UserCommand.Help : parsedContextToken;
+                }
+
+                CreateSimpleTerminalResponse(EvaluateHelpCommand(helpContextToken, parsedTokens.Take(2).Last()));
+            }
+            else if (userCommand == UserCommand.ChangeDirectory)
+            {
+                ChangeDirectory(parsedTokens.Take(2).Last());
+            }
+            else if (userCommand == UserCommand.ListDirectory)
+            {
+                ListDirectory();
+            }
+            else if (userCommand == UserCommand.ViewFile)
+            {
+                ViewFile(parsedTokens.Take(2).Last());
+            }
+            else if (userCommand == UserCommand.MakeFile)
+            {
+                MakeFile(parsedTokens.Take(2).Last());
+            }
+            else if (userCommand == UserCommand.MakeDirectory)
+            {
+                MakeDirectory(parsedTokens.Take(2).Last());
+            }
+            else if (userCommand == UserCommand.EditFile)
+            {
+                EditFile(parsedTokens.Take(2).Last());
+            }
+            else if (userCommand == UserCommand.ListHardware)
+            {
+                ListHardware();
+            }
+            else if (userCommand == UserCommand.ViewPermissions)
+            {
+                ViewPermissions(parsedTokens.Take(2).Last());
+            }
+            else if (userCommand == UserCommand.ChangePermissions)
+            {
+                var fileNameAndPermissionSet = parsedTokens.Skip(1).Take(2);
+                ChangePermissions(fileNameAndPermissionSet.FirstOrDefault(), fileNameAndPermissionSet.LastOrDefault());
+            }
+            else if (userCommand == UserCommand.Date)
+            {
+                CreateSimpleTerminalResponse(DateTime.UtcNow.AddYears(250).ToLongDateString());
+            }
+            else if (userCommand == UserCommand.Time)
+            {
+                CreateSimpleTerminalResponse(DateTime.UtcNow.AddYears(250).ToLongTimeString());
+            }
+            else if (userCommand == UserCommand.Now)
+            {
+                var now = DateTime.UtcNow.AddYears(250);
+                CreateSimpleTerminalResponse(string.Join(", ", now.ToLongTimeString(), now.ToLongDateString()));
+            }
+            else if (userCommand == UserCommand.Network)
+            {
+                Network();
+            }
+            else if (userCommand == UserCommand.Color)
+            {
+                ChangeColor(parsedTokens.Take(2).Last());
+            }
+            else if (userCommand == UserCommand.Save)
+            {
+                SaveProgress();
+            }
+            else if (userCommand == UserCommand.Exit)
+            {
+                Exit();
+            }
+            else
+            {
+                CreateSimpleTerminalResponse($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.");
+            }
+        }
+
+        private string EvaluateHelpCommand(UserCommand? typeOfHelp = UserCommand.Help, string userHelpContext = null)
+        {
+            var allCommands = _userCommandService.AllCommands;
+            if(allCommands.TryGetValue(userHelpContext, out Dictionary<string, string> helpContext))
+            {
+                return GetOutputFromTokens(helpContext);
+            }
+
+            return typeOfHelp switch
+            {
+                UserCommand.Help => GetOutputFromTokens(allCommands["help"]),
+                UserCommand.Exit => GetOutputFromTokens(allCommands["exit"]),
+                UserCommand.Color => GetOutputFromTokens(allCommands["color"]),
+                UserCommand.Save => GetOutputFromTokens(allCommands["save"]),
+                UserCommand.Commands => GetOutputFromTokens(allCommands["commands"]),
+                UserCommand.ChangeDirectory => GetOutputFromTokens(allCommands["change"]),
+                UserCommand.ListDirectory => GetOutputFromTokens(allCommands["list"]),
+                UserCommand.ViewFile => GetOutputFromTokens(allCommands["view"]),
+                UserCommand.MakeFile => GetOutputFromTokens(allCommands["makefile"]),
+                UserCommand.MakeDirectory => GetOutputFromTokens(allCommands["makedirectory"]),
+                UserCommand.EditFile => GetOutputFromTokens(allCommands["edit"]),
+                UserCommand.ListHardware => GetOutputFromTokens(allCommands["listhardware"]),
+                UserCommand.ViewPermissions => GetOutputFromTokens(allCommands["viewpermissions"]),
+                UserCommand.ChangePermissions => GetOutputFromTokens(allCommands["changepermissions"]),
+                UserCommand.Date => GetOutputFromTokens(allCommands["date"]),
+                UserCommand.Time => GetOutputFromTokens(allCommands["time"]),
+                UserCommand.Now => GetOutputFromTokens(allCommands["now"]),
+                UserCommand.Network => GetOutputFromTokens(allCommands["network"]),
+                _ => string.Empty
+            };
+        }
+
+        private static string GetOutputFromTokens(Dictionary<string, string> outputTokens) => $"\n{string.Join("\n\n", outputTokens.Select(token => string.Join('\n', token.Key, token.Value)))}\n\n";
 
         private void EvaluateKeyboardInput()
         {
@@ -197,16 +324,16 @@ namespace Terminal.Inputs
             }
 
             // determine which directory the autocomplete search begins from
-            DirectoryEntity directoryToSearch = isAbsoluteSearch ? _persistService.GetRootDirectory() : _persistService.GetCurrentDirectory();
+            DirectoryEntity directoryToSearch = isAbsoluteSearch ? _directoryService.GetRootDirectory() : _directoryService.GetCurrentDirectory();
             if(isDeepAbsoluteSearch)
             {
                 var directoryWithoutPartialPath = string.Join('/', pathToSearch.Split('/', StringSplitOptions.RemoveEmptyEntries).SkipLast(1));
-                directoryToSearch = _persistService.GetAbsoluteDirectory(directoryWithoutPartialPath);
+                directoryToSearch = _directoryService.GetAbsoluteDirectory(directoryWithoutPartialPath);
             }
             if(isDeepRelativeSearch)
             {
                 var directoryWithoutPartialPath = string.Join('/', pathToSearch.Split('/', StringSplitOptions.RemoveEmptyEntries).SkipLast(1));
-                directoryToSearch = _persistService.GetRelativeDirectory(directoryWithoutPartialPath);
+                directoryToSearch = _directoryService.GetRelativeDirectory(directoryWithoutPartialPath);
             }
 
             // filter autocomplete results down to the partial path defined by the user
@@ -236,8 +363,8 @@ namespace Terminal.Inputs
 
             // determine which path to show as a result
             var autoCompletedPath = isAbsoluteSearch
-                ? _persistService.GetAbsoluteEntityPath(matchingEntity)
-                : _persistService.GetRelativeEntityPath(matchingEntity);
+                ? _directoryService.GetAbsoluteEntityPath(matchingEntity)
+                : _directoryService.GetRelativeEntityPath(matchingEntity);
 
             Text = string.Concat(GetDirectoryWithPrompt(), $"{inputWithoutDirectory.FirstOrDefault()} {autoCompletedPath}");
             SetCaretColumn(Text.Length);
@@ -251,7 +378,7 @@ namespace Terminal.Inputs
 
             var inputWithoutDirectory = Text.Replace(GetDirectoryWithPrompt(), string.Empty).Trim(' ');
             _persistService.AddCommandToMemory(inputWithoutDirectory);
-            _userCommandEvaluator.EvaluateCommand(inputWithoutDirectory);
+            RouteCommand(inputWithoutDirectory);
 
             EmitSignal(SignalName.Evaluated);
             SetProcessInput(false);
@@ -260,7 +387,7 @@ namespace Terminal.Inputs
 
         private void PlayKeyboardSound() => _keyboardSounds.PlayKeyboardSound();
 
-        private string GetDirectoryWithPrompt() => $"{_persistService.GetCurrentDirectoryPath()} {DirectoryConstants.TerminalPromptCharacter} ";
+        private string GetDirectoryWithPrompt() => $"{_directoryService.GetCurrentDirectoryPath()} {TerminalCharactersConstants.Prompt} ";
 
         private void CreateSimpleTerminalResponse(string message) => EmitSignal(SignalName.KnownCommand, message);
 
@@ -274,13 +401,13 @@ namespace Terminal.Inputs
         {
             var directory = newDirectory.ToLowerInvariant() switch
             {
-                ".." => _persistService.GetParentDirectory(_persistService.GetCurrentDirectory()),
-                "." => _persistService.GetCurrentDirectory(),
-                "~" => _persistService.GetHomeDirectory(),
-                "root" or "/" => _persistService.GetRootDirectory(),
+                ".." => _directoryService.GetParentDirectory(_directoryService.GetCurrentDirectory()),
+                "." => _directoryService.GetCurrentDirectory(),
+                "~" => _directoryService.GetHomeDirectory(),
+                "root" or "/" => _directoryService.GetRootDirectory(),
                 _ => newDirectory.StartsWith('/')
-                    ? _persistService.GetAbsoluteDirectory(newDirectory.TrimEnd('/'))
-                    : _persistService.GetRelativeDirectory(newDirectory.TrimEnd('/'))
+                    ? _directoryService.GetAbsoluteDirectory(newDirectory.TrimEnd('/'))
+                    : _directoryService.GetRelativeDirectory(newDirectory.TrimEnd('/'))
             };
 
             if (directory == null)
@@ -291,18 +418,18 @@ namespace Terminal.Inputs
 
             if (!directory.Permissions.Contains(Permission.UserRead))
             {
-                EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to enter the \"{_persistService.GetAbsoluteDirectoryPath(directory)}\" directory.");
+                EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to enter the \"{_directoryService.GetAbsoluteDirectoryPath(directory)}\" directory.");
                 return;
             }
 
-            _persistService.SetCurrentDirectory(directory);
+            _directoryService.SetCurrentDirectory(directory);
         }
 
         private void ListDirectory() => EmitSignal(SignalName.ListDirectoryCommand);
 
         private void ViewFile(string fileName)
         {
-            var file = _persistService.GetRelativeFile(fileName);
+            var file = _directoryService.GetRelativeFile(fileName);
             if(file == null)
             {
                 EmitSignal(SignalName.KnownCommand, $"\"{fileName}\" does not exist.");
@@ -326,7 +453,7 @@ namespace Terminal.Inputs
 
         private void MakeFile(string fileName)
         {
-            var currentDirectory = _persistService.GetCurrentDirectory();
+            var currentDirectory = _directoryService.GetCurrentDirectory();
             if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
             {
                 EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to create a file in the current directory.");
@@ -338,7 +465,7 @@ namespace Terminal.Inputs
 
         private void MakeDirectory(string directoryName)
         {
-            var currentDirectory = _persistService.GetCurrentDirectory();
+            var currentDirectory = _directoryService.GetCurrentDirectory();
             if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
             {
                 EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to create a directory in the current directory.");
@@ -350,7 +477,7 @@ namespace Terminal.Inputs
 
         private void EditFile(string fileName)
         {
-            var currentDirectory = _persistService.GetCurrentDirectory();
+            var currentDirectory = _directoryService.GetCurrentDirectory();
             if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
             {
                 EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to edit the \"{fileName}\" file in the current directory.");

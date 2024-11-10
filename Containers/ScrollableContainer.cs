@@ -5,6 +5,7 @@ using Godot;
 
 using Terminal.Constants;
 using Terminal.Enums;
+using Terminal.Extensions;
 using Terminal.Inputs;
 using Terminal.Models;
 using Terminal.Services;
@@ -15,13 +16,17 @@ namespace Terminal.Containers
     {
         private UserInput _userInput;
         private Theme _defaultUserInputTheme;
+        private DirectoryService _directoryService;
         private PersistService _persistService;
+        private ConfigService _configService;
         private StyleBoxEmpty _emptyStyleBox = new();
         private FileInput _fileInput;
 
         public override void _Ready()
         {
+            _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
+            _configService = GetNode<ConfigService>(ServicePathConstants.ConfigServicePath);
             _defaultUserInputTheme = GD.Load<Theme>(ThemePathConstants.MonospaceFontThemePath);
             _userInput = GetNode<UserInput>("UserInput");
             _fileInput = GetNode<FileInput>("%FileInput");
@@ -141,13 +146,13 @@ namespace Terminal.Containers
 
         private void ColorCommandResponse(string colorName)
         {
-            if (!ColorConstants.TerminalColors.TryGetValue(colorName, out Color newColor))
+            if (!_configService.Colors.TryGetValue(colorName, out Color newColor))
             {
-                CreateResponse($"Invalid color option. Possible color options are: {string.Join(", ", ColorConstants.TerminalColors.Keys)}.");
+                CreateResponse($"Invalid color option. Possible color options are: {string.Join(", ", _configService.Colors.Keys)}.");
                 return;
             }
 
-            if (!ColorConstants.ColorToExecutableColorMap.TryGetValue(colorName, out Color executableColor))
+            if (!_configService.ExecutableColors.TryGetValue(colorName, out Color executableColor))
             {
                 GD.PrintErr($"Unable to find executable color mapping for '{colorName}'.");
                 return;
@@ -164,7 +169,7 @@ namespace Terminal.Containers
             CreateResponse("Progress saved.");
         }
 
-        private void ListDirectoryCommandResponse() => CreateListDirectoryResponse(_persistService.GetCurrentDirectory().Entities);
+        private void ListDirectoryCommandResponse() => CreateListDirectoryResponse(_directoryService.GetCurrentDirectory().Entities);
 
         private void MakeFileCommandResponse(string fileName)
         {
@@ -174,14 +179,14 @@ namespace Terminal.Containers
                 return;
             }
 
-            var existingFile = _persistService.GetRelativeFile(fileName);
+            var existingFile = _directoryService.GetRelativeFile(fileName);
             if (existingFile != null)
             {
                 CreateResponse($"File with the name of '{fileName}' already exists.");
                 return;
             }
 
-            _persistService.CreateFile(fileName);
+            _directoryService.CreateFile(fileName);
             CreateResponse($"New file '{fileName}' created.");
         }
 
@@ -193,14 +198,14 @@ namespace Terminal.Containers
                 return;
             }
 
-            var existingDirectory = _persistService.GetRelativeDirectory(directoryName);
+            var existingDirectory = _directoryService.GetRelativeDirectory(directoryName);
             if (existingDirectory != null)
             {
                 CreateResponse($"Directory with the name of '{directoryName}' already exists.");
                 return;
             }
 
-            _persistService.CreateDirectory(directoryName);
+            _directoryService.CreateDirectory(directoryName);
             CreateResponse($"New directory '{directoryName}' created.");
         }
 
@@ -212,7 +217,7 @@ namespace Terminal.Containers
                 return;
             }
 
-            var existingFile = _persistService.GetRelativeFile(fileName);
+            var existingFile = _directoryService.GetRelativeFile(fileName);
             if (existingFile == null)
             {
                 CreateResponse($"No file with the name '{fileName}' exists.");
@@ -230,7 +235,7 @@ namespace Terminal.Containers
                 return;
             }
 
-            var existingFile = _persistService.GetRelativeFile(fileName);
+            var existingFile = _directoryService.GetRelativeFile(fileName);
             if (existingFile == null)
             {
                 GD.PrintErr($"No file with the name '{fileName}' can be saved.");
@@ -257,7 +262,7 @@ namespace Terminal.Containers
 
         private void ListHardwareCommandResponse()
         {
-            var deviceDirectory = _persistService.GetRootDirectory().FindDirectory("system").FindDirectory("device");
+            var deviceDirectory = _directoryService.GetRootDirectory().FindDirectory("system").FindDirectory("device");
             var hardwareResponse = deviceDirectory.Entities.Where(entity => entity.IsDirectory).Select(entity =>
             {
                 var hardwareEntities = entity.Entities
@@ -305,12 +310,12 @@ namespace Terminal.Containers
         private void ViewPermissionsCommandResponse(string entityName)
         {
             var entity = entityName.StartsWith('/')
-                ? _persistService.GetAbsoluteFile(entityName) ?? _persistService.GetAbsoluteDirectory(entityName.TrimEnd('/'))
-                : _persistService.GetRelativeFile(entityName) ?? _persistService.GetRelativeDirectory(entityName.TrimEnd('/'));
+                ? _directoryService.GetAbsoluteFile(entityName) ?? _directoryService.GetAbsoluteDirectory(entityName.TrimEnd('/'))
+                : _directoryService.GetRelativeFile(entityName) ?? _directoryService.GetRelativeDirectory(entityName.TrimEnd('/'));
 
             if (entityName == "/" || entityName == "root")
             {
-                entity = _persistService.GetRootDirectory();
+                entity = _directoryService.GetRootDirectory();
             }
 
             if (entity == null)
@@ -325,12 +330,12 @@ namespace Terminal.Containers
         private void ChangePermissionsCommandResponse(string entityName, string newPermissionSet)
         {
             var entity = entityName.StartsWith('/')
-                ? _persistService.GetAbsoluteFile(entityName) ?? _persistService.GetAbsoluteDirectory(entityName.TrimEnd('/'))
-                : _persistService.GetRelativeFile(entityName) ?? _persistService.GetRelativeDirectory(entityName.TrimEnd('/'));
+                ? _directoryService.GetAbsoluteFile(entityName) ?? _directoryService.GetAbsoluteDirectory(entityName.TrimEnd('/'))
+                : _directoryService.GetRelativeFile(entityName) ?? _directoryService.GetRelativeDirectory(entityName.TrimEnd('/'));
 
             if (entityName == "/" || entityName == "root")
             {
-                entity = _persistService.GetRootDirectory();
+                entity = _directoryService.GetRootDirectory();
             }
 
             if (entity == null)
@@ -352,7 +357,7 @@ namespace Terminal.Containers
 
         private void NetworkCommandResponse()
         {
-            var networkDirectory = _persistService.GetRootDirectory().FindDirectory("system").FindDirectory("network");
+            var networkDirectory = _directoryService.GetRootDirectory().FindDirectory("system").FindDirectory("network");
             var networkResponse = networkDirectory.Entities.Where(entity => !entity.IsDirectory).Select(entity =>
             {
                 var networkEntityList = entity.Contents.Split('\n');

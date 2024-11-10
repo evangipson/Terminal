@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 
-using Terminal.Services;
+using Terminal.Extensions;
 
 namespace Terminal.Models
 {

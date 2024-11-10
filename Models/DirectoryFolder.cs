@@ -32,10 +32,10 @@ namespace Terminal.Models
         {
             if (IsRoot)
             {
-                return DirectoryConstants.DirectorySeparator;
+                return TerminalCharactersConstants.Separator.ToString();
             }
 
-            return string.Concat(Name, DirectoryConstants.DirectorySeparator);
+            return string.Concat(Name, TerminalCharactersConstants.Separator);
         }
     }
 }

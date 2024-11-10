@@ -2,31 +2,29 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using System.Linq;
 using Godot;
 using Dictionary = Godot.Collections.Dictionary;
 
 using Terminal.Constants;
 using Terminal.Models;
-using Terminal.Enums;
 
 namespace Terminal.Services
 {
     public partial class PersistService : Node
     {
-        public Color CurrentColor = ColorConstants.TerminalColors.First().Value;
-        public Color ExecutableColor = ColorConstants.ColorToExecutableColorMap.First().Value;
+        public Color CurrentColor = ColorConstants.TerminalGreen;
+        public Color ExecutableColor = ColorConstants.TerminalTeal;
         public LinkedList<string> CommandMemory = new();
-        public FileSystem FileSystem;
 
         private readonly string _path = ProjectSettings.GlobalizePath("user://");
         private readonly string _fileName = "savegame.json";
         private readonly int _commandMemoryLimit = 10;
 
+        private DirectoryService _directoryService;
+
         public override void _Ready()
         {
-            FileSystem = DirectoryService.CreateNewFileSystem();
-            FileSystem.CurrentDirectoryId = GetHomeDirectory().Id;
+            _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
             LoadGame();
         }
 
@@ -40,94 +38,6 @@ namespace Terminal.Services
             }
 
             CommandMemory.AddLast(command);
-        }
-
-        public void SetCurrentDirectory(DirectoryEntity newCurrentDirectory)
-        {
-            if (newCurrentDirectory?.IsDirectory != true)
-            {
-                return;
-            }
-
-            FileSystem.CurrentDirectoryId = newCurrentDirectory.Id;
-        }
-
-        public void SetCurrentDirectory(string newDirectoryPath)
-        {
-            if (string.IsNullOrEmpty(newDirectoryPath))
-            {
-                return;
-            }
-
-            if (newDirectoryPath == "/")
-            {
-                SetCurrentDirectory(GetRootDirectory());
-            }
-
-            List<string> directoryTokensInPath = newDirectoryPath.Split('/').ToList();
-            DirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault().TrimEnd('/'));
-            newCurrentDirectory ??= GetRootDirectory().FindDirectory(newDirectoryPath.TrimEnd('/'));
-
-            SetCurrentDirectory(newCurrentDirectory);
-        }
-
-        public DirectoryEntity GetParentDirectory(DirectoryEntity currentDirectory) => GetRootDirectory().FindDirectory(currentDirectory.ParentId) ?? GetRootDirectory();
-
-        public DirectoryEntity GetRootDirectory() => FileSystem?.Root;
-
-        public DirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem?.CurrentDirectoryId ?? Guid.Empty) ?? GetRootDirectory();
-
-        public string GetCurrentDirectoryPath() => FileSystem?.GetDirectoryPath(GetCurrentDirectory());
-
-        public string GetAbsoluteDirectoryPath(DirectoryEntity directory) => FileSystem?.GetDirectoryPath(directory);
-
-        public string GetRelativeDirectoryPath(DirectoryEntity directory) => FileSystem?.GetDirectoryPath(directory).Replace(GetCurrentDirectoryPath(), string.Empty);
-
-        public string GetAbsoluteEntityPath(DirectoryEntity entity) => FileSystem?.GetEntityPath(entity);
-
-        public string GetRelativeEntityPath(DirectoryEntity entity) => FileSystem?.GetEntityPath(entity).Replace(GetCurrentDirectoryPath(), string.Empty);
-
-        public DirectoryEntity GetRelativeEntity(string entityName) => GetCurrentDirectory().FindEntity(entityName);
-
-        public DirectoryEntity GetRelativeFile(string fileName) => GetCurrentDirectory().FindFile(fileName);
-
-        public DirectoryEntity GetAbsoluteFile(string fileName) => GetRootDirectory().FindFile(fileName);
-
-        public DirectoryEntity GetRelativeDirectory(string directoryName) => GetCurrentDirectory().FindDirectory(directoryName.TrimEnd('/'));
-
-        public DirectoryEntity GetAbsoluteDirectory(string directoryPath) => GetRootDirectory().FindDirectory(directoryPath);
-
-        public DirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users/user/home");
-
-        public void CreateFile(string fileName)
-        {
-            var newFile = new DirectoryFile()
-            {
-                ParentId = GetCurrentDirectory().Id,
-                Permissions = new() { Permission.UserRead, Permission.UserWrite }
-            };
-
-            var name = fileName;
-            var fileTokens = fileName.Split('.');
-            if (fileTokens.Length > 1)
-            {
-                name = string.Join('.', fileTokens.Take(fileTokens.Length - 1));
-                newFile.Extension = fileTokens.Last();
-            }
-
-            newFile.Name = name;
-            GetCurrentDirectory().Entities.Add(newFile);
-        }
-
-        public void CreateDirectory(string directoryName)
-        {
-            var newDirectory = new DirectoryFolder()
-            {
-                Name = directoryName,
-                ParentId = GetCurrentDirectory().Id
-            };
-
-            GetCurrentDirectory().Entities.Add(newDirectory);
         }
 
         public void LoadGame()
@@ -161,7 +71,7 @@ namespace Terminal.Services
             }
             if (loadedData?.ContainsKey("FileSystem") == true && !string.IsNullOrEmpty(loadedData["FileSystem"].ToString()))
             {
-                FileSystem = JsonSerializer.Deserialize<FileSystem>(loadedData["FileSystem"].ToString());
+                _directoryService.FileSystem = JsonSerializer.Deserialize<FileSystem>(loadedData["FileSystem"].ToString());
             }
         }
 
@@ -172,7 +82,7 @@ namespace Terminal.Services
                 ["TerminalColor"] = CurrentColor.ToHtml(false),
                 ["ExecutableColor"] = ExecutableColor.ToHtml(false),
                 ["CommandMemory"] = string.Join(',', CommandMemory),
-                ["FileSystem"] = JsonSerializer.Serialize(FileSystem)
+                ["FileSystem"] = JsonSerializer.Serialize(_directoryService.FileSystem)
             };
 
             var saveDataJson = Json.Stringify(saveData);
