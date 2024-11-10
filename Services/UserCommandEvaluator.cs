@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Terminal.Constants;
 using Terminal.Enums;
 
 namespace Terminal.Services
