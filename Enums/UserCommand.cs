@@ -24,6 +24,9 @@ namespace Terminal.Enums
         ListHardware,
         ViewPermissions,
         ChangePermissions,
+        Date,
+        Time,
+        Now,
         Unknown
     };
 }

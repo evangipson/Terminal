@@ -87,6 +87,9 @@ namespace Terminal.Services
             "lhw" or "listhardware" => UserCommand.ListHardware,
             "vp" or "viewperm" or "viewpermissions" => UserCommand.ViewPermissions,
             "chp" or "changeperm" or "changepermissions" => UserCommand.ChangePermissions,
+            "date" => UserCommand.Date,
+            "time" => UserCommand.Time,
+            "now" or "datetime" or "dt" or "current" => UserCommand.Now,
             _ => UserCommand.Unknown
         };
 
@@ -186,6 +189,24 @@ namespace Terminal.Services
                 ["FORMAT"] = "Permission sets are 6 bits in order: \"admin executable\", \"admin write\", \"admin read\", \"user executable\", \"user write\", and \"user read\". If no bits are set, the permissions are \"none\".",
                 ["EXAMPLE SETS"] = "111111: \"admin executable\", \"admin write\", \"admin read\", \"user executable\", \"user write\", and \"user read\".\n000000: \"none\".",
                 ["EXAMPLES"] = "chp new.txt 010100    : Updates the permissions for the 'new.txt' file to \"admin write\" and \"user executable\"."
+            },
+            ["date"] = new()
+            {
+                ["COMMAND"] = "date",
+                ["REMARKS"] = "View the current date.",
+                ["EXAMPLES"] = "date    : Prints the current date."
+            },
+            ["time"] = new()
+            {
+                ["COMMAND"] = "time",
+                ["REMARKS"] = "View the current time.",
+                ["EXAMPLES"] = "time    : Prints the current time."
+            },
+            ["now"] = new()
+            {
+                ["COMMAND"] = "now [dt] [datetime] [current]",
+                ["REMARKS"] = "View the current date and time.",
+                ["EXAMPLES"] = "now    : Prints the current date and time."
             }
         };
     }

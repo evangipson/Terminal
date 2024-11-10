@@ -158,6 +158,22 @@ namespace Terminal.Services
                 ChangePermissionsCommand?.Invoke(fileNameAndPermissionSet.FirstOrDefault(), fileNameAndPermissionSet.LastOrDefault());
                 return;
             }
+            if (userCommand == UserCommand.Date)
+            {
+                SimpleMessageCommand?.Invoke(DateTime.UtcNow.AddYears(250).ToLongDateString());
+                return;
+            }
+            if (userCommand == UserCommand.Time)
+            {
+                SimpleMessageCommand?.Invoke(DateTime.UtcNow.AddYears(250).ToLongTimeString());
+                return;
+            }
+            if (userCommand == UserCommand.Now)
+            {
+                var now = DateTime.UtcNow.AddYears(250);
+                SimpleMessageCommand?.Invoke(string.Join(", ", now.ToLongTimeString(), now.ToLongDateString()));
+                return;
+            }
             if (userCommand == UserCommand.Color)
             {
                 ColorChangeCommand?.Invoke(parsedTokens.Take(2).Last());
@@ -196,6 +212,9 @@ namespace Terminal.Services
                 UserCommand.ListHardware => GetOutputFromTokens(allCommands["listhardware"]),
                 UserCommand.ViewPermissions => GetOutputFromTokens(allCommands["viewpermissions"]),
                 UserCommand.ChangePermissions => GetOutputFromTokens(allCommands["changepermissions"]),
+                UserCommand.Date => GetOutputFromTokens(allCommands["date"]),
+                UserCommand.Time => GetOutputFromTokens(allCommands["time"]),
+                UserCommand.Now => GetOutputFromTokens(allCommands["now"]),
                 _ => string.Empty
             };
         }
