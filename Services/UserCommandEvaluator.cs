@@ -233,6 +233,6 @@ namespace Terminal.Services
             };
         }
 
-        private static string GetOutputFromTokens(Dictionary<string, string> outputTokens) => string.Join('\n', outputTokens.Select(token => string.Join('\n', token.Key, token.Value)));
+        private static string GetOutputFromTokens(Dictionary<string, string> outputTokens) => $"\n{string.Join("\n\n", outputTokens.Select(token => string.Join('\n', token.Key, token.Value)))}\n\n";
     }
 }
