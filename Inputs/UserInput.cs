@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -41,12 +43,21 @@ namespace Terminal.Inputs
         [Signal]
         public delegate void ListHardwareCommandEventHandler();
 
+
+        private static readonly List<UserCommand> _validAutoCompleteCommands = new()
+        {
+            UserCommand.ChangeDirectory,
+            UserCommand.ViewFile,
+            UserCommand.EditFile
+        };
+
         private KeyboardSounds _keyboardSounds;
         private PersistService _persistService;
         private UserCommandEvaluator _userCommandEvaluator;
         private bool _hasFocus = false;
         private int _commandMemoryIndex;
         private DirectoryEntity _autocompletedEntity;
+        private string _partialPath;
 
         public override void _Ready()
         {
@@ -147,34 +158,72 @@ namespace Terminal.Inputs
 
         private void AutocompletePhrase()
         {
-            var inputWithoutDirectory = Text.Replace(GetDirectoryWithPrompt(), string.Empty).Split(' ');
+            var inputWithoutDirectory = Text.Replace(GetDirectoryWithPrompt(), string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var userCommand = UserCommandService.EvaluateToken(inputWithoutDirectory.FirstOrDefault());
-
-            DirectoryEntity matchingEntity = _persistService.GetCurrentDirectory().Entities.FirstOrDefault(entity =>
+            var pathToSearch = inputWithoutDirectory.LastOrDefault();
+            if(!_validAutoCompleteCommands.Contains(userCommand) || string.IsNullOrEmpty(pathToSearch))
             {
-                return (entity.IsDirectory == (userCommand == UserCommand.ChangeDirectory)) && entity.Name.Contains(inputWithoutDirectory.Last());
-            });
-            if (_autocompletedEntity != null)
-            {
-                matchingEntity = _persistService.GetCurrentDirectory().Entities.SkipWhile(p => p.Name != _autocompletedEntity.Name).Skip(1).FirstOrDefault()
-                    ?? _persistService.GetCurrentDirectory().Entities.FirstOrDefault();
-            }
-
-            if (userCommand == UserCommand.ChangeDirectory || userCommand == UserCommand.ViewFile || userCommand == UserCommand.EditFile)
-            {
-                Text = string.Concat(GetDirectoryWithPrompt(), $"{inputWithoutDirectory.FirstOrDefault()} {matchingEntity}");
-                SetCaretColumn(Text.Length);
-                _autocompletedEntity = matchingEntity;
+                ListDirectory();
+                EmitSignal(SignalName.Evaluated);
                 GetTree().Root.SetInputAsHandled();
                 return;
             }
 
-            var matchingEntities = _persistService.GetCurrentDirectory().Entities.Where(entity => entity.Name.Contains(inputWithoutDirectory.Last()));
-            if (matchingEntities != null)
+            // maintain the last input from the user during autocomplete
+            var isAbsoluteSearch = pathToSearch.StartsWith('/');
+            var isDeepRelativeSearch = !isAbsoluteSearch && pathToSearch.Trim('/').Contains('/');
+            var isDeepAbsoluteSearch = isAbsoluteSearch && pathToSearch.Trim('/').Contains('/');
+            if (!pathToSearch.EndsWith('/') && (isDeepRelativeSearch || isDeepAbsoluteSearch))
             {
-                ListDirectory();
-                EmitSignal(SignalName.Evaluated);
+                _partialPath = pathToSearch.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
             }
+            else if (!pathToSearch.EndsWith('/') && isAbsoluteSearch)
+            {
+                _partialPath = isAbsoluteSearch ? pathToSearch.TrimStart('/') : pathToSearch;
+            }
+
+            // determine which directory the autocomplete search begins from
+            DirectoryEntity directoryToSearch = isAbsoluteSearch ? _persistService.GetRootDirectory() : _persistService.GetCurrentDirectory();
+            if(isDeepAbsoluteSearch)
+            {
+                var directoryWithoutPartialPath = string.Join('/', pathToSearch.Split('/', StringSplitOptions.RemoveEmptyEntries).SkipLast(1));
+                directoryToSearch = _persistService.GetAbsoluteDirectory(directoryWithoutPartialPath);
+            }
+            if(isDeepRelativeSearch)
+            {
+                var directoryWithoutPartialPath = string.Join('/', pathToSearch.Split('/', StringSplitOptions.RemoveEmptyEntries).SkipLast(1));
+                directoryToSearch = _persistService.GetRelativeDirectory(directoryWithoutPartialPath);
+            }
+
+            // filter autocomplete results down to the partial path defined by the user
+            var filteredEntities = string.IsNullOrEmpty(_partialPath)
+                ? directoryToSearch.Entities
+                : directoryToSearch.Entities.Where(entity => entity.Name.StartsWith(_partialPath));
+
+            // if there are no autocomplete results and the user is searching with a partial path, do nothing
+            if (!filteredEntities.Any())
+            {
+                GetTree().Root.SetInputAsHandled();
+                return;
+            }
+
+            // fill in the results of the autocomplete search, folders for change directory, and files otherwise
+            var matchingEntity = filteredEntities.FirstOrDefault(entity => entity.IsDirectory == (userCommand == UserCommand.ChangeDirectory));
+            if (_autocompletedEntity != null)
+            {
+                // wrap the autocomplete results
+                matchingEntity = filteredEntities.SkipWhile(p => p.Name != _autocompletedEntity.Name).Skip(1).FirstOrDefault() ?? filteredEntities.FirstOrDefault();
+            }
+
+            // determine which path to show as a result, file or folder, based on the user command
+            var autoCompletedPath = isAbsoluteSearch ? _persistService.GetAbsoluteDirectoryPath(matchingEntity) : _persistService.GetRelativeDirectoryPath(matchingEntity);
+            if(userCommand != UserCommand.ChangeDirectory)
+            {
+                autoCompletedPath = $"{matchingEntity}";
+            }
+            Text = string.Concat(GetDirectoryWithPrompt(), $"{inputWithoutDirectory.FirstOrDefault()} {autoCompletedPath}");
+            SetCaretColumn(Text.Length);
+            _autocompletedEntity = matchingEntity;
             GetTree().Root.SetInputAsHandled();
         }
 
@@ -203,7 +252,33 @@ namespace Terminal.Inputs
 
         private void ChangeColor(string newColor) => EmitSignal(SignalName.ColorCommand, newColor);
 
-        private void ChangeDirectory(string newDirectory) => EmitSignal(SignalName.ChangeDirectoryCommand, newDirectory);
+        private void ChangeDirectory(string newDirectory)
+        {
+            var directory = newDirectory.ToLowerInvariant() switch
+            {
+                ".." => _persistService.GetParentDirectory(_persistService.GetCurrentDirectory()),
+                "." => _persistService.GetCurrentDirectory(),
+                "~" => _persistService.GetHomeDirectory(),
+                "root" or "/" => _persistService.GetRootDirectory(),
+                _ => newDirectory.StartsWith('/')
+                    ? _persistService.GetAbsoluteDirectory(newDirectory.TrimEnd('/'))
+                    : _persistService.GetRelativeDirectory(newDirectory.TrimEnd('/'))
+            };
+
+            if (directory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"\"{newDirectory}\" is not a directory.");
+                return;
+            }
+
+            if (!directory.Permissions.Contains(Permission.UserRead))
+            {
+                EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to enter the \"{_persistService.GetAbsoluteDirectoryPath(directory)}\" directory.");
+                return;
+            }
+
+            _persistService.SetCurrentDirectory(directory);
+        }
 
         private void ListDirectory() => EmitSignal(SignalName.ListDirectoryCommand);
 
@@ -222,14 +297,50 @@ namespace Terminal.Inputs
                 return;
             }
 
-            EmitSignal(SignalName.KnownCommand, _persistService.GetFile(fileName)?.Contents ?? $"\"{fileName}\" does not exist.");
+            if (!file.Permissions.Contains(Permission.UserRead))
+            {
+                EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to view the \"{fileName}\" file.");
+                return;
+            }
+
+            EmitSignal(SignalName.KnownCommand, file.Contents);
         }
 
-        private void MakeFile(string fileName) => EmitSignal(SignalName.MakeFileCommand, fileName);
+        private void MakeFile(string fileName)
+        {
+            var currentDirectory = _persistService.GetCurrentDirectory();
+            if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
+            {
+                EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to create a file in the current directory.");
+                return;
+            }
 
-        private void MakeDirectory(string directoryName) => EmitSignal(SignalName.MakeDirectoryCommand, directoryName);
+            EmitSignal(SignalName.MakeFileCommand, fileName);
+        }
 
-        private void EditFile(string fileName) => EmitSignal(SignalName.EditFileCommand, fileName);
+        private void MakeDirectory(string directoryName)
+        {
+            var currentDirectory = _persistService.GetCurrentDirectory();
+            if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
+            {
+                EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to create a directory in the current directory.");
+                return;
+            }
+
+            EmitSignal(SignalName.MakeDirectoryCommand, directoryName);
+        }
+
+        private void EditFile(string fileName)
+        {
+            var currentDirectory = _persistService.GetCurrentDirectory();
+            if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
+            {
+                EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to edit the \"{fileName}\" file in the current directory.");
+                return;
+            }
+
+            EmitSignal(SignalName.EditFileCommand, fileName);
+        }
 
         private void ListHardware() => EmitSignal(SignalName.ListHardwareCommand);
     }

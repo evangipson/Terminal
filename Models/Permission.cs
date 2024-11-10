@@ -9,10 +9,8 @@
         UserRead,
         UserWrite,
         UserExecutable,
-        UserAll,
         AdminRead,
         AdminWrite,
-        AdminExecutable,
-        AdminAll
+        AdminExecutable
     }
 }

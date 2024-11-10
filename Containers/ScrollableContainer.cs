@@ -65,7 +65,6 @@ namespace Terminal.Containers
             newUserInput.ColorCommand += ColorCommandResponse;
             newUserInput.SaveCommand += SaveCommandResponse;
             newUserInput.ListDirectoryCommand += ListDirectoryCommandResponse;
-            newUserInput.ChangeDirectoryCommand += ChangeDirectoryCommandResponse;
             newUserInput.MakeFileCommand += MakeFileCommandResponse;
             newUserInput.MakeDirectoryCommand += MakeDirectoryCommandResponse;
             newUserInput.EditFileCommand += EditFileCommandResponse;
@@ -125,7 +124,6 @@ namespace Terminal.Containers
                 {
                     return $"[color=#{_persistService.ExecutableColor.ToHtml(false)}]{entity}[/color]";
                 }
-
                 return $"{entity}";
             }).ToList();
             directoryResponse.AppendText(string.Join(' ', entityList));
@@ -164,35 +162,6 @@ namespace Terminal.Containers
 
         private void ListDirectoryCommandResponse() => CreateListDirectoryResponse(_persistService.GetCurrentDirectory().Entities);
 
-        private void ChangeDirectoryCommandResponse(string newDirectory)
-        {
-            if (newDirectory.Equals("."))
-            {
-                return;
-            }
-
-            if (newDirectory.Equals(".."))
-            {
-                var parentDirectory = _persistService.GetParentDirectory(_persistService.GetCurrentDirectory());
-                _persistService.SetCurrentDirectory(parentDirectory);
-                return;
-            }
-
-            if (newDirectory.Equals("~"))
-            {
-                _persistService.SetCurrentDirectory(_persistService.GetHomeDirectory());
-                return;
-            }
-
-            if (newDirectory.Equals("root") || newDirectory.Equals(DirectoryConstants.DirectorySeparator))
-            {
-                _persistService.SetCurrentDirectory(_persistService.GetRootDirectory());
-                return;
-            }
-
-            _persistService.SetCurrentDirectory(newDirectory);
-        }
-
         private void MakeFileCommandResponse(string fileName)
         {
             if (string.IsNullOrEmpty(fileName))
@@ -220,7 +189,7 @@ namespace Terminal.Containers
                 return;
             }
 
-            var existingDirectory = _persistService.GetDirectory(directoryName);
+            var existingDirectory = _persistService.GetRelativeDirectory(directoryName);
             if (existingDirectory != null)
             {
                 CreateResponse($"Directory with the name of '{directoryName}' already exists.");

@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Linq;
 using Terminal.Constants;
 using Terminal.Models;
 
@@ -79,6 +79,21 @@ namespace Terminal.Services
             if (node.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && node.IsDirectory)
             {
                 return node;
+            }
+
+            if (name.Contains('/'))
+            {
+                var nextDirectory = name.StartsWith('/')
+                    ? name.TrimStart('/').Split('/').First()
+                    : name.Split('/').First();
+
+                var subDirectory = node.FindDirectory(nextDirectory);
+                if (subDirectory != null)
+                {
+                    return subDirectory.FindDirectory(string.Join('/', name.Split('/').Skip(1)));
+                }
+
+                return null;
             }
 
             foreach (var child in node.Entities)

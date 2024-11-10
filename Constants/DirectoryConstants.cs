@@ -33,7 +33,7 @@ namespace Terminal.Constants
         /// </returns>
         public static List<DirectoryEntity> GetDefaultDirectoryStructure()
         {
-            DirectoryFolder rootDirectory = new() { Name = DirectorySeparator, IsRoot = true };
+            DirectoryFolder rootDirectory = new() { Name = DirectorySeparator, IsRoot = true, Permissions = _adminReadWritePermissions };
             DirectoryFolder rootSystemDirectory = new() { Name = "system", ParentId = rootDirectory.Id, Permissions = _adminReadWritePermissions };
             DirectoryFolder rootUsersDirectory = new() { Name = "users", ParentId = rootDirectory.Id, Permissions = _adminReadWritePermissions };
             DirectoryFolder rootTempDirectory = new() { Name = "temp", ParentId = rootDirectory.Id, Permissions = _adminReadWritePermissions };

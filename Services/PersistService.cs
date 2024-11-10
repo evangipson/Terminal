@@ -74,15 +74,21 @@ namespace Terminal.Services
 
         public DirectoryEntity GetRootDirectory() => FileSystem?.Root;
 
-        public DirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem.CurrentDirectoryId) ?? GetRootDirectory();
+        public DirectoryEntity GetCurrentDirectory() => GetRootDirectory().FindDirectory(FileSystem?.CurrentDirectoryId ?? Guid.Empty) ?? GetRootDirectory();
 
-        public string GetCurrentDirectoryPath() => FileSystem.GetDirectoryPath(GetCurrentDirectory());
+        public string GetCurrentDirectoryPath() => FileSystem?.GetDirectoryPath(GetCurrentDirectory());
+
+        public string GetAbsoluteDirectoryPath(DirectoryEntity directory) => FileSystem?.GetDirectoryPath(directory);
+
+        public string GetRelativeDirectoryPath(DirectoryEntity directory) => FileSystem?.GetDirectoryPath(directory).Replace(GetCurrentDirectoryPath(), string.Empty);
 
         public DirectoryEntity GetFile(string fileName) => GetCurrentDirectory().FindFile(fileName);
 
-        public DirectoryEntity GetDirectory(string directoryName) => GetCurrentDirectory().FindDirectory(directoryName);
+        public DirectoryEntity GetRelativeDirectory(string directoryName) => GetCurrentDirectory().FindDirectory(directoryName.TrimEnd('/'));
 
-        public DirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users").FindDirectory("user").FindDirectory("home");
+        public DirectoryEntity GetAbsoluteDirectory(string directoryPath) => GetRootDirectory().FindDirectory(directoryPath);
+
+        public DirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users/user/home");
 
         public void CreateFile(string fileName)
         {
