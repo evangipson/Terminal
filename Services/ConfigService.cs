@@ -95,7 +95,8 @@ namespace Terminal.Services
             }
 
             var colorsContentsMinusReplacement = colorsExecutableFile.Contents.Split("[COLORS:").First();
-            colorsExecutableFile.Contents = string.Concat('\n', colorsContentsMinusReplacement, '\n', "[COLORS:", string.Join(", ", newColors.Keys), "]");
+            var sortedColors = string.Join(", ", newColors.Keys.OrderBy(key => key).Select(key => key));
+            colorsExecutableFile.Contents = string.Concat('\n', colorsContentsMinusReplacement, '\n', "[COLORS:", sortedColors, "]");
         }
     }
 }

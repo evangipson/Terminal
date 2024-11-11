@@ -196,7 +196,8 @@ namespace Terminal.Services
             }
 
             var commandsContentsMinusReplacement = commandsExecutableFile.Contents.Split("[COMMANDS:").First();
-            commandsExecutableFile.Contents = string.Concat('\n', commandsContentsMinusReplacement, '\n', "[COMMANDS:", string.Join(", ", newCommandNames), "]");
+            var sortedCommands = string.Join(", ", newCommandNames.OrderBy(command => command).Select(command => command));
+            commandsExecutableFile.Contents = string.Concat('\n', commandsContentsMinusReplacement, '\n', "[COMMANDS:", sortedCommands, "]");
         }
 
         private static string GetOutputFromTokens(Dictionary<string, string> outputTokens)
