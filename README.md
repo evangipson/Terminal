@@ -15,11 +15,14 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 - Make a directory in the current directory using the `makedirectory` command
 - List the hardware using the `listhardware` command
 - View the permissions of a file or directory using the `viewpermissions` command
+    - Use the `help viewpermissions` command to get information about permission bits
 - Change the permissions of a file or directory using the `changepermissions` command
+    - Use the `help changepermissions` command to get information about permission bits
 - Get the current date and time using the `now` command
     - Get the current date using the `date` command
     - Get the current time using the `time` command
 - Get the current networking information using the `network` command
+    - Use the `help network` command to get information about valid arguments
 - Add new colors to the terminal by using `edit` on the `/system/config/color.conf` file, and adding a name and hex value
 - Save your game by using the `save` command
 - Exit the terminal using the `exit` command (but not before using `save` to save your game)
