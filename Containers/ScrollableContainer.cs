@@ -127,7 +127,7 @@ namespace Terminal.Containers
                 AutowrapMode = TextServer.AutowrapMode.WordSmart
             };
 
-            List<string> entityList = entities.Select(entity =>
+            List<string> entityList = entities.OrderBy(entity => $"{entity}").Select(entity =>
             {
                 if (entity.Permissions.Contains(Permission.UserExecutable) || entity.Permissions.Contains(Permission.AdminExecutable))
                 {
@@ -148,7 +148,8 @@ namespace Terminal.Containers
         {
             if (!_configService.Colors.TryGetValue(colorName, out Color newColor))
             {
-                CreateResponse($"Invalid color option. Possible color options are: {string.Join(", ", _configService.Colors.Keys)}.");
+                var sortedColors = string.Join(", ", _configService.Colors.Keys.OrderBy(key => key).Select(key => key));
+                CreateResponse($"Invalid color option. Possible color options are: {sortedColors}.");
                 return;
             }
 

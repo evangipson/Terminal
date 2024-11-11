@@ -27,11 +27,6 @@ namespace Terminal.Services
         /// </summary>
         public event Action<string> OnAutocomplete;
 
-        /// <summary>
-        /// Invoked to stop input bubbling.
-        /// </summary>
-        public event Action OnStopInputBubble;
-
         private static readonly List<UserCommand> _validAutoCompleteCommands = new()
         {
             UserCommand.ChangeDirectory,
