@@ -28,6 +28,16 @@ namespace Terminal.Models
         /// </summary>
         public List<DirectoryEntity> Files => Entities.Except(Directories).ToList();
 
+        /// <summary>
+        /// Renders a folder in a console-appropriate manner.
+        /// <para>
+        /// Folders will be rendered as their name with the <see cref="TerminalCharactersConstants.Separator"/> suffixed (i.e.: <c>directoryname/</c>).
+        /// The folder with the <see cref="DirectoryEntity.IsRoot"/> flag set to true will be rendered as only <see cref="TerminalCharactersConstants.Separator"/>.
+        /// </para>
+        /// </summary>
+        /// <returns>
+        /// A <see langword="string"/> representation of the folder.
+        /// </returns>
         public override string ToString()
         {
             if (IsRoot)

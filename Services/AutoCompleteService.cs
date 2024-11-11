@@ -9,6 +9,9 @@ using System.Collections.Generic;
 
 namespace Terminal.Services
 {
+    /// <summary>
+    /// A global singleton that is responsible for manging autocompletion of partial user prompts.
+    /// </summary>
     public partial class AutoCompleteService : Node
     {
         /// <summary>

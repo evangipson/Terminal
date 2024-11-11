@@ -7,6 +7,9 @@ using Terminal.Extensions;
 
 namespace Terminal.Services
 {
+    /// <summary>
+    /// A global singleton that is responsible for parsing config (.conf) files.
+    /// </summary>
     public partial class ConfigService : Node
     {
         private DirectoryService _directoryService;
@@ -16,10 +19,16 @@ namespace Terminal.Services
             _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
         }
 
-        public Dictionary<string, string> ColorConfig => LoadConfigFile("color.conf");
+        private Dictionary<string, string> ColorConfig => LoadConfigFile("color.conf");
 
-        public Dictionary<string, string> UserConfig => LoadConfigFile("user.conf", true);
+        private Dictionary<string, string> UserConfig => LoadConfigFile("user.conf", true);
 
+        /// <summary>
+        /// A map of color names to <see cref="Color"/>, which are supported for the console.
+        /// <para>
+        /// Can be modified in runtime by editing the <c>/system/config/color.conf</c> file.
+        /// </para>
+        /// </summary>
         public Dictionary<string, Color> Colors
         {
             get
@@ -42,6 +51,12 @@ namespace Terminal.Services
             }
         }
 
+        /// <summary>
+        /// The <see cref="Colors"/> map, but with values shifted, to show executable files as a different color.
+        /// <para>
+        /// Can be modified in runtime by editing the <c>/system/config/color.conf</c> file.
+        /// </para>
+        /// </summary>
         public Dictionary<string, Color> ExecutableColors => new(Colors.Select(color =>
         {
             var invertedColor = Colors.SkipWhile(c => c.Key != color.Key).Skip(1).FirstOrDefault();

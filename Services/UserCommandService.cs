@@ -11,7 +11,7 @@ using Terminal.Models;
 namespace Terminal.Services
 {
     /// <summary>
-    /// A singleton service that manages evaluating user commands.
+    /// A global singleton that manages evaluating user commands.
     /// </summary>
     public partial class UserCommandService : Node
     {

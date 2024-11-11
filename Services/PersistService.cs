@@ -10,10 +10,34 @@ using Terminal.Models;
 
 namespace Terminal.Services
 {
+    /// <summary>
+    /// A global singleton that is responsible for saving and loading the game.
+    /// <para>
+    /// Also provides access to the <see cref="CurrentColor"/>, <see cref="ExecutableColor"/>,
+    /// and <see cref="CommandMemory"/>.
+    /// </para>
+    /// </summary>
     public partial class PersistService : Node
     {
+        /// <summary>
+        /// The current color of the console.
+        /// <para>
+        /// Defaults to <see cref="ColorConstants.TerminalGreen"/>.
+        /// </para>
+        /// </summary>
         public Color CurrentColor = ColorConstants.TerminalGreen;
+
+        /// <summary>
+        /// The current color of executable files for the console.
+        /// <para>
+        /// Defaults to <see cref="ColorConstants.TerminalTeal"/>.
+        /// </para>
+        /// </summary>
         public Color ExecutableColor = ColorConstants.TerminalTeal;
+
+        /// <summary>
+        /// A list of previous user commands.
+        /// </summary>
         public LinkedList<string> CommandMemory = new();
 
         private readonly string _path = ProjectSettings.GlobalizePath("user://");
@@ -28,6 +52,15 @@ namespace Terminal.Services
             LoadGame();
         }
 
+        /// <summary>
+        /// Adds the provided <paramref name="command"/> to the <see cref="CommandMemory"/>.
+        /// <para>
+        /// Retires the oldest command if <see cref="CommandMemory"/> is full.
+        /// </para>
+        /// </summary>
+        /// <param name="command">
+        /// The command to add to <see cref="CommandMemory"/>
+        /// </param>
         public void AddCommandToMemory(string command)
         {
             if (CommandMemory.Count > _commandMemoryLimit)
@@ -40,7 +73,24 @@ namespace Terminal.Services
             CommandMemory.AddLast(command);
         }
 
-        public void LoadGame()
+        /// <summary>
+        /// Saves the game state to a JSON file.
+        /// </summary>
+        public void SaveGame()
+        {
+            Dictionary saveData = new()
+            {
+                ["TerminalColor"] = CurrentColor.ToHtml(false),
+                ["ExecutableColor"] = ExecutableColor.ToHtml(false),
+                ["CommandMemory"] = string.Join(',', CommandMemory),
+                ["FileSystem"] = JsonSerializer.Serialize(_directoryService.FileSystem)
+            };
+
+            var saveDataJson = Json.Stringify(saveData);
+            SaveDataToFile(_path, _fileName, saveDataJson);
+        }
+
+        private void LoadGame()
         {
             var saveDataJson = LoadDataFromFile(_path, _fileName);
             if (string.IsNullOrEmpty(saveDataJson))
@@ -73,20 +123,6 @@ namespace Terminal.Services
             {
                 _directoryService.FileSystem = JsonSerializer.Deserialize<FileSystem>(loadedData["FileSystem"].ToString());
             }
-        }
-
-        public void SaveGame()
-        {
-            Dictionary saveData = new()
-            {
-                ["TerminalColor"] = CurrentColor.ToHtml(false),
-                ["ExecutableColor"] = ExecutableColor.ToHtml(false),
-                ["CommandMemory"] = string.Join(',', CommandMemory),
-                ["FileSystem"] = JsonSerializer.Serialize(_directoryService.FileSystem)
-            };
-
-            var saveDataJson = Json.Stringify(saveData);
-            SaveDataToFile(_path, _fileName, saveDataJson);
         }
 
         private static void SaveDataToFile(string path, string fileName, string data)
