@@ -8,6 +8,16 @@ namespace Terminal.Constants
 {
     public static class DirectoryConstants
     {
+        /// <summary>
+        /// The separator character for lines of help information, written into the executable files.
+        /// </summary>
+        public const string HelpLineSeparator = "\n---\n";
+
+        /// <summary>
+        /// The separator character for keys and values of help information, written into the executable files.
+        /// </summary>
+        public const string HelpKeyValueSeparator = ":=:";
+
         private static readonly List<Permission> _adminReadWritePermissions = new() { Permission.AdminRead, Permission.AdminWrite };
         private static readonly List<Permission> _userReadWritePermissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead, Permission.UserWrite };
         private static readonly List<Permission> _userReadPermissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead };
@@ -116,8 +126,10 @@ namespace Terminal.Constants
             },
             ["network"] = new()
             {
-                ["COMMAND"] = "network [net]",
-                ["REMARKS"] = "View current networking information."
+                ["COMMAND"] = "net [network]",
+                ["REMARKS"] = "View current networking information.",
+                ["ARGUMENTS"] = "-a [--active]: Show active networks.\n-d [--device]: Show network devices.\n-n [--name]: Show network names.\n-v6 [--ipv6]: Show ipv6 addresses.\n-v8 [--ipv8]: Show ipv8 addresses.",
+                ["EXAMPLES"] = "net -a -v8    : Show the ipv8 addresses for active networks."
             }
         };
 
@@ -178,7 +190,7 @@ namespace Terminal.Constants
             systemProgramsDirectory.Entities = AllDefaultCommands.Select(command => new DirectoryEntity()
             {
                 Name = command.Key,
-                Contents = string.Join("\n", command.Value.Select(commandInfo => $"[{commandInfo.Key}:{commandInfo.Value}]")),
+                Contents = string.Join(HelpLineSeparator, command.Value.Select(commandInfo => $"[{commandInfo.Key}{HelpKeyValueSeparator}{commandInfo.Value}]")),
                 ParentId = systemProgramsDirectory.Id,
                 Permissions = _userExecutablePermissions
             }).ToList();

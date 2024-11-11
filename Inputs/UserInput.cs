@@ -155,7 +155,7 @@ namespace Terminal.Inputs
                 UserCommand.Date => () => CreateSimpleTerminalResponse(DateTime.UtcNow.AddYears(250).ToLongDateString()),
                 UserCommand.Time => () => CreateSimpleTerminalResponse(DateTime.UtcNow.AddYears(250).ToLongTimeString()),
                 UserCommand.Now => () => CreateSimpleTerminalResponse(string.Join(", ", DateTime.UtcNow.AddYears(250).ToLongTimeString(), DateTime.UtcNow.AddYears(250).ToLongDateString())),
-                UserCommand.Network => () => _networkService.ShowNetworkInformation(parsedTokens),
+                UserCommand.Network => () => _networkService.ShowNetworkInformation(parsedTokens.Skip(1)),
                 UserCommand.Color => () => ChangeColor(parsedTokens.Take(2).Last()),
                 UserCommand.Save => () => SaveProgress(),
                 UserCommand.Exit => () => Exit(),
