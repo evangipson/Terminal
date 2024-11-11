@@ -20,13 +20,21 @@ namespace Terminal.Services
         public override void _Ready()
         {
             _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
-            UpdateSystemCommandsFileWithAllCommands();
         }
 
-        private List<DirectoryEntity> AllCommandFiles => _directoryService.GetRootDirectory()
-            .FindDirectory("system/programs").Entities
-            .Where(entity => !entity.IsDirectory && (entity.Permissions.Contains(Permission.UserExecutable) || entity.Permissions.Contains(Permission.AdminExecutable)))
-            .ToList();
+        private List<DirectoryEntity> AllCommandFiles
+        {
+            get
+            {
+                var commands = _directoryService.GetRootDirectory()
+                    .FindDirectory("system/programs").Entities
+                    .Where(entity => !entity.IsDirectory && (entity.Permissions.Contains(Permission.UserExecutable) || entity.Permissions.Contains(Permission.AdminExecutable)))
+                    .ToList();
+
+                UpdateSystemCommandsFileWithAllCommands(commands.Select(command => command.Name));
+                return commands;
+            }
+        }
 
         /// <summary>
         /// Parses the provided <paramref name="userInput"/> into tokens, and evalutes the first one.
@@ -123,7 +131,62 @@ namespace Terminal.Services
             }
         }
 
-        private void UpdateSystemCommandsFileWithAllCommands()
+        /// <summary>
+        /// Evalutes a <see cref="UserCommand.Help"/> command, and uses the provided <paramref name="typeOfHelp"/>
+        /// and <paramref name="userHelpContext"/> to fully qualify what type of help command to display.
+        /// </summary>
+        /// <param name="typeOfHelp">
+        /// An optional parsed second argument of the "help" command, such as "save" in the command <c>help <b>save</b></c>.
+        /// </param>
+        /// <param name="userHelpContext">
+        /// An optional second argument of the "help" command for a user-generated program that could not be parsed, such
+        /// as "userprogram" in the command <c>help <b>userprogram</b></c>.
+        /// </param>
+        /// <returns>
+        /// A <see langword="string"/> filled with helpful information about the provided <paramref name="typeOfHelp"/>
+        /// or <paramref name="userHelpContext"/>.
+        /// </returns>
+        public string EvaluateHelpCommand(UserCommand? typeOfHelp = UserCommand.Help, string userHelpContext = null)
+        {
+            var allCommands = AllCommands;
+            if (allCommands.TryGetValue(userHelpContext, out Dictionary<string, string> helpContext))
+            {
+                return GetOutputFromTokens(helpContext);
+            }
+
+            return typeOfHelp switch
+            {
+                UserCommand.Help => GetOutputFromTokens(allCommands["help"]),
+                UserCommand.Exit => GetOutputFromTokens(allCommands["exit"]),
+                UserCommand.Color => GetOutputFromTokens(allCommands["color"]),
+                UserCommand.Save => GetOutputFromTokens(allCommands["save"]),
+                UserCommand.Commands => GetOutputFromTokens(allCommands["commands"]),
+                UserCommand.ChangeDirectory => GetOutputFromTokens(allCommands["change"]),
+                UserCommand.ListDirectory => GetOutputFromTokens(allCommands["list"]),
+                UserCommand.ViewFile => GetOutputFromTokens(allCommands["view"]),
+                UserCommand.MakeFile => GetOutputFromTokens(allCommands["makefile"]),
+                UserCommand.MakeDirectory => GetOutputFromTokens(allCommands["makedirectory"]),
+                UserCommand.EditFile => GetOutputFromTokens(allCommands["edit"]),
+                UserCommand.ListHardware => GetOutputFromTokens(allCommands["listhardware"]),
+                UserCommand.ViewPermissions => GetOutputFromTokens(allCommands["viewpermissions"]),
+                UserCommand.ChangePermissions => GetOutputFromTokens(allCommands["changepermissions"]),
+                UserCommand.Date => GetOutputFromTokens(allCommands["date"]),
+                UserCommand.Time => GetOutputFromTokens(allCommands["time"]),
+                UserCommand.Now => GetOutputFromTokens(allCommands["now"]),
+                UserCommand.Network => GetOutputFromTokens(allCommands["network"]),
+                _ => string.Empty
+            };
+        }
+
+        /// <summary>
+        /// Gets the directory path and the prompt character, shown to the user before each command input.
+        /// </summary>
+        /// <returns>
+        /// The current absolute directory with the <see cref="TerminalCharactersConstants.Prompt"/>, suffixed with a space.
+        /// </returns>
+        public string GetCommandPrompt() => $"{_directoryService.GetCurrentDirectoryPath()} {TerminalCharactersConstants.Prompt} ";
+
+        private void UpdateSystemCommandsFileWithAllCommands(IEnumerable<string> newCommandNames)
         {
             var commandsExecutableFile = _directoryService.GetRootDirectory().FindDirectory("system/programs").FindFile("commands");
             if (commandsExecutableFile == null)
@@ -132,8 +195,13 @@ namespace Terminal.Services
                 return;
             }
 
-            var newCommandList = commandsExecutableFile.Contents.Replace("$$$$", string.Join(", ", AllCommandFiles.Select(command => command.Name)));
-            commandsExecutableFile.Contents = newCommandList;
+            var commandsContentsMinusReplacement = commandsExecutableFile.Contents.Split("[COMMANDS:").First();
+            commandsExecutableFile.Contents = string.Concat('\n', commandsContentsMinusReplacement, '\n', "[COMMANDS:", string.Join(", ", newCommandNames), "]");
+        }
+
+        private static string GetOutputFromTokens(Dictionary<string, string> outputTokens)
+        {
+            return $"\n{string.Join("\n\n", outputTokens.Select(token => string.Join('\n', token.Key, token.Value)))}\n\n";
         }
     }
 }

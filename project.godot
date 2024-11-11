@@ -24,6 +24,7 @@ UserCommandService="*res://Services/UserCommandService.cs"
 ConfigService="*res://Services/ConfigService.cs"
 PersistService="*res://Services/PersistService.cs"
 ScreenNavigator="*res://Navigators/ScreenNavigator.cs"
+AutoCompleteService="*res://Services/AutoCompleteService.cs"
 
 [display]
 

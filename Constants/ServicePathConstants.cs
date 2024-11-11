@@ -32,5 +32,10 @@ namespace Terminal.Constants
         /// The <see cref="ScreenNavigator"/> singleton path in Godot.
         /// </summary>
         public const string ScreenNavigatorServicePath = "/root/ScreenNavigator";
+
+        /// <summary>
+        /// The <see cref="AutoCompleteService"/> single path in Godot.
+        /// </summary>
+        public const string AutoCompleteServicePath = "/root/AutoCompleteService";
     }
 }

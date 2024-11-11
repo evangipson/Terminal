@@ -29,8 +29,8 @@ namespace Terminal.Constants
             {
                 ["COMMAND"] = "color",
                 ["REMARKS"] = "Changes the color of the terminal output.\nColor information is stored in the color config file at /system/config/color.conf.",
-                ["COLORS"] = "@@@@",
-                ["EXAMPLES"] = $"color green    : Change the terminal output to green."
+                ["EXAMPLES"] = $"color green    : Change the terminal output to green.",
+                ["COLORS"] = "@@@@"
             },
             ["save"] = new()
             {

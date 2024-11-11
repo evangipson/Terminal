@@ -14,7 +14,6 @@ namespace Terminal.Services
         public override void _Ready()
         {
             _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
-            UpdateColorsSystemProgramFile();
         }
 
         public Dictionary<string, string> ColorConfig => LoadConfigFile("color.conf");
@@ -37,11 +36,17 @@ namespace Terminal.Services
                     return new KeyValuePair<string, Color>(config.Key, colorValue);
                 });
 
-                return new Dictionary<string, Color>(colors.Where(color => color.Key != default && color.Value != default));
+                var allColors = new Dictionary<string, Color>(colors.Where(color => color.Key != default && color.Value != default));
+                UpdateColorsSystemProgramFile(allColors);
+                return allColors;
             }
         }
 
-        public Dictionary<string, Color> ExecutableColors => new(Colors.Reverse());
+        public Dictionary<string, Color> ExecutableColors => new(Colors.Select(color =>
+        {
+            var invertedColor = Colors.SkipWhile(c => c.Key != color.Key).Skip(1).FirstOrDefault();
+            return new KeyValuePair<string, Color>(color.Key, invertedColor.Key == default ? Colors.First().Value : invertedColor.Value);
+        }));
 
         private Dictionary<string, string> LoadConfigFile(string fileName, bool userConfig = false)
         {
@@ -80,7 +85,7 @@ namespace Terminal.Services
             return new Dictionary<string, string>(configDictionary);
         }
 
-        private void UpdateColorsSystemProgramFile()
+        private void UpdateColorsSystemProgramFile(Dictionary<string, Color> newColors)
         {
             var colorsExecutableFile = _directoryService.GetRootDirectory().FindDirectory("system/programs").FindFile("color");
             if (colorsExecutableFile == null)
@@ -89,8 +94,8 @@ namespace Terminal.Services
                 return;
             }
 
-            var newColors = colorsExecutableFile.Contents.Replace("@@@@", string.Join(", ", Colors.Keys));
-            colorsExecutableFile.Contents = newColors;
+            var colorsContentsMinusReplacement = colorsExecutableFile.Contents.Split("[COLORS:").First();
+            colorsExecutableFile.Contents = string.Concat('\n', colorsContentsMinusReplacement, '\n', "[COLORS:", string.Join(", ", newColors.Keys), "]");
         }
     }
 }
