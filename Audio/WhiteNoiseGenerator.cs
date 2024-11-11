@@ -3,8 +3,14 @@ using Godot;
 
 namespace Terminal.Audio
 {
+    /// <summary>
+    /// An <see cref="AudioStreamPlayer"/> <see cref="Node"/> managed in Godot that generates white noise in real-time.
+    /// </summary>
     public partial class WhiteNoiseGenerator : AudioStreamPlayer
     {
+        /// <summary>
+        /// The player responsible for outputting the sounds for <see cref="WhiteNoiseGenerator"/>.
+        /// </summary>
         [Export]
         public AudioStreamPlayer Player { get; set; }
 
@@ -59,7 +65,7 @@ namespace Terminal.Audio
             }
         }
 
-        public void FillBuffer()
+        private void FillBuffer()
         {
             int availableFrames = _playback.GetFramesAvailable();
             for (int i = 0; i < availableFrames; i++)
