@@ -6,6 +6,7 @@ using Godot;
 using Terminal.Audio;
 using Terminal.Constants;
 using Terminal.Enums;
+using Terminal.Extensions;
 using Terminal.Models;
 using Terminal.Services;
 
@@ -260,10 +261,10 @@ namespace Terminal.Inputs
 
         private void EditFile(string fileName)
         {
-            var currentDirectory = _directoryService.GetCurrentDirectory();
-            if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
+            var file = _directoryService.GetCurrentDirectory().FindFile(fileName);
+            if (file?.Permissions.Contains(Permission.UserWrite) != true)
             {
-                EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to edit the \"{fileName}\" file in the current directory.");
+                EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to edit the \"{fileName}\" file.");
                 return;
             }
 
