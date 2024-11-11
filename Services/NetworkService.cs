@@ -9,6 +9,9 @@ using Terminal.Models;
 
 namespace Terminal.Services
 {
+    /// <summary>
+    /// A global singleton that is responsible for getting networking information.
+    /// </summary>
     public partial class NetworkService : Node
     {
         /// <summary>

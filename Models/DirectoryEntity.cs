@@ -56,6 +56,20 @@ namespace Terminal.Models
         /// </summary>
         public List<DirectoryEntity> Entities { get; set; } = new();
 
+        /// <summary>
+        /// Renders a file or folder in a console-appropriate manner.
+        /// <para>
+        /// Files will be rendered as just their <see cref="Name"/>, or their <see cref="Name"/> and <see cref="Extension"/>
+        /// joined with a ".", if <see cref="Extension"/> is not <see langword="null"/> or empty (i.e.: <c>filename.txt</c>).
+        /// </para>
+        /// <para>
+        /// Folders will be rendered as their name with the <see cref="TerminalCharactersConstants.Separator"/> suffixed (i.e.: <c>directoryname/</c>).
+        /// The folder with the <see cref="IsRoot"/> flag set to true will be rendered as only <see cref="TerminalCharactersConstants.Separator"/>.
+        /// </para>
+        /// </summary>
+        /// <returns>
+        /// A <see langword="string"/> representation of the file or folder.
+        /// </returns>
         public override string ToString()
         {
             if(IsDirectory)

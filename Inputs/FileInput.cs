@@ -7,11 +7,32 @@ using Terminal.Services;
 
 namespace Terminal.Inputs
 {
+    /// <summary>
+    /// A <see cref="TextEdit"/> <see cref="Node"/> managed in Godot that allows users to edit the contents of files.
+    /// </summary>
     public partial class FileInput : TextEdit
     {
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when a file is saved in the file editor.
+        /// </summary>
+        /// <param name="fileName">
+        /// The name of the file being saved in the file editor.
+        /// </param>
+        /// <param name="closeEditor">
+        /// A flag the determines if the file is being closed, used to enable a "save" and "save & exit" flow.
+        /// </param>
+        /// <param name="saveMessage">
+        /// The message to show the user when the file has been saved.
+        /// </param>
         [Signal]
         public delegate void SaveFileCommandEventHandler(string fileName, bool closeEditor, string saveMessage = null);
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the file editor is closed.
+        /// </summary>
+        /// <param name="closeMessage">
+        /// The message to show the user when the file editor closes.
+        /// </param>
         [Signal]
         public delegate void CloseFileCommandEventHandler(string closeMessage);
 
@@ -69,6 +90,16 @@ namespace Terminal.Inputs
             }
         }
 
+        /// <summary>
+        /// Opens the provided <paramref name="file"/> in the file editor by hiding the console and showing the file editor.
+        /// <para>
+        /// Also ensures the user is focused on the file editor when it opens, and that the file editor is populated with
+        /// the contents of the provided <paramref name="file"/>.
+        /// </para>
+        /// </summary>
+        /// <param name="file">
+        /// The <see cref="DirectoryEntity"/> to load into the file editor when it opens.
+        /// </param>
         public void OpenFileEditor(DirectoryEntity file)
         {
             Text = file.Contents;
@@ -80,6 +111,15 @@ namespace Terminal.Inputs
             GrabFocus();
         }
 
+        /// <summary>
+        /// Persists the contents of the file editor into the provided <paramref name="file"/>.
+        /// </summary>
+        /// <param name="file">
+        /// The file to persist the file editor content into.
+        /// </param>
+        /// <param name="closeEditor">
+        /// A flag that determines if the file is being closed.
+        /// </param>
         public void SaveFile(DirectoryEntity file, bool closeEditor)
         {
             file.Contents = Text;
@@ -89,6 +129,12 @@ namespace Terminal.Inputs
             }
         }
 
+        /// <summary>
+        /// Closes the file editor by hiding it, and shows the console.
+        /// <para>
+        /// Also clears out the content of the file editor and removes any references to the last open file.
+        /// </para>
+        /// </summary>
         public void CloseFileEditor()
         {
             _scrollableContainer.Visible = true;

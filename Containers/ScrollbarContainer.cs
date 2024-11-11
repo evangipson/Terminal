@@ -2,6 +2,9 @@ using Godot;
 
 namespace Terminal.Containers
 {
+    /// <summary>
+    /// A <see cref="ScrollbarContainer"/> <see cref="Node"/> managed in Godot that manages scrolling for the console.
+    /// </summary>
     public partial class ScrollbarContainer : ScrollContainer
     {
         private ScrollBar _scrollbar;

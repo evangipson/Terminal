@@ -4,6 +4,9 @@ using Terminal.Constants;
 
 namespace Terminal.Navigators
 {
+    /// <summary>
+    /// A global singleton that is responsible for switching between Godot screens.
+    /// </summary>
     public partial class ScreenNavigator : Node
     {
         private Node _rootScene;
@@ -17,12 +20,18 @@ namespace Terminal.Navigators
             _currentScene = _monitorShader?.GetNode<CanvasLayer>(ScenePathConstants.IntroScenePath);
         }
 
+        /// <summary>
+        /// Navigates to the scene with the provided <paramref name="scenePath"/> as it's path.
+        /// </summary>
+        /// <param name="scenePath">
+        /// The path of the new scene to navigate to.
+        /// </param>
         public void GotoScene(string scenePath)
         {
             CallDeferred(MethodName.DeferredGotoScene, scenePath);
         }
 
-        public void DeferredGotoScene(string scenePath)
+        private void DeferredGotoScene(string scenePath)
         {
             _currentScene.Free();
             _currentScene = _monitorShader.GetNode<CanvasLayer>(scenePath);

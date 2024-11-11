@@ -18,10 +18,10 @@ namespace Terminal.Constants
         /// </summary>
         public const string HelpKeyValueSeparator = ":=:";
 
-        private static readonly List<Permission> _adminReadWritePermissions = new() { Permission.AdminRead, Permission.AdminWrite };
-        private static readonly List<Permission> _userReadWritePermissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead, Permission.UserWrite };
-        private static readonly List<Permission> _userReadPermissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead };
-        private static readonly List<Permission> _userExecutablePermissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.AdminExecutable, Permission.UserRead, Permission.UserExecutable };
+        /// <summary>
+        /// A list of keys and values of all default commands for the terminal, where the key is the command name,
+        /// and the value is a collection of help information for that command.
+        /// </summary>
         public static readonly Dictionary<string, Dictionary<string, string>> AllDefaultCommands = new()
         {
             ["exit"] = new()
@@ -132,6 +132,11 @@ namespace Terminal.Constants
                 ["EXAMPLES"] = "net -a -v8    : Show the ipv8 addresses for active networks."
             }
         };
+
+        private static readonly List<Permission> _adminReadWritePermissions = new() { Permission.AdminRead, Permission.AdminWrite };
+        private static readonly List<Permission> _userReadWritePermissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead, Permission.UserWrite };
+        private static readonly List<Permission> _userReadPermissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead };
+        private static readonly List<Permission> _userExecutablePermissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.AdminExecutable, Permission.UserRead, Permission.UserExecutable };
 
         /// <summary>
         /// Gets the default directory structure of the file system, filled with all required system files and a user directory.

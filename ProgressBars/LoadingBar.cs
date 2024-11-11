@@ -7,6 +7,9 @@ using Terminal.Services;
 
 namespace Terminal.Game.ProgressBars
 {
+    /// <summary>
+    /// A <see cref="ProgressBar"/> <see cref="Node"/> managed in Godot that shows when the game is initially booting.
+    /// </summary>
     public partial class LoadingBar : ProgressBar
     {
         private readonly Random _random = new();
@@ -33,7 +36,7 @@ namespace Terminal.Game.ProgressBars
             _timerService = new(FillProgressBar);
         }
 
-        public void FillProgressBar(object sender, EventArgs args)
+        private void FillProgressBar(object sender, EventArgs args)
         {
             _timerService.RandomWait();
             var increasedProgressBarValue = _random.Next(5, 20);
@@ -45,7 +48,7 @@ namespace Terminal.Game.ProgressBars
             CallDeferred("IncreaseProgressBarValue", increasedProgressBarValue);
         }
 
-        public void IncreaseProgressBarValue(int value)
+        private void IncreaseProgressBarValue(int value)
         {
             _loadedValue += value;
             _tween = CreateTween().SetTrans(Tween.TransitionType.Linear);

@@ -8,6 +8,9 @@ using Terminal.Services;
 
 namespace Terminal.Containers
 {
+    /// <summary>
+    /// A <see cref="BoxContainer"/> <see cref="Node"/> managed in Godot that manages the welcome screen that reads "terminal_os".
+    /// </summary>
     public partial class WelcomeScreenContainer : BoxContainer
     {
         private readonly Random _random = new();
@@ -45,7 +48,7 @@ namespace Terminal.Containers
             CallDeferred("OnTextAnimating");
         }
 
-        public void OnTextAnimating()
+        private void OnTextAnimating()
         {
             if (_lettersShowing > 1.0f)
             {
@@ -57,7 +60,7 @@ namespace Terminal.Containers
             _welcomeLabel.VisibleRatio = _lettersShowing;
         }
 
-        public void OnTextAnimated()
+        private void OnTextAnimated()
         {
             _timerService.Done();
             _screenNavigator.GotoScene(ScenePathConstants.ConsoleScenePath);

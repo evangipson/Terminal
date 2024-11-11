@@ -7,49 +7,121 @@ using Terminal.Audio;
 using Terminal.Constants;
 using Terminal.Enums;
 using Terminal.Extensions;
-using Terminal.Models;
 using Terminal.Services;
 
 namespace Terminal.Inputs
 {
+    /// <summary>
+    /// A <see cref="TextEdit"/> <see cref="Node"/> managed in Godot that accepts and parses user commands.
+    /// </summary>
     public partial class UserInput : TextEdit
     {
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts whenever a command is done evaluting.
+        /// <para>
+        /// Typically will load a new <see cref="UserInput"/> into the console, and ensure the previous
+        /// <see cref="UserInput"/> is cleaned up and can't be further modified with input.
+        /// </para>
+        /// </summary>
         [Signal]
         public delegate void EvaluatedEventHandler();
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts whenever a simple response is added to the console.
+        /// </summary>
+        /// <param name="message">
+        /// The response to show in the console.
+        /// </param>
         [Signal]
         public delegate void KnownCommandEventHandler(string message);
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.Color"/> command is invoked.
+        /// </summary>
+        /// <param name="colorName">
+        /// The name of the <see cref="Color"/> to change the console to.
+        /// </param>
         [Signal]
         public delegate void ColorCommandEventHandler(string colorName);
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.Save"/> command is invoked.
+        /// </summary>
         [Signal]
         public delegate void SaveCommandEventHandler();
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.ListDirectory"/> command is invoked.
+        /// </summary>
         [Signal]
         public delegate void ListDirectoryCommandEventHandler();
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.ChangeDirectory"/> command is invoked.
+        /// </summary>
+        /// <param name="newDirectory">
+        /// The name of the new current directory.
+        /// </param>
         [Signal]
         public delegate void ChangeDirectoryCommandEventHandler(string newDirectory);
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.MakeFile"/> command is invoked.
+        /// </summary>
+        /// <param name="fileName">
+        /// The name of the new file to make.
+        /// </param>
         [Signal]
         public delegate void MakeFileCommandEventHandler(string fileName);
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.MakeDirectory"/> command is invoked.
+        /// </summary>
+        /// <param name="directoryName">
+        /// The name of the new directory to make.
+        /// </param>
         [Signal]
         public delegate void MakeDirectoryCommandEventHandler(string directoryName);
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.EditFile"/> command is invoked.
+        /// </summary>
+        /// <param name="fileName">
+        /// The name of the file to edit.
+        /// </param>
         [Signal]
         public delegate void EditFileCommandEventHandler(string fileName);
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.ListHardware"/> command is invoked.
+        /// </summary>
         [Signal]
         public delegate void ListHardwareCommandEventHandler();
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.ViewPermissions"/> command is invoked.
+        /// </summary>
+        /// <param name="entityName">
+        /// The name of the file or folder to view the permissions of.
+        /// </param>
         [Signal]
         public delegate void ViewPermissionsCommandEventHandler(string entityName);
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.ChangePermissions"/> command is invoked.
+        /// </summary>
+        /// <param name="entityName">
+        /// The name of the file or folder to change the permissions of.
+        /// </param>
+        /// <param name="newPermissionSet">
+        /// A <see langword="string"/> represntation of the new permission set for the file or folder with the provided <paramref name="entityName"/>.
+        /// </param>
         [Signal]
         public delegate void ChangePermissionsCommandEventHandler(string entityName, string newPermissionSet);
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.Network"/> command is invoked.
+        /// </summary>
         [Signal]
         public delegate void NetworkCommandEventHandler();
 

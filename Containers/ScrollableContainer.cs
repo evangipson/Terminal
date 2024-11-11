@@ -12,6 +12,9 @@ using Terminal.Services;
 
 namespace Terminal.Containers
 {
+    /// <summary>
+    /// A <see cref="VBoxContainer"/> <see cref="Node"/> managed in Godot that is the wrapper for the console and the file editor.
+    /// </summary>
     public partial class ScrollableContainer : VBoxContainer
     {
         private UserInput _userInput;
