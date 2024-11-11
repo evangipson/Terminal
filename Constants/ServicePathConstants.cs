@@ -37,5 +37,10 @@ namespace Terminal.Constants
         /// The <see cref="AutoCompleteService"/> single path in Godot.
         /// </summary>
         public const string AutoCompleteServicePath = "/root/AutoCompleteService";
+
+        /// <summary>
+        /// The <see cref="NetworkService"/> single path in Godot.
+        /// </summary>
+        public const string NetworkServicePath = "/root/NetworkService";
     }
 }

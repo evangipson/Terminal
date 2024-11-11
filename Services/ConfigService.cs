@@ -94,9 +94,9 @@ namespace Terminal.Services
                 return;
             }
 
-            var colorsContentsMinusReplacement = colorsExecutableFile.Contents.Split("[COLORS:").First();
+            var colorsContentsMinusReplacement = colorsExecutableFile.Contents.Split($"[COLORS{DirectoryConstants.HelpKeyValueSeparator}").First();
             var sortedColors = string.Join(", ", newColors.Keys.OrderBy(key => key).Select(key => key));
-            colorsExecutableFile.Contents = string.Concat('\n', colorsContentsMinusReplacement, '\n', "[COLORS:", sortedColors, "]");
+            colorsExecutableFile.Contents = string.Concat(colorsContentsMinusReplacement, DirectoryConstants.HelpLineSeparator, "[COLORS", DirectoryConstants.HelpKeyValueSeparator, sortedColors, "]");
         }
     }
 }

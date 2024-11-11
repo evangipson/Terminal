@@ -111,17 +111,17 @@ namespace Terminal.Services
             {
                 var parsedCommandFiles = AllCommandFiles.Select(command =>
                 {
-                    var helpLines = command.Contents.Split('\n');
-                    var parsedHelpLines = helpLines.Select(line => line.TrimStart('[').TrimEnd(']'));
+                    var helpLines = command.Contents.Split(DirectoryConstants.HelpLineSeparator, StringSplitOptions.RemoveEmptyEntries);
+                    var parsedHelpLines = helpLines.Select(line => line.Remove(line.Length - 1).Remove(0, 1));
                     var separatedLines = parsedHelpLines.Select(line =>
                     {
-                        var keyValuePair = line.Split(':', StringSplitOptions.RemoveEmptyEntries);
+                        var keyValuePair = line.Split(DirectoryConstants.HelpKeyValueSeparator, StringSplitOptions.RemoveEmptyEntries);
                         if (keyValuePair.Length != 2)
                         {
                             return default;
                         }
 
-                        return new KeyValuePair<string, string>(line.Split(':').First(), line.Split(':').Last());
+                        return new KeyValuePair<string, string>(keyValuePair.First(), string.Concat(keyValuePair.Skip(1)));
                     }).Where(line => line.Key != default && line.Value != default);
 
                     return new KeyValuePair<string, Dictionary<string, string>>(command.Name, new Dictionary<string, string>(separatedLines));
@@ -195,9 +195,9 @@ namespace Terminal.Services
                 return;
             }
 
-            var commandsContentsMinusReplacement = commandsExecutableFile.Contents.Split("[COMMANDS:").First();
+            var commandsContentsMinusReplacement = commandsExecutableFile.Contents.Split($"[COMMANDS{DirectoryConstants.HelpKeyValueSeparator}").First();
             var sortedCommands = string.Join(", ", newCommandNames.OrderBy(command => command).Select(command => command));
-            commandsExecutableFile.Contents = string.Concat('\n', commandsContentsMinusReplacement, '\n', "[COMMANDS:", sortedCommands, "]");
+            commandsExecutableFile.Contents = string.Concat(commandsContentsMinusReplacement, DirectoryConstants.HelpLineSeparator, "[COMMANDS", DirectoryConstants.HelpKeyValueSeparator, sortedCommands, "]");
         }
 
         private static string GetOutputFromTokens(Dictionary<string, string> outputTokens)

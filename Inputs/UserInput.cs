@@ -70,6 +70,7 @@ namespace Terminal.Inputs
         private UserCommandService _userCommandService;
         private DirectoryService _directoryService;
         private AutoCompleteService _autoCompleteService;
+        private NetworkService _networkService;
         private bool _hasFocus = false;
         private int _commandMemoryIndex;
 
@@ -79,10 +80,13 @@ namespace Terminal.Inputs
             _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
             _autoCompleteService = GetNode<AutoCompleteService>(ServicePathConstants.AutoCompleteServicePath);
-            _autoCompleteService.OnInvalidAutocomplete += ListDirectoryAndCreateNewInput;
-            _autoCompleteService.OnAutocomplete += FillInputWithAutocompletedPhrase;
+            _networkService = GetNode<NetworkService>(ServicePathConstants.NetworkServicePath);
             _keyboardSounds = GetTree().Root.GetNode<KeyboardSounds>(KeyboardSounds.AbsolutePath);
             _commandMemoryIndex = _persistService.CommandMemory.Count;
+
+            _autoCompleteService.OnInvalidAutocomplete += ListDirectoryAndCreateNewInput;
+            _autoCompleteService.OnAutocomplete += FillInputWithAutocompletedPhrase;
+            _networkService.OnShowNetwork += ShowNetworkResponse;
 
             Text = _userCommandService.GetCommandPrompt();
             SetCaretColumn(Text.Length);
@@ -128,6 +132,7 @@ namespace Terminal.Inputs
             // unsubscribe from the auto-complete events to prevent old inputs from getting autocompleted.
             _autoCompleteService.OnInvalidAutocomplete -= ListDirectoryAndCreateNewInput;
             _autoCompleteService.OnAutocomplete -= FillInputWithAutocompletedPhrase;
+            _networkService.OnShowNetwork -= ShowNetworkResponse;
         }
 
         private Action RouteCommand(string command)
@@ -150,7 +155,7 @@ namespace Terminal.Inputs
                 UserCommand.Date => () => CreateSimpleTerminalResponse(DateTime.UtcNow.AddYears(250).ToLongDateString()),
                 UserCommand.Time => () => CreateSimpleTerminalResponse(DateTime.UtcNow.AddYears(250).ToLongTimeString()),
                 UserCommand.Now => () => CreateSimpleTerminalResponse(string.Join(", ", DateTime.UtcNow.AddYears(250).ToLongTimeString(), DateTime.UtcNow.AddYears(250).ToLongDateString())),
-                UserCommand.Network => () => Network(),
+                UserCommand.Network => () => _networkService.ShowNetworkInformation(parsedTokens.Skip(1)),
                 UserCommand.Color => () => ChangeColor(parsedTokens.Take(2).Last()),
                 UserCommand.Save => () => SaveProgress(),
                 UserCommand.Exit => () => Exit(),
@@ -277,7 +282,7 @@ namespace Terminal.Inputs
 
         private void ChangePermissions(string entityName, string newPermissionsSet) => EmitSignal(SignalName.ChangePermissionsCommand, entityName, newPermissionsSet);
 
-        private void Network() => EmitSignal(SignalName.NetworkCommand);
+        private void ShowNetworkResponse(string networkResponse) => EmitSignal(SignalName.KnownCommand, networkResponse);
 
         private void ListDirectoryAndCreateNewInput()
         {
