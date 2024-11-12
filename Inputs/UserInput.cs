@@ -7,6 +7,7 @@ using Terminal.Audio;
 using Terminal.Constants;
 using Terminal.Enums;
 using Terminal.Extensions;
+using Terminal.Models;
 using Terminal.Services;
 
 namespace Terminal.Inputs
@@ -128,6 +129,27 @@ namespace Terminal.Inputs
         [Signal]
         public delegate void NetworkCommandEventHandler();
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.DeleteFile"/> command is invoked.
+        /// </summary>
+        /// <param name="fileName">
+        /// The name of the file to delete.
+        /// </param>
+        [Signal]
+        public delegate void DeleteFileCommandEventHandler(string fileName);
+
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.DeleteDirectory"/> command is invoked.
+        /// </summary>
+        /// <param name="directoryName">
+        /// The name of the directory to delete.
+        /// </param>
+        /// <param name="arguments">
+        /// A list of arguments provided with the <see cref="UserCommand.DeleteDirectory"/> command.
+        /// </param>
+        [Signal]
+        public delegate void DeleteDirectoryCommandEventHandler(string directoryName, string[] arguments);
+
         private static readonly List<UserCommand> _commandsThatNeedAdditionalArguments = new()
         {
             UserCommand.Color,
@@ -137,7 +159,9 @@ namespace Terminal.Inputs
             UserCommand.MakeDirectory,
             UserCommand.EditFile,
             UserCommand.ViewPermissions,
-            UserCommand.ChangePermissions
+            UserCommand.ChangePermissions,
+            UserCommand.DeleteFile,
+            UserCommand.DeleteDirectory
         };
 
         private KeyboardSounds _keyboardSounds;
@@ -210,7 +234,12 @@ namespace Terminal.Inputs
             _persistService.AddCommandToMemory(inputWithoutDirectory);
             RouteCommand(inputWithoutDirectory).Invoke();
 
-            EmitSignal(SignalName.Evaluated);
+            // editing files updates the console without creating a new user input before,
+            // saving/closing a file is what will create the new input.
+            if(UserCommandService.EvaluateUserInput(inputWithoutDirectory) != UserCommand.EditFile)
+            {
+                EmitSignal(SignalName.Evaluated);
+            }
             UnsubscribeAndStopInput();
         }
 
@@ -253,6 +282,8 @@ namespace Terminal.Inputs
                 UserCommand.Color => () => ChangeColor(parsedTokens.Take(2).Last()),
                 UserCommand.Save => () => SaveProgress(),
                 UserCommand.Exit => () => Exit(),
+                UserCommand.DeleteFile => () => DeleteFile(parsedTokens.Take(2).Last()),
+                UserCommand.DeleteDirectory => () => DeleteDirectory(parsedTokens.Take(2).Last(), parsedTokens.Skip(2)),
                 _ => () => CreateSimpleTerminalResponse($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.")
             };
         }
@@ -359,10 +390,25 @@ namespace Terminal.Inputs
 
         private void EditFile(string fileName)
         {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                EmitSignal(SignalName.KnownCommand, "File can't be edited without a name.");
+                EmitSignal(SignalName.Evaluated);
+                return;
+            }
+
             var file = _directoryService.GetCurrentDirectory().FindFile(fileName);
+            if (file == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"No file with the name '{fileName}' exists.");
+                EmitSignal(SignalName.Evaluated);
+                return;
+            }
+
             if (file?.Permissions.Contains(Permission.UserWrite) != true)
             {
                 EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to edit the \"{fileName}\" file.");
+                EmitSignal(SignalName.Evaluated);
                 return;
             }
 
@@ -426,6 +472,65 @@ namespace Terminal.Inputs
             var helpContextToken = parsedContextToken == UserCommand.Unknown ? UserCommand.Help : parsedContextToken;
             var helpText = _userCommandService.EvaluateHelpCommand(helpContextToken, parsedTokens.Take(2).LastOrDefault());
             return () => CreateSimpleTerminalResponse(helpText);
+        }
+
+        private void DeleteFile(string fileName)
+        {
+            var currentDirectory = _directoryService.GetCurrentDirectory();
+            if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
+            {
+                EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to delete \"{fileName}\" in the current directory.");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(fileName))
+            {
+                GD.PrintErr("File can't be deleted without a name.");
+                return;
+            }
+
+            var existingFile = _directoryService.GetRelativeFile(fileName);
+            if (existingFile == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"No file with the name of \"{fileName}\" exists.");
+                return;
+            }
+
+            _directoryService.DeleteEntity(existingFile);
+            EmitSignal(SignalName.KnownCommand, $"\"{fileName}\" deleted.");
+        }
+
+        private void DeleteDirectory(string directoryName, IEnumerable<string> arguments)
+        {
+            var currentDirectory = _directoryService.GetCurrentDirectory();
+            if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
+            {
+                EmitSignal(SignalName.KnownCommand, $"Insufficient permissions to delete \"{directoryName}\" in the current directory.");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(directoryName))
+            {
+                GD.PrintErr("Directory can't be deleted without a name.");
+                return;
+            }
+
+            var existingDirectory = _directoryService.GetRelativeDirectory(directoryName);
+            if (existingDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"No folder with the name of \"{directoryName}\" exists.");
+                return;
+            }
+
+            var recurse = arguments.Contains("-r") || arguments.Contains("--recurse");
+            if(recurse == false && existingDirectory.Entities.Any())
+            {
+                EmitSignal(SignalName.KnownCommand, $"Cannot delete the \"{directoryName}\" directory, it has files or folders in it.");
+                return;
+            }
+
+            _directoryService.DeleteEntity(existingDirectory);
+            EmitSignal(SignalName.KnownCommand, $"\"{directoryName}\" deleted.");
         }
     }
 }

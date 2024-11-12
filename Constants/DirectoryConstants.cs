@@ -131,6 +131,19 @@ namespace Terminal.Constants
                 ["REMARKS"] = "View current networking information.",
                 ["ARGUMENTS"] = "-a [--active]: Show active networks.\n-d [--device]: Show network devices.\n-n [--name]: Show network names.\n-v6 [--ipv6]: Show ipv6 addresses.\n-v8 [--ipv8]: Show ipv8 addresses.",
                 ["EXAMPLES"] = "net -a -v8    : Show the ipv8 addresses for active networks."
+            },
+            ["deletefile"] = new()
+            {
+                ["COMMAND"] = "df [deletefile]",
+                ["REMARKS"] = "Deletes a file.",
+                ["EXAMPLES"] = "df new.txt    : Deletes the new.txt file."
+            },
+            ["deletedirectory"] = new()
+            {
+                ["COMMAND"] = "dd [deletedirectory]",
+                ["REMARKS"] = "Deletes a directory.",
+                ["ARGUMENTS"] = "-r [--recursive]: Deletes a folder and all child files and folders.",
+                ["EXAMPLES"] = "dd newdir    : Deletes the \"newdir\" directory.\ndd newdir -r : Deletes the \"newdir\" directory and all files and folders inside of it."
             }
         };
 
