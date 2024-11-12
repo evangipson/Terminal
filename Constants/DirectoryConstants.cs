@@ -56,7 +56,8 @@ namespace Terminal.Constants
             ["list"] = new()
             {
                 ["COMMAND"] = "ls [list]",
-                ["REMARKS"] = "Lists contents of a directory."
+                ["REMARKS"] = "Lists contents of a directory.",
+                ["EXAMPLES"] = "ls        : List the contents of the current directory.\nls /system : List the contents of the \"/system\" directory."
             },
             ["change"] = new()
             {

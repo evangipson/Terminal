@@ -146,34 +146,33 @@ namespace Terminal.Services
         /// A <see langword="string"/> filled with helpful information about the provided <paramref name="typeOfHelp"/>
         /// or <paramref name="userHelpContext"/>.
         /// </returns>
-        public string EvaluateHelpCommand(UserCommand? typeOfHelp = UserCommand.Help, string userHelpContext = null)
+        public string EvaluateHelpCommand(UserCommand typeOfHelp = UserCommand.Help, string userHelpContext = null)
         {
-            var allCommands = AllCommands;
-            if (allCommands.TryGetValue(userHelpContext, out Dictionary<string, string> helpContext))
+            if (!string.IsNullOrEmpty(userHelpContext) && AllCommands.TryGetValue(userHelpContext, out Dictionary<string, string> helpContext))
             {
                 return GetOutputFromTokens(helpContext);
             }
 
             return typeOfHelp switch
             {
-                UserCommand.Help => GetOutputFromTokens(allCommands["help"]),
-                UserCommand.Exit => GetOutputFromTokens(allCommands["exit"]),
-                UserCommand.Color => GetOutputFromTokens(allCommands["color"]),
-                UserCommand.Save => GetOutputFromTokens(allCommands["save"]),
-                UserCommand.Commands => GetOutputFromTokens(allCommands["commands"]),
-                UserCommand.ChangeDirectory => GetOutputFromTokens(allCommands["change"]),
-                UserCommand.ListDirectory => GetOutputFromTokens(allCommands["list"]),
-                UserCommand.ViewFile => GetOutputFromTokens(allCommands["view"]),
-                UserCommand.MakeFile => GetOutputFromTokens(allCommands["makefile"]),
-                UserCommand.MakeDirectory => GetOutputFromTokens(allCommands["makedirectory"]),
-                UserCommand.EditFile => GetOutputFromTokens(allCommands["edit"]),
-                UserCommand.ListHardware => GetOutputFromTokens(allCommands["listhardware"]),
-                UserCommand.ViewPermissions => GetOutputFromTokens(allCommands["viewpermissions"]),
-                UserCommand.ChangePermissions => GetOutputFromTokens(allCommands["changepermissions"]),
-                UserCommand.Date => GetOutputFromTokens(allCommands["date"]),
-                UserCommand.Time => GetOutputFromTokens(allCommands["time"]),
-                UserCommand.Now => GetOutputFromTokens(allCommands["now"]),
-                UserCommand.Network => GetOutputFromTokens(allCommands["network"]),
+                UserCommand.Help => GetOutputFromTokens(AllCommands["help"]),
+                UserCommand.Exit => GetOutputFromTokens(AllCommands["exit"]),
+                UserCommand.Color => GetOutputFromTokens(AllCommands["color"]),
+                UserCommand.Save => GetOutputFromTokens(AllCommands["save"]),
+                UserCommand.Commands => GetOutputFromTokens(AllCommands["commands"]),
+                UserCommand.ChangeDirectory => GetOutputFromTokens(AllCommands["change"]),
+                UserCommand.ListDirectory => GetOutputFromTokens(AllCommands["list"]),
+                UserCommand.ViewFile => GetOutputFromTokens(AllCommands["view"]),
+                UserCommand.MakeFile => GetOutputFromTokens(AllCommands["makefile"]),
+                UserCommand.MakeDirectory => GetOutputFromTokens(AllCommands["makedirectory"]),
+                UserCommand.EditFile => GetOutputFromTokens(AllCommands["edit"]),
+                UserCommand.ListHardware => GetOutputFromTokens(AllCommands["listhardware"]),
+                UserCommand.ViewPermissions => GetOutputFromTokens(AllCommands["viewpermissions"]),
+                UserCommand.ChangePermissions => GetOutputFromTokens(AllCommands["changepermissions"]),
+                UserCommand.Date => GetOutputFromTokens(AllCommands["date"]),
+                UserCommand.Time => GetOutputFromTokens(AllCommands["time"]),
+                UserCommand.Now => GetOutputFromTokens(AllCommands["now"]),
+                UserCommand.Network => GetOutputFromTokens(AllCommands["network"]),
                 _ => string.Empty
             };
         }
@@ -200,9 +199,7 @@ namespace Terminal.Services
             commandsExecutableFile.Contents = string.Concat(commandsContentsMinusReplacement, DirectoryConstants.HelpLineSeparator, "[COMMANDS", DirectoryConstants.HelpKeyValueSeparator, sortedCommands, "]");
         }
 
-        private static string GetOutputFromTokens(Dictionary<string, string> outputTokens)
-        {
-            return $"\n{string.Join("\n\n", outputTokens.Select(token => string.Join('\n', token.Key, token.Value)))}\n\n";
-        }
+        private static string GetOutputFromTokens(Dictionary<string, string> outputTokens) =>
+            $"\n{string.Join("\n\n", outputTokens.Select(token => string.Join('\n', token.Key, token.Value)))}\n\n";
     }
 }
