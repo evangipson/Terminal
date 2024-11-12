@@ -92,6 +92,8 @@ namespace Terminal.Services
             "time" => UserCommand.Time,
             "now" or "datetime" or "dt" or "current" => UserCommand.Now,
             "network" or "net" => UserCommand.Network,
+            "df" or "deletefile" => UserCommand.DeleteFile,
+            "dd" or "deletedir" or "deletedirectory" => UserCommand.DeleteDirectory,
             _ => UserCommand.Unknown
         };
 
@@ -173,6 +175,8 @@ namespace Terminal.Services
                 UserCommand.Time => GetOutputFromTokens(AllCommands["time"]),
                 UserCommand.Now => GetOutputFromTokens(AllCommands["now"]),
                 UserCommand.Network => GetOutputFromTokens(AllCommands["network"]),
+                UserCommand.DeleteFile => GetOutputFromTokens(AllCommands["deletefile"]),
+                UserCommand.DeleteDirectory => GetOutputFromTokens(AllCommands["deletedirectory"]),
                 _ => string.Empty
             };
         }

@@ -223,6 +223,9 @@ namespace Terminal.Services
 
         /// <summary>
         /// Creates a file with the provided <paramref name="fileName"/> in the current directory.
+        /// <para>
+        /// Default permissions are <see cref="Permission.UserRead"/> and <see cref="Permission.UserWrite"/>.
+        /// </para>
         /// </summary>
         /// <param name="fileName">
         /// The name of the file to create in the current directory.
@@ -249,6 +252,9 @@ namespace Terminal.Services
 
         /// <summary>
         /// Creates a folder with the provided <paramref name="directoryName"/> in the current directory.
+        /// <para>
+        /// Default permissions are <see cref="Permission.UserRead"/> and <see cref="Permission.UserWrite"/>.
+        /// </para>
         /// </summary>
         /// <param name="directoryName">
         /// The name of the folder to create in the current directory.
@@ -258,10 +264,25 @@ namespace Terminal.Services
             var newDirectory = new DirectoryFolder()
             {
                 Name = directoryName,
+                Permissions = new() { Permission.UserRead, Permission.UserWrite },
                 ParentId = GetCurrentDirectory().Id
             };
 
             GetCurrentDirectory().Entities.Add(newDirectory);
+        }
+
+        /// <summary>
+        /// Removes a <paramref name="entity"/> from the current directory. Does nothing if the <paramref name="entity"/> doesn't exist.
+        /// </summary>
+        /// <param name="entity">
+        /// The entity to delete.
+        /// </param>
+        public void DeleteEntity(DirectoryEntity entity)
+        {
+            if(GetCurrentDirectory().Entities.Contains(entity))
+            {
+                GetCurrentDirectory().Entities.Remove(entity);
+            }
         }
     }
 }

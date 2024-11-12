@@ -28,6 +28,8 @@ namespace Terminal.Enums
         Time,
         Now,
         Network,
+        DeleteFile,
+        DeleteDirectory,
         Unknown
     };
 }

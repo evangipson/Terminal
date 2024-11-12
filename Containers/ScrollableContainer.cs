@@ -237,16 +237,10 @@ namespace Terminal.Containers
 
         private void EditFileCommandResponse(string fileName)
         {
-            if (string.IsNullOrEmpty(fileName))
-            {
-                GD.PrintErr("File can't be edited without a name.");
-                return;
-            }
-
             var existingFile = _directoryService.GetRelativeFile(fileName);
             if (existingFile == null)
             {
-                CreateResponse($"No file with the name '{fileName}' exists.");
+                GD.PrintErr($"Attempted to edit \"{fileName}\" file, but it does not exist.");
                 return;
             }
 
@@ -272,8 +266,8 @@ namespace Terminal.Containers
             if (!string.IsNullOrEmpty(saveMessage))
             {
                 CreateResponse(saveMessage);
-                AddNewUserInput();
             }
+            AddNewUserInput();
         }
 
         private void CloseFileCommandResponse(string closeMessage)
@@ -282,8 +276,8 @@ namespace Terminal.Containers
             if (!string.IsNullOrEmpty(closeMessage))
             {
                 CreateResponse(closeMessage);
-                AddNewUserInput();
             }
+            AddNewUserInput();
         }
 
         private void ListHardwareCommandResponse()
