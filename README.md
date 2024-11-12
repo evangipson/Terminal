@@ -13,6 +13,9 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 - Launch the file editor and edit a file using the `edit` command
 - Make a file in the current directory using the `makefile` command
 - Make a directory in the current directory using the `makedirectory` command
+- Delete a file in the current directory using the `deletefile` command
+- Delete a directory in the current directory using the `deletedirectory` command
+    - Use the `help deletedirectory` command to get information about valid arguments
 - List the hardware using the `listhardware` command
 - View the permissions of a file or directory using the `viewpermissions` command
     - Use the `help viewpermissions` command to get information about permission bits
@@ -26,4 +29,4 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 - Add new colors to the terminal by using `edit` on the `/system/config/color.conf` file, and adding a name and hex value
 - Contextual autocomplete for commands by pressing the tab key
 - Save your game by using the `save` command
-- Exit the terminal using the `exit` command (but not before using `save` to save your game)
+- Exit the terminal using the `exit` command
