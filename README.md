@@ -7,7 +7,7 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 - View all the commands for terminal_os using the `commands` command
 - Get help about any command using the `help` command
 - Change the terminal colors using the `color` command
-- See the contents of the current directory using the `list` command
+- See the contents of any directory using the `list` command
 - Change your current directory using the `change` command
 - View a file using the `view` command
 - Launch the file editor and edit a file using the `edit` command
@@ -24,5 +24,6 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 - Get the current networking information using the `network` command
     - Use the `help network` command to get information about valid arguments
 - Add new colors to the terminal by using `edit` on the `/system/config/color.conf` file, and adding a name and hex value
+- Contextual autocomplete for commands by pressing the tab key
 - Save your game by using the `save` command
 - Exit the terminal using the `exit` command (but not before using `save` to save your game)
