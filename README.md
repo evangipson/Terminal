@@ -26,7 +26,9 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
     - Get the current time using the `time` command
 - Get the current networking information using the `network` command
     - Use the `help network` command to get information about valid arguments
-- Add new colors to the terminal by using `edit` on the `/system/config/color.conf` file, and adding a name and hex value
+- Modify config values in real-time by using `edit` on any `.conf` file
+    - `/system/config/color.conf` to create/remove colors
+    - `/users/user/config/user.conf` to modify volume
 - Contextual autocomplete for commands by pressing the tab key
 - Save your game by using the `save` command
 - Exit the terminal using the `exit` command
