@@ -1,6 +1,10 @@
 using System;
 using Godot;
 
+using Terminal.Constants;
+using Terminal.Extensions;
+using Terminal.Services;
+
 namespace Terminal.Audio
 {
     /// <summary>
@@ -14,6 +18,7 @@ namespace Terminal.Audio
         [Export]
         public AudioStreamPlayer Player { get; set; }
 
+        private ConfigService _configService;
         private AudioStreamGeneratorPlayback _playback;
         private readonly Random _random = new();
         private Tween _tween;
@@ -25,6 +30,8 @@ namespace Terminal.Audio
         private float _pitchScale;
         private float _amountToChangePitchScale;
         private double _pitchScaleShiftSpeed;
+        private int _maxVolumeDb = -25;
+        private int _minVolumeDb = -50;
 
         public override void _Ready()
         {
@@ -33,7 +40,9 @@ namespace Terminal.Audio
                 return;
             }
 
+            _configService = GetNode<ConfigService>(ServicePathConstants.ConfigServicePath);
             _sampleHz = generator.MixRate;
+            SetVolumeFromUserConfig();
             Player.Play();
             _playback = (AudioStreamGeneratorPlayback)Player.GetStreamPlayback();
             _pitchScale = PitchScale;
@@ -67,6 +76,17 @@ namespace Terminal.Audio
 
         private void FillBuffer()
         {
+            if (VolumeDb != GetVolumeFromUserConfig())
+            {
+                SetVolumeFromUserConfig();
+            }
+
+            // only play the white noise if the volume is above minimum
+            if (VolumeDb == _minVolumeDb)
+            {
+                return;
+            }
+
             int availableFrames = _playback.GetFramesAvailable();
             for (int i = 0; i < availableFrames; i++)
             {
@@ -76,6 +96,18 @@ namespace Terminal.Audio
                     Y = (float)_random.NextDouble()
                 });
             }
+        }
+
+        private void SetVolumeFromUserConfig()
+        {
+            VolumeDb = GetVolumeFromUserConfig();
+        }
+
+        private int GetVolumeFromUserConfig()
+        {
+            var userVolume = _configService.Volume;
+            var newVolumeDb = userVolume.ConvertRange(0, 100, _minVolumeDb, _maxVolumeDb);
+            return Math.Clamp(newVolumeDb, _minVolumeDb, _maxVolumeDb);
         }
     }
 }

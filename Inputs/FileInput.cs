@@ -37,6 +37,7 @@ namespace Terminal.Inputs
         public delegate void CloseFileCommandEventHandler(string closeMessage);
 
         private PersistService _persistService;
+        private ConfigService _configService;
         private Theme _defaultUserInputTheme;
         private ScrollableContainer _scrollableContainer;
         private VBoxContainer _fileEditorContainer;
@@ -48,6 +49,7 @@ namespace Terminal.Inputs
         public override void _Ready()
         {
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
+            _configService = GetNode<ConfigService>(ServicePathConstants.ConfigServicePath);
             _defaultUserInputTheme = GD.Load<Theme>(ThemePathConstants.MonospaceFontThemePath);
             _scrollableContainer = GetNode<ScrollableContainer>("%ScrollableContainer");
             _fileEditorContainer = GetParent<VBoxContainer>();
@@ -113,6 +115,9 @@ namespace Terminal.Inputs
 
         /// <summary>
         /// Persists the contents of the file editor into the provided <paramref name="file"/>.
+        /// <para>
+        /// Also updates configuration information if the saved file has the "conf" extension.
+        /// </para>
         /// </summary>
         /// <param name="file">
         /// The file to persist the file editor content into.
@@ -123,6 +128,12 @@ namespace Terminal.Inputs
         public void SaveFile(DirectoryEntity file, bool closeEditor)
         {
             file.Contents = Text;
+
+            if(file.Extension.Equals("conf"))
+            {
+                _configService.UpdateConfigInformation();
+            }
+
             if(closeEditor)
             {
                 CloseFileEditor();

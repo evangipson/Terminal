@@ -13,6 +13,8 @@ namespace Terminal.Services
     public partial class ConfigService : Node
     {
         private DirectoryService _directoryService;
+        private Dictionary<string, Color> _colors;
+        private int? _volume;
 
         public override void _Ready()
         {
@@ -31,24 +33,20 @@ namespace Terminal.Services
         /// </summary>
         public Dictionary<string, Color> Colors
         {
-            get
-            {
-                var colors = ColorConfig.Select(config =>
-                {
-                    if (!int.TryParse(config.Value, System.Globalization.NumberStyles.HexNumber, null, out int colorValidation))
-                    {
-                        GD.Print($"Attempted to parse color data from color.conf, but {config.Value} isn't a valid hex string.");
-                        return default;
-                    }
+            get => _colors ??= GetLatestColorConfigValues();
+            private set => _colors = value;
+        }
 
-                    var colorValue = new Color($"#{config.Value}");
-                    return new KeyValuePair<string, Color>(config.Key, colorValue);
-                });
-
-                var allColors = new Dictionary<string, Color>(colors.Where(color => color.Key != default && color.Value != default));
-                UpdateColorsSystemProgramFile(allColors);
-                return allColors;
-            }
+        /// <summary>
+        /// Represents the parsed value for the user-defined "volume" setting in the user.conf file.
+        /// <para>
+        /// Defaults to <c>100</c>.
+        /// </para>
+        /// </summary>
+        public int Volume
+        {
+            get => _volume ??= GetLatestUserConfigVolume();
+            private set => _volume = value;
         }
 
         /// <summary>
@@ -63,17 +61,32 @@ namespace Terminal.Services
             return new KeyValuePair<string, Color>(color.Key, invertedColor.Key == default ? Colors.First().Value : invertedColor.Value);
         }));
 
+        /// <summary>
+        /// Refreshes system and user configuration values.
+        /// </summary>
+        public void UpdateConfigInformation()
+        {
+            Colors = GetLatestColorConfigValues();
+            Volume = GetLatestUserConfigVolume();
+        }
+
         private Dictionary<string, string> LoadConfigFile(string fileName, bool userConfig = false)
         {
-            var configFile = userConfig ? _directoryService.GetRelativeFile(fileName) : _directoryService.GetAbsoluteFile(fileName);
+            var configFile = userConfig
+                ? _directoryService.GetAbsoluteDirectory("users/user/config").FindFile(fileName)
+                : _directoryService.GetAbsoluteDirectory("system/config").FindFile(fileName);
+
             if (configFile == null)
             {
                 GD.Print($"Attempted to load the \"{fileName}\" config file, but it was not found.");
                 return null;
             }
 
-            var configFileData = configFile.Contents.Split('\n');
-            if (configFileData.Length == 0)
+            var configFileData = configFile.Contents.Contains('\n')
+                ? configFile.Contents.Split('\n').ToList()
+                : new List<string>() { configFile.Contents };
+
+            if (configFileData.Count == 0)
             {
                 GD.Print($"Attempted to parse data from the \"{fileName}\" config file, but there was none.");
                 return null;
@@ -112,6 +125,62 @@ namespace Terminal.Services
             var colorsContentsMinusReplacement = colorsExecutableFile.Contents.Split($"[COLORS{DirectoryConstants.HelpKeyValueSeparator}").First();
             var sortedColors = string.Join(", ", newColors.Keys.OrderBy(key => key).Select(key => key));
             colorsExecutableFile.Contents = string.Concat(colorsContentsMinusReplacement, DirectoryConstants.HelpLineSeparator, "[COLORS", DirectoryConstants.HelpKeyValueSeparator, sortedColors, "]");
+        }
+
+        private Dictionary<string, Color> GetLatestColorConfigValues()
+        {
+            if (ColorConfig == null)
+            {
+                GD.Print($"Attempted to parse color data from color.conf, but \"color.conf\" file was not found.");
+                return new Dictionary<string, Color>()
+                {
+                    ["green"] = ColorConstants.TerminalGreen,
+                    ["teal"] = ColorConstants.TerminalTeal
+                };
+            }
+
+            var colors = ColorConfig.Select(config =>
+            {
+                if (!int.TryParse(config.Value, System.Globalization.NumberStyles.HexNumber, null, out int colorValidation))
+                {
+                    GD.Print($"Attempted to parse color data from color.conf, but {config.Value} isn't a valid hex string.");
+                    return default;
+                }
+
+                var colorValue = new Color($"#{config.Value}");
+                return new KeyValuePair<string, Color>(config.Key, colorValue);
+            });
+
+            var allColors = new Dictionary<string, Color>(colors.Where(color => color.Key != default && color.Value != default));
+            UpdateColorsSystemProgramFile(allColors);
+            return allColors;
+        }
+
+        private int GetLatestUserConfigVolume()
+        {
+            if(UserConfig == null)
+            {
+                GD.Print($"Attempted to parse user data from user.conf, but \"user.conf\" file was not found.");
+                return 100;
+            }
+
+            var userConfigVolume = UserConfig.FirstOrDefault(config =>
+            {
+                if (!int.TryParse(config.Value, out int volumeLevel))
+                {
+                    GD.Print($"Attempted to parse user data from user.conf, but {config.Value} isn't a valid number.");
+                    return false;
+                }
+
+                return true;
+            });
+
+            if (userConfigVolume.Key == default || userConfigVolume.Value == default)
+            {
+                return 100;
+            }
+
+            return int.Parse(userConfigVolume.Value);
         }
     }
 }
