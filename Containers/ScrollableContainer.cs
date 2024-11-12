@@ -173,7 +173,29 @@ namespace Terminal.Containers
             CreateResponse("Progress saved.");
         }
 
-        private void ListDirectoryCommandResponse() => CreateListDirectoryResponse(_directoryService.GetCurrentDirectory().Entities);
+        private void ListDirectoryCommandResponse(string directoryToList)
+        {
+            if(string.IsNullOrEmpty(directoryToList))
+            {
+                CreateListDirectoryResponse(_directoryService.GetCurrentDirectory().Entities);
+                return;
+            }
+
+            if(directoryToList.Equals(TerminalCharactersConstants.Separator.ToString()))
+            {
+                CreateListDirectoryResponse(_directoryService.GetRootDirectory().Entities);
+                return;
+            }
+
+            var absoluteDirectoryToList = _directoryService.GetRootDirectory().FindDirectory(directoryToList.TrimEnd('/'));
+            if(absoluteDirectoryToList == null)
+            {
+                CreateResponse($"The directory {directoryToList} does not exist.");
+                return;
+            }
+
+            CreateListDirectoryResponse(absoluteDirectoryToList.Entities);
+        }
 
         private void MakeFileCommandResponse(string fileName)
         {

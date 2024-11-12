@@ -53,8 +53,11 @@ namespace Terminal.Inputs
         /// <summary>
         /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.ListDirectory"/> command is invoked.
         /// </summary>
+        /// <param name="directoryToList">
+        /// An optional directory to list, if not listing the contents of the current directory.
+        /// </param>
         [Signal]
-        public delegate void ListDirectoryCommandEventHandler();
+        public delegate void ListDirectoryCommandEventHandler(string directoryToList);
 
         /// <summary>
         /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.ChangeDirectory"/> command is invoked.
@@ -181,12 +184,22 @@ namespace Terminal.Inputs
                 return;
             }
 
-            if (@event is InputEventKey && @event.IsPressed())
+            if (@event is InputEventKey keyEvent && keyEvent.Pressed)
             {
-                CallDeferred("PlayKeyboardSound");
+                if(!keyEvent.Echo)
+                {
+                    CallDeferred("PlayKeyboardSound");
+                }
+
+                // disallow select all and cut all
+                if (keyEvent.IsCommandOrControlPressed() && (keyEvent.Keycode == Key.A || keyEvent.Keycode == Key.X))
+                {
+                    GetTree().Root.SetInputAsHandled();
+                    return;
+                }
             }
 
-            EvaluateKeyboardInput()?.Invoke();
+            EvaluateKeyboardInput().Invoke();
         }
 
         private void EvaluateCommand()
@@ -195,9 +208,14 @@ namespace Terminal.Inputs
 
             var inputWithoutDirectory = Text.Replace(_userCommandService.GetCommandPrompt(), string.Empty).Trim(' ');
             _persistService.AddCommandToMemory(inputWithoutDirectory);
-            RouteCommand(inputWithoutDirectory)?.Invoke();
+            RouteCommand(inputWithoutDirectory).Invoke();
 
             EmitSignal(SignalName.Evaluated);
+            UnsubscribeAndStopInput();
+        }
+
+        private void UnsubscribeAndStopInput()
+        {
             SetProcessInput(false);
             GetTree().Root.SetInputAsHandled();
 
@@ -211,12 +229,16 @@ namespace Terminal.Inputs
         {
             var parsedTokens = UserCommandService.ParseInputToTokens(command);
             var userCommand = UserCommandService.EvaluateUserInput(command);
-            var unqualifiedCommand = _commandsThatNeedAdditionalArguments.Contains(userCommand) && parsedTokens.Count == 1;
+            if(_commandsThatNeedAdditionalArguments.Contains(userCommand) && parsedTokens.Count == 1)
+            {
+                return QualifyAndEvaluateHelpCommand(userCommand);
+            }
+
             return userCommand switch
             {
                 UserCommand.Help or UserCommand.Commands => QualifyAndEvaluateHelpCommand(userCommand, parsedTokens),
                 UserCommand.ChangeDirectory => () => ChangeDirectory(parsedTokens.Take(2).Last()),
-                UserCommand.ListDirectory => () => ListDirectory(),
+                UserCommand.ListDirectory => () => ListDirectory(parsedTokens.Skip(1).Take(1).FirstOrDefault()),
                 UserCommand.ViewFile => () => ViewFile(parsedTokens.Take(2).Last()),
                 UserCommand.MakeFile => () => MakeFile(parsedTokens.Take(2).Last()),
                 UserCommand.MakeDirectory => () => MakeDirectory(parsedTokens.Take(2).Last()),
@@ -231,7 +253,6 @@ namespace Terminal.Inputs
                 UserCommand.Color => () => ChangeColor(parsedTokens.Take(2).Last()),
                 UserCommand.Save => () => SaveProgress(),
                 UserCommand.Exit => () => Exit(),
-                _ when unqualifiedCommand => QualifyAndEvaluateHelpCommand(userCommand, parsedTokens),
                 _ => () => CreateSimpleTerminalResponse($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.")
             };
         }
@@ -286,7 +307,7 @@ namespace Terminal.Inputs
             _directoryService.SetCurrentDirectory(directory);
         }
 
-        private void ListDirectory() => EmitSignal(SignalName.ListDirectoryCommand);
+        private void ListDirectory(string directoryToList = null) => EmitSignal(SignalName.ListDirectoryCommand, directoryToList);
 
         private void ViewFile(string fileName)
         {
@@ -356,11 +377,11 @@ namespace Terminal.Inputs
 
         private void ShowNetworkResponse(string networkResponse) => EmitSignal(SignalName.KnownCommand, networkResponse);
 
-        private void ListDirectoryAndCreateNewInput()
+        private void ListDirectoryAndCreateNewInput(string directoryToList = null)
         {
-            EmitSignal(SignalName.ListDirectoryCommand);
+            EmitSignal(SignalName.ListDirectoryCommand, directoryToList);
             EmitSignal(SignalName.Evaluated);
-            GetTree().Root.SetInputAsHandled();
+            UnsubscribeAndStopInput();
         }
 
         private void FillInputWithAutocompletedPhrase(string phrase)
@@ -372,9 +393,12 @@ namespace Terminal.Inputs
 
         private void UpdateCommandMemory(bool forPreviousCommand)
         {
-            _commandMemoryIndex = forPreviousCommand
-                ? (_commandMemoryIndex - 1 + _persistService.CommandMemory.Count) % _persistService.CommandMemory.Count
-                : (_commandMemoryIndex + 1) % _persistService.CommandMemory.Count;
+            _commandMemoryIndex = _persistService.CommandMemory.Count switch
+            {
+                0 when forPreviousCommand => 0,
+                > 0 when forPreviousCommand => (_commandMemoryIndex - 1 + _persistService.CommandMemory.Count) % _persistService.CommandMemory.Count,
+                _ => (_commandMemoryIndex + 1) % _persistService.CommandMemory.Count,
+            };
 
             Text = string.Concat(_userCommandService.GetCommandPrompt(), _persistService.CommandMemory.ElementAtOrDefault(_commandMemoryIndex));
             SetCaretColumn(Text.Length);
@@ -389,17 +413,19 @@ namespace Terminal.Inputs
             }
         }
 
-        private Action QualifyAndEvaluateHelpCommand(UserCommand userCommand, List<string> parsedTokens)
+        private Action QualifyAndEvaluateHelpCommand(UserCommand userCommand, List<string> parsedTokens = null)
         {
-            var commandContext = parsedTokens.Take(2).Last();
-            var helpContextToken = userCommand;
-            if (parsedTokens.Count == 2 && UserCommandService.EvaluateToken(commandContext) != UserCommand.Unknown)
+            if (parsedTokens == null)
             {
-                var parsedContextToken = UserCommandService.EvaluateToken(commandContext);
-                helpContextToken = parsedContextToken == UserCommand.Unknown ? UserCommand.Help : parsedContextToken;
+                var unqualifiedHelpText = _userCommandService.EvaluateHelpCommand(userCommand);
+                return () => CreateSimpleTerminalResponse(unqualifiedHelpText);
             }
-
-            return () => CreateSimpleTerminalResponse(_userCommandService.EvaluateHelpCommand(helpContextToken, commandContext));
+;
+            var additionalCommand = parsedTokens.Take(2).LastOrDefault();
+            UserCommand parsedContextToken = UserCommandService.EvaluateToken(additionalCommand);
+            var helpContextToken = parsedContextToken == UserCommand.Unknown ? UserCommand.Help : parsedContextToken;
+            var helpText = _userCommandService.EvaluateHelpCommand(helpContextToken, parsedTokens.Take(2).LastOrDefault());
+            return () => CreateSimpleTerminalResponse(helpText);
         }
     }
 }
