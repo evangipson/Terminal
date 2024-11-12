@@ -265,7 +265,7 @@ namespace Terminal.Constants
 
             userDirectory.Entities = new()
             {
-                new DirectoryFolder() { Name = "config", ParentId = userDirectory.Id, Permissions = _userReadWritePermissions },
+                configDirectory,
                 homeDirectory,
                 new DirectoryFolder() { Name = "programs", ParentId = userDirectory.Id, Permissions = _userReadWritePermissions },
             };
