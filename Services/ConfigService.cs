@@ -97,7 +97,7 @@ namespace Terminal.Services
                 var keyAndValue = cfd.Split(':');
                 if(keyAndValue.Length != 2)
                 {
-                    return default;
+                    return new KeyValuePair<string, string>(string.Empty, string.Empty);
                 }
 
                 return new KeyValuePair<string, string>(keyAndValue.First(), keyAndValue.Last());
