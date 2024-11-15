@@ -3,24 +3,15 @@ using System.Linq;
 using System.Text;
 using Godot;
 
-using Terminal.Factories;
+using Terminal.Models;
 
-namespace Terminal.Models
+namespace Terminal.Extensions
 {
-    public readonly struct IpAddressV8
+    /// <summary>
+    /// A <see langword="static"/> collection of extension methods for networking.
+    /// </summary>
+    public static class NetworkExtensions
     {
-        public IpAddressV8()
-        {
-            Address = NetworkFactory.GetNewIpAddressV8();
-        }
-
-        public IpAddressV8(string address)
-        {
-            Address = address;
-        }
-
-        public readonly string Address { get; }
-
         /// <summary>
         /// Tries to parse the provided <paramref name="input"/> into an <see cref="IpAddressV8"/>.
         /// <para>
@@ -41,23 +32,16 @@ namespace Terminal.Models
         /// </returns>
         public static bool TryParseIpAddressV8<T>(T input, out IpAddressV8 address)
         {
-            address = default;
             try
             {
                 byte[] inputBytes = ASCIIEncoding.ASCII.GetBytes(input.ToString());
+                address = new(string.Concat(Convert.ToBase64String(inputBytes).Take(16)));
 
-                address = new(string.Concat(Convert.ToBase64String(inputBytes)));
-                if (address.Address.Length < 16)
-                {
-                    address = default;
-                    return false;
-                }
-
-                address = new(string.Concat(address.Address.Take(16)));
                 return true;
             }
-            catch (Exception exception)
+            catch(Exception exception)
             {
+                address = default;
                 GD.PrintErr(exception.Message, "Unable to parse provided input as ipv8 address.");
 
                 return false;

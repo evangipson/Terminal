@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Godot;
 
 using Terminal.Constants;
@@ -22,6 +23,22 @@ namespace Terminal.Services
         /// </summary>
         public event Action<string> OnShowNetwork;
 
+        /// <summary>
+        /// Invoked when the ping command is run.
+        /// <para>
+        /// Will continue to run unless unsubscribed after running the method.
+        /// </para>
+        /// </summary>
+        public event Action<string> OnPing;
+
+        /// <summary>
+        /// Invoked when the ping command is done.
+        /// <para>
+        /// Will continue to run unless unsubscribed after running the method.
+        /// </para>
+        /// </summary>
+        public event Action<string> OnPingDone;
+
         private static readonly Dictionary<string, List<string>> _networkCommandFlags = new()
         {
             ["active"] = new() { "-a", "--active" },
@@ -37,10 +54,15 @@ namespace Terminal.Services
         private const int activeColumnLength = -6;
 
         private DirectoryService _directoryService;
+        private TimerService _timerService;
+        private Random _random;
+        private int _pingTimes = 0;
+        private string _pingAddress = string.Empty;
 
         public override void _Ready()
         {
             _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
+            _random = new(DateTime.UtcNow.GetHashCode());
         }
 
         private Dictionary<string, List<string>> NetworkDevices
@@ -156,6 +178,46 @@ namespace Terminal.Services
 
         public void ShowPingResponse(string address)
         {
+            var pingAddress = string.Empty;
+            if(IPAddress.TryParse(address, out IPAddress ipAddress))
+            {
+                pingAddress = ipAddress.MapToIPv6().ToString();
+            }
+
+            if(IpAddressV8.TryParseIpAddressV8(address, out IpAddressV8 ipv8Address))
+            {
+                pingAddress = ipv8Address.Address;
+            }
+
+            if(string.IsNullOrEmpty(pingAddress))
+            {
+                OnPing?.Invoke($"Could not ping {address}, it was not a valid ipv6 or ipv8 address.");
+                return;
+            }
+
+            _pingTimes = 0;
+            _pingAddress = pingAddress;
+            _timerService = new(SendPing);
         }
+
+        public void SendPing(object address, EventArgs args)
+        {
+            if (_pingTimes >= 5)
+            {
+                _timerService.Done();
+                CallDeferred("FinishPing");
+                return;
+            }
+
+            var pingMilliseconds = _random.Next(250, 1500) * (1.0 + _random.NextDouble());
+            _timerService.Wait(pingMilliseconds);
+            _pingTimes++;
+
+            CallDeferred("ShowPing", pingMilliseconds);
+        }
+
+        public void ShowPing(double pingMilliseconds) => OnPing?.Invoke($"64 bytes from {_pingAddress}: ttl=55 time={Math.Round(pingMilliseconds, 2)}ms");
+
+        private void FinishPing() => OnPingDone?.Invoke($"--- {_pingAddress} ping statistics ---\n5 packets transmitted, 5 received, 0% packet loss, time 1249ms");
     }
 }

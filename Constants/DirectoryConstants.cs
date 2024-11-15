@@ -145,6 +145,12 @@ namespace Terminal.Constants
                 ["REMARKS"] = "Deletes a directory.",
                 ["ARGUMENTS"] = "-r [--recursive]: Deletes a folder and all child files and folders.",
                 ["EXAMPLES"] = "dd newdir    : Deletes the \"newdir\" directory.\ndd newdir -r : Deletes the \"newdir\" directory and all files and folders inside of it."
+            },
+            ["ping"] = new()
+            {
+                ["COMMAND"] = "ping",
+                ["REMARKS"] = "Network utility used to test a host's reachability.",
+                ["EXAMPLES"] = "ping we9a@49r4rGNJ*4!    : Pings the \"we9a@49r4rGNJ*4!\" ipv8 address 5 times."
             }
         };
 
