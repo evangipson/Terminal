@@ -39,7 +39,7 @@ namespace Terminal.Models
         /// <returns>
         /// <see langword="true"/> if the parse succeeded, <see langword="false"/> otherwise.
         /// </returns>
-        public static bool TryParseIpAddressV8<T>(T input, out IpAddressV8 address)
+        public static bool TryParse<T>(T input, out IpAddressV8 address)
         {
             address = default;
             try

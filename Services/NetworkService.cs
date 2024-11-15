@@ -184,7 +184,7 @@ namespace Terminal.Services
                 pingAddress = ipAddress.MapToIPv6().ToString();
             }
 
-            if(IpAddressV8.TryParseIpAddressV8(address, out IpAddressV8 ipv8Address))
+            if(IpAddressV8.TryParse(address, out IpAddressV8 ipv8Address))
             {
                 pingAddress = ipv8Address.Address;
             }
