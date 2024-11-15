@@ -18,20 +18,20 @@ namespace Terminal.Audio
         [Export]
         public AudioStreamPlayer Player { get; set; }
 
+        private readonly Random _random = new();
+        private readonly int _maxVolumeDb = -25;
+        private readonly int _minVolumeDb = -50;
+
         private ConfigService _configService;
         private AudioStreamGeneratorPlayback _playback;
-        private readonly Random _random = new();
         private Tween _tween;
         private float _sampleHz;
-        private float _pulseHz = 220.0f;
         private double _elapsedTime = 0;
         private double _elapsedTonalShiftTime = 0;
         private double _timeBeforeTonalShift;
         private float _pitchScale;
         private float _amountToChangePitchScale;
         private double _pitchScaleShiftSpeed;
-        private int _maxVolumeDb = -25;
-        private int _minVolumeDb = -50;
 
         public override void _Ready()
         {

@@ -17,8 +17,9 @@ namespace Terminal.Audio
         /// </summary>
         public const string AbsolutePath = "/root/Root/KeyboardSounds";
 
-        private int _maxVolumeDb = 0;
-        private int _minVolumeDb = -15;
+        private readonly int _maxVolumeDb = 0;
+        private readonly int _minVolumeDb = -15;
+
         private ConfigService _configService;
 
         public override void _Ready()

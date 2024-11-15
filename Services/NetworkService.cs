@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -108,18 +108,18 @@ namespace Terminal.Services
             };
             List<string> columnRowSeperators = new()
             {
-                showName ? new string('-', nameColumnLength * -1) : string.Empty,
-                showDevice ? new string('-', deviceColumnLength * -1) : string.Empty,
-                showIpv6 ? new string('-', ipv6ColumnLength * -1) : string.Empty,
-                showIpv8 ? new string('-', ipv8ColumnLength * -1) : string.Empty,
-                showActive ? new string('-', 6) : string.Empty,
+                showName ? "═".Repeat(nameColumnLength * -1) : string.Empty,
+                showDevice ? "═".Repeat(deviceColumnLength * -1) : string.Empty,
+                showIpv6 ? "═".Repeat(ipv6ColumnLength * -1) : string.Empty,
+                showIpv8 ? "═".Repeat(ipv8ColumnLength * -1) : string.Empty,
+                showActive ? "═".Repeat(6) : string.Empty,
             };
 
             List<string> output = new()
             {
-                string.Join("---", columnRowSeperators.Where(columnRow => !string.IsNullOrEmpty(columnRow))),
-                string.Join(" | ", columnTitles.Where(columnTitle => !string.IsNullOrEmpty(columnTitle))),
-                string.Join("-|-", columnRowSeperators.Where(columnRow => !string.IsNullOrEmpty(columnRow)))
+                string.Join("═══", columnRowSeperators.Where(columnRow => !string.IsNullOrEmpty(columnRow))),
+                string.Join("   ", columnTitles.Where(columnTitle => !string.IsNullOrEmpty(columnTitle))),
+                string.Join("═╤═", columnRowSeperators.Where(columnRow => !string.IsNullOrEmpty(columnRow)))
             };
 
             foreach(var networkResponse in networkResponses)
@@ -133,11 +133,23 @@ namespace Terminal.Services
                     showActive ? $"{networkResponse.IsActive}".ToLowerInvariant() : string.Empty,
                 };
 
-                output.Add(string.Join(" | ", dataRow.Where(row => !string.IsNullOrEmpty(row))));
+                output.Add(string.Join(" │ ", dataRow.Where(row => !string.IsNullOrEmpty(row))));
             }
-            output.Add(string.Join("---", columnRowSeperators.Where(columnRow => !string.IsNullOrEmpty(columnRow))));
+            output.Add(string.Join("═╧═", columnRowSeperators.Where(columnRow => !string.IsNullOrEmpty(columnRow))));
 
-            OnShowNetwork?.Invoke(string.Join("\n", output));
+            List<string> wrappedOutput = new() { $"╔═{output.First(line => !string.IsNullOrEmpty(line))}═╗" };
+            for(var line = 1; line < output.Count - 1; line++)
+            {
+                if(line == 2)
+                {
+                    wrappedOutput.Add($"╠═{output.ElementAt(line)}═╣");
+                    continue;
+                }
+                wrappedOutput.Add($"║ {output.ElementAt(line)} ║");
+            }
+            wrappedOutput.Add($"╚═{output.Last(line => !string.IsNullOrEmpty(line))}═╝");
+
+            OnShowNetwork?.Invoke(string.Join("\n", wrappedOutput));
         }
     }
 }
