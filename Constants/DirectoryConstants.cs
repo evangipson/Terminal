@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Terminal.Enums;
+using Terminal.Factories;
 using Terminal.Models;
 
 namespace Terminal.Constants
@@ -129,7 +130,7 @@ namespace Terminal.Constants
             {
                 ["COMMAND"] = "net [network]",
                 ["REMARKS"] = "View current networking information.",
-                ["ARGUMENTS"] = "-a [--active]: Show active networks.\n-d [--device]: Show network devices.\n-n [--name]: Show network names.\n-v6 [--ipv6]: Show ipv6 addresses.\n-v8 [--ipv8]: Show ipv8 addresses.",
+                ["ARGUMENTS"] = "-a [--active]: Show active networks.\n-v8 [--ipv8]: Show ipv8 addresses.",
                 ["EXAMPLES"] = "net -a -v8    : Show the ipv8 addresses for active networks."
             },
             ["deletefile"] = new()
@@ -191,14 +192,14 @@ namespace Terminal.Constants
                 new DirectoryFile()
                 {
                     Name = "ethernet",
-                    Contents = "device:eth-0\ncapacity:1073741824\nactive:true\nipv6:2bae::a93c::dd1e::8ane\nipv8:zEw-F_92!#2A3(3j",
+                    Contents = $"device:eth-0\ncapacity:1073741824\nactive:true\nipv6:{NetworkFactory.GetNewIpAddressV6()}\nipv8:{NetworkFactory.GetNewIpAddressV8()}",
                     ParentId = systemNetworkDirectory.Id,
                     Permissions = _adminReadWritePermissions
                 },
                 new DirectoryFile()
                 {
                     Name = "loopback",
-                    Contents = "device:local-0\ncapacity:0\nactive:true\nipv6:fe02::29aa::39ba::f12e\nipv8:a!9v(J#M8W*E3@inld",
+                    Contents = $"device:local-0\ncapacity:0\nactive:true\nipv6:{NetworkFactory.GetNewIpAddressV6(loopback: true)}\nipv8:{NetworkFactory.GetNewIpAddressV8(loopback: true)}",
                     ParentId = systemNetworkDirectory.Id,
                     Permissions = _adminReadWritePermissions
                 }

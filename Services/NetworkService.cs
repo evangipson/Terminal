@@ -25,15 +25,16 @@ namespace Terminal.Services
         private static readonly Dictionary<string, List<string>> _networkCommandFlags = new()
         {
             ["active"] = new() { "-a", "--active" },
-            ["name"] = new() { "-n", "--name" },
-            ["device"] = new() { "-d", "--device" },
-            ["ipv6"] = new() { "-v6", "--ipv6" },
+            ["noname"] = new() { "-nn", "--no-name" },
+            ["nodevice"] = new() { "-nd", "--no-device" },
+            ["noaddress"] = new() { "-na", "--no-address" },
             ["ipv8"] = new() { "-v8", "--ipv8" },
         };
         private const int nameColumnLength = -10;
         private const int deviceColumnLength = -8;
-        private const int ipv6ColumnLength = -22;
-        private const int ipv8ColumnLength = -18;
+        private const int ipv6ColumnLength = -39;
+        private const int ipv8ColumnLength = -16;
+        private const int activeColumnLength = -6;
 
         private DirectoryService _directoryService;
 
@@ -65,11 +66,12 @@ namespace Terminal.Services
         /// </param>
         public void ShowNetworkInformation(IEnumerable<string> arguments)
         {
-            var showActive = arguments.Contains("-a");
-            var showName = arguments.Contains("-n") || !arguments.Any() || showActive;
-            var showDevice = arguments.Contains("-d") || !arguments.Any() || showActive;
-            var showIpv6 = arguments.Contains("-ipv6") || arguments.Contains("-v6") || !arguments.Any();
-            var showIpv8 = arguments.Contains("-ipv8") || arguments.Contains("-v8");
+            var hideAddresses = _networkCommandFlags["noaddress"].Any(flag => arguments.Contains(flag));
+            var showName = _networkCommandFlags["noname"].All(flag => !arguments.Contains(flag));
+            var showDevice = _networkCommandFlags["nodevice"].All(flag => !arguments.Contains(flag));
+            var showActive = _networkCommandFlags["active"].Any(flag => arguments.Contains(flag));
+            var showIpv8 = _networkCommandFlags["ipv8"].Any(flag => arguments.Contains(flag)) && !hideAddresses;
+            var showIpv6 = !hideAddresses && !showIpv8;
 
             // if there was an unexpected argument, tell the user
             List<string> unrecognizedArgs = new();
@@ -104,7 +106,7 @@ namespace Terminal.Services
                 showDevice ? $"{"Device", deviceColumnLength}" : string.Empty,
                 showIpv6 ? $"{"Address (ipv6)", ipv6ColumnLength}" : string.Empty,
                 showIpv8 ? $"{"Address (ipv8)", ipv8ColumnLength}" : string.Empty,
-                showActive ? "Active" : string.Empty,
+                showActive ? $"{"Active", activeColumnLength}" : string.Empty,
             };
             List<string> columnRowSeperators = new()
             {
@@ -112,7 +114,7 @@ namespace Terminal.Services
                 showDevice ? "═".Repeat(deviceColumnLength * -1) : string.Empty,
                 showIpv6 ? "═".Repeat(ipv6ColumnLength * -1) : string.Empty,
                 showIpv8 ? "═".Repeat(ipv8ColumnLength * -1) : string.Empty,
-                showActive ? "═".Repeat(6) : string.Empty,
+                showActive ? "═".Repeat(activeColumnLength * -1) : string.Empty,
             };
 
             List<string> output = new()
@@ -130,7 +132,7 @@ namespace Terminal.Services
                     showDevice ? $"{networkResponse.Device, deviceColumnLength}" : string.Empty,
                     showIpv6 ? $"{networkResponse.Ipv6Address, ipv6ColumnLength}" : string.Empty,
                     showIpv8 ? $"{networkResponse.Ipv8Address, ipv8ColumnLength}" : string.Empty,
-                    showActive ? $"{networkResponse.IsActive}".ToLowerInvariant() : string.Empty,
+                    showActive ? $"{networkResponse.IsActive.ToString().ToLowerInvariant(), activeColumnLength}" : string.Empty,
                 };
 
                 output.Add(string.Join(" │ ", dataRow.Where(row => !string.IsNullOrEmpty(row))));
@@ -150,6 +152,10 @@ namespace Terminal.Services
             wrappedOutput.Add($"╚═{output.Last(line => !string.IsNullOrEmpty(line))}═╝");
 
             OnShowNetwork?.Invoke(string.Join("\n", wrappedOutput));
+        }
+
+        public void ShowPingResponse(string address)
+        {
         }
     }
 }
