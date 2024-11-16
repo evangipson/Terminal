@@ -150,7 +150,8 @@ namespace Terminal.Constants
             {
                 ["COMMAND"] = "ping",
                 ["REMARKS"] = "Network utility used to test a host's reachability.",
-                ["EXAMPLES"] = "ping we9a@49r4rGNJ*4!    : Pings the \"we9a@49r4rGNJ*4!\" ipv8 address 5 times."
+                ["ARGUMENTS"] = "-v6 [--ipv6]: Ping the address using ipv6.\n-v8 [--ipv8]: Ping the address using ipv8.",
+                ["EXAMPLES"] = "ping 12525         : Pings the \"12525\" ipv6 or ipv8 address 5 times.\nping 127.0.0.1 -v6 : Pings the \"127.0.0.1\" ipv6 address 5 times."
             }
         };
 
