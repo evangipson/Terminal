@@ -199,14 +199,14 @@ namespace Terminal.Constants
                 new DirectoryFile()
                 {
                     Name = "ethernet",
-                    Contents = $"device:eth-0\ncapacity:1073741824\nactive:true\nipv6:{NetworkFactory.GetNewIpAddressV6()}\nipv8:{NetworkFactory.GetNewIpAddressV8()}",
+                    Contents = $"device:eth-0\ncapacity:1073741824\nactive:true\nipv6:{NetworkFactory.CreateIpAddressV6()}\nipv8:{NetworkFactory.CreateIpAddressV8()}",
                     ParentId = systemNetworkDirectory.Id,
                     Permissions = _adminReadWritePermissions
                 },
                 new DirectoryFile()
                 {
                     Name = "loopback",
-                    Contents = $"device:local-0\ncapacity:0\nactive:true\nipv6:{NetworkFactory.GetNewIpAddressV6(loopback: true)}\nipv8:{NetworkFactory.GetNewIpAddressV8(loopback: true)}",
+                    Contents = $"device:local-0\ncapacity:0\nactive:true\nipv6:{NetworkFactory.CreateIpAddressV6(loopback: true)}\nipv8:{NetworkFactory.CreateIpAddressV8(loopback: true)}",
                     ParentId = systemNetworkDirectory.Id,
                     Permissions = _adminReadWritePermissions
                 }

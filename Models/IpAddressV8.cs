@@ -7,18 +7,36 @@ using Terminal.Factories;
 
 namespace Terminal.Models
 {
+    /// <summary>
+    /// Represents an ipv8 address.
+    /// <para>
+    /// <see cref="Address"/> is filled with 16 base64 characters.
+    /// </para>
+    /// </summary>
     public readonly struct IpAddressV8
     {
+        /// <summary>
+        /// Creates a new <see cref="IpAddressV8"/>.
+        /// </summary>
         public IpAddressV8()
         {
-            Address = NetworkFactory.GetNewIpAddressV8();
+            Address = NetworkFactory.CreateIpAddressV8();
         }
 
+        /// <summary>
+        /// Creates a new <see cref="IpAddressV8"/> using the provided <paramref name="address"/>.
+        /// </summary>
+        /// <param name="address">
+        /// A <see langword="string"/> to create an <see cref="IpAddressV8"/> from.
+        /// </param>
         public IpAddressV8(string address)
         {
             Address = address;
         }
 
+        /// <summary>
+        /// A <see langword="string"/> representation of an <see cref="IpAddressV8"/>.
+        /// </summary>
         public readonly string Address { get; }
 
         /// <summary>

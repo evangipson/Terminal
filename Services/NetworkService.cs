@@ -184,6 +184,15 @@ namespace Terminal.Services
             OnShowNetwork?.Invoke(string.Join("\n", wrappedOutput));
         }
 
+        /// <summary>
+        /// Starts the process of pinging the provided <paramref name="address"/> using the provided <paramref name="arguments"/>.
+        /// </summary>
+        /// <param name="address">
+        /// A <see langword="string"/> representation of the address to ping.
+        /// </param>
+        /// <param name="arguments">
+        /// A list of arguments for the ping command.
+        /// </param>
         public void StartPingResponse(string address, IEnumerable<string> arguments)
         {
             var pingOnlyIpv6 = _pingCommandFlags["ipv6"].Any(flag => arguments.Contains(flag));
@@ -239,7 +248,20 @@ namespace Terminal.Services
             _timerService = new((_, _) => Ping(), _nextPingMilliseconds);
         }
 
-        public void Ping()
+        /// <summary>
+        /// Interrupts a ping in progress, if one is happening. Does nothing otherwise.
+        /// </summary>
+        public void InterruptPing()
+        {
+            if (_pingsResponded == 0 && _pingsSent == 0 && _totalPingMilliseconds == 0 && _pingAddress == string.Empty)
+            {
+                return;
+            }
+
+            FinishPing();
+        }
+
+        private void Ping()
         {
             if(_pingsResponded > 4)
             {
@@ -249,19 +271,6 @@ namespace Terminal.Services
 
             _timerService.Done();
             CallDeferred("DeferredPing");
-        }
-
-        /// <summary>
-        /// Interrupts a ping in progress, if one is happening. Does nothing otherwise.
-        /// </summary>
-        public void InterruptPing()
-        {
-            if(_pingsResponded == 0 && _pingsSent == 0 && _totalPingMilliseconds == 0 && _pingAddress == string.Empty)
-            {
-                return;
-            }
-
-            FinishPing();
         }
 
         private void FinishPing()
