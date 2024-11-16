@@ -208,7 +208,6 @@ namespace Terminal.Services
         {
             if (_pingTimes > 4)
             {
-                _timerService.Done();
                 CallDeferred("FinishPing");
                 return;
             }
@@ -217,7 +216,28 @@ namespace Terminal.Services
             CallDeferred("DeferredPing");
         }
 
-        private void FinishPing() => OnPingDone?.Invoke($"--- {_pingAddress} ping statistics ---\n5 packets transmitted, 5 received, 0% packet loss, time {Math.Round(_totalPingMilliseconds, 2)}ms");
+        /// <summary>
+        /// Interrupts a ping in progress, if one is happening. Does nothing otherwise.
+        /// </summary>
+        public void InterruptPing()
+        {
+            if(_pingTimes == 0 && _totalPingMilliseconds == 0 && _pingAddress == string.Empty)
+            {
+                return;
+            }
+
+            FinishPing();
+        }
+
+        private void FinishPing()
+        {
+            _timerService.Done();
+            OnPingDone?.Invoke($"--- {_pingAddress} ping statistics ---\n5 packets transmitted, 5 received, 0% packet loss, time {Math.Round(_totalPingMilliseconds, 2)}ms");
+
+            _pingTimes = 0;
+            _totalPingMilliseconds = 0;
+            _pingAddress = string.Empty;
+        }
 
         private void DeferredPing()
         {

@@ -164,6 +164,12 @@ namespace Terminal.Inputs
             UserCommand.Ping
         };
 
+        private static readonly List<UserCommand> _interactiveResponseCommands = new()
+        {
+            UserCommand.EditFile,
+            UserCommand.Ping
+        };
+
         private KeyboardSounds _keyboardSounds;
         private PersistService _persistService;
         private UserCommandService _userCommandService;
@@ -186,7 +192,7 @@ namespace Terminal.Inputs
             _autoCompleteService.OnInvalidAutocomplete += ListDirectoryAndCreateNewInput;
             _autoCompleteService.OnAutocomplete += FillInputWithAutocompletedPhrase;
             _networkService.OnShowNetwork += ShowNetworkResponse;
-            _networkService.OnPing += CreateSimpleTerminalResponse;
+            _networkService.OnPing += PingResponse;
             _networkService.OnPingDone += FinishPing;
 
             Text = _userCommandService.GetCommandPrompt();
@@ -223,6 +229,13 @@ namespace Terminal.Inputs
                     GetTree().Root.SetInputAsHandled();
                     return;
                 }
+
+                // allow control+c to stop in-flight ping command
+                if (keyEvent.IsCommandOrControlPressed() && keyEvent.Keycode == Key.C)
+                {
+                    _networkService.InterruptPing();
+                    return;
+                }
             }
 
             EvaluateKeyboardInput().Invoke();
@@ -238,24 +251,47 @@ namespace Terminal.Inputs
 
             var command = UserCommandService.EvaluateUserInput(inputWithoutDirectory);
 
-            // for commands that have interactive responses, don't immediately create a new input.
-            if (!_commandsThatNeedAdditionalArguments.Contains(command) || (_commandsThatNeedAdditionalArguments.Contains(command) && inputWithoutDirectory.Length > 1))
+            // for commands that have interactive responses, don't immediately create a new input, unless the user is getting more
+            // help/info about the command, e.g.: just typing in "edit" instead of qualifying with a filename as well.
+            if (!_interactiveResponseCommands.Contains(command) || (_interactiveResponseCommands.Contains(command) && inputWithoutDirectory.Split(' ').Length == 1))
             {
                 EmitSignal(SignalName.Evaluated);
                 UnsubscribeAndStopInput();
+            }
+
+            // if we are in an interactive command, just ignore the "enter" used to trigger it and wait for the command logic
+            // to create you the new input when it's needed (i.e.: with "edit" or "ping").
+            if(command == UserCommand.Ping && inputWithoutDirectory.Split(' ').Length > 1)
+            {
+                StopInput();
+                ReleaseFocus();
+            }
+            if(command == UserCommand.EditFile && inputWithoutDirectory.Split(' ').Length > 1)
+            {
+                ReleaseFocus();
+                UnsubscribeFromEvents();
             }
         }
 
         private void UnsubscribeAndStopInput()
         {
+            StopInput();
+            UnsubscribeFromEvents();
+        }
+
+        private void StopInput()
+        {
             SetProcessInput(false);
             GetTree().Root.SetInputAsHandled();
+        }
 
+        private void UnsubscribeFromEvents()
+        {
             // unsubscribe from the auto-complete events to prevent old inputs from getting autocompleted.
             _autoCompleteService.OnInvalidAutocomplete -= ListDirectoryAndCreateNewInput;
             _autoCompleteService.OnAutocomplete -= FillInputWithAutocompletedPhrase;
             _networkService.OnShowNetwork -= ShowNetworkResponse;
-            _networkService.OnPing -= CreateSimpleTerminalResponse;
+            _networkService.OnPing -= PingResponse;
             _networkService.OnPingDone -= FinishPing;
         }
 
@@ -542,6 +578,11 @@ namespace Terminal.Inputs
         private void StartPing(string address)
         {
             _networkService.StartPingResponse(address);
+        }
+
+        private void PingResponse(string pingMessage)
+        {
+            CreateSimpleTerminalResponse(pingMessage);
         }
 
         private void FinishPing(string message)
