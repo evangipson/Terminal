@@ -541,7 +541,7 @@ namespace Terminal.Inputs
 
         private void StartPing(string address)
         {
-            _networkService.ShowPingResponse(address);
+            _networkService.StartPingResponse(address);
         }
 
         private void FinishPing(string message)

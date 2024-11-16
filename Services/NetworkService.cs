@@ -58,6 +58,8 @@ namespace Terminal.Services
         private Random _random;
         private int _pingTimes = 0;
         private string _pingAddress = string.Empty;
+        private double _totalPingMilliseconds = 0;
+        private double _nextPingMilliseconds = 0;
 
         public override void _Ready()
         {
@@ -97,15 +99,15 @@ namespace Terminal.Services
 
             // if there was an unexpected argument, tell the user
             List<string> unrecognizedArgs = new();
-            foreach(var argument in arguments)
+            foreach (var argument in arguments)
             {
-                if(_networkCommandFlags.Values.All(flag => !flag.Contains(argument)))
+                if (_networkCommandFlags.Values.All(flag => !flag.Contains(argument)))
                 {
                     unrecognizedArgs.Add(argument);
                 }
             }
 
-            if(unrecognizedArgs.Any())
+            if (unrecognizedArgs.Any())
             {
                 OnShowNetwork?.Invoke($"\"{unrecognizedArgs.First()}\" is an invalid argument for the \"network\" command. Use \"help network\" to see valid arguments.");
                 return;
@@ -146,7 +148,7 @@ namespace Terminal.Services
                 string.Join("═╤═", columnRowSeperators.Where(columnRow => !string.IsNullOrEmpty(columnRow)))
             };
 
-            foreach(var networkResponse in networkResponses)
+            foreach (var networkResponse in networkResponses)
             {
                 List<string> dataRow = new()
                 {
@@ -162,9 +164,9 @@ namespace Terminal.Services
             output.Add(string.Join("═╧═", columnRowSeperators.Where(columnRow => !string.IsNullOrEmpty(columnRow))));
 
             List<string> wrappedOutput = new() { $"╔═{output.First(line => !string.IsNullOrEmpty(line))}═╗" };
-            for(var line = 1; line < output.Count - 1; line++)
+            for (var line = 1; line < output.Count - 1; line++)
             {
-                if(line == 2)
+                if (line == 2)
                 {
                     wrappedOutput.Add($"╠═{output.ElementAt(line)}═╣");
                     continue;
@@ -176,20 +178,20 @@ namespace Terminal.Services
             OnShowNetwork?.Invoke(string.Join("\n", wrappedOutput));
         }
 
-        public void ShowPingResponse(string address)
+        public void StartPingResponse(string address)
         {
             var pingAddress = string.Empty;
-            if(IPAddress.TryParse(address, out IPAddress ipAddress))
+            if (IPAddress.TryParse(address, out IPAddress ipAddress))
             {
                 pingAddress = ipAddress.MapToIPv6().ToString();
             }
 
-            if(IpAddressV8.TryParse(address, out IpAddressV8 ipv8Address))
+            if (IpAddressV8.TryParse(address, out IpAddressV8 ipv8Address))
             {
                 pingAddress = ipv8Address.Address;
             }
 
-            if(string.IsNullOrEmpty(pingAddress))
+            if (string.IsNullOrEmpty(pingAddress))
             {
                 OnPing?.Invoke($"Could not ping {address}, it was not a valid ipv6 or ipv8 address.");
                 return;
@@ -197,27 +199,36 @@ namespace Terminal.Services
 
             _pingTimes = 0;
             _pingAddress = pingAddress;
-            _timerService = new(SendPing);
+            _nextPingMilliseconds = _random.Next(250, 1500) * (1.0 + _random.NextDouble());
+            _totalPingMilliseconds += _nextPingMilliseconds;
+            _timerService = new((_, _) => Ping(), _nextPingMilliseconds);
         }
 
-        public void SendPing(object address, EventArgs args)
+        public void Ping()
         {
-            if (_pingTimes >= 5)
+            if (_pingTimes > 4)
             {
                 _timerService.Done();
                 CallDeferred("FinishPing");
                 return;
             }
 
-            var pingMilliseconds = _random.Next(250, 1500) * (1.0 + _random.NextDouble());
-            _timerService.Wait(pingMilliseconds);
-            _pingTimes++;
-
-            CallDeferred("ShowPing", pingMilliseconds);
+            _timerService.Done();
+            CallDeferred("DeferredPing");
         }
 
-        public void ShowPing(double pingMilliseconds) => OnPing?.Invoke($"64 bytes from {_pingAddress}: ttl=55 time={Math.Round(pingMilliseconds, 2)}ms");
+        private void FinishPing() => OnPingDone?.Invoke($"--- {_pingAddress} ping statistics ---\n5 packets transmitted, 5 received, 0% packet loss, time {Math.Round(_totalPingMilliseconds, 2)}ms");
 
-        private void FinishPing() => OnPingDone?.Invoke($"--- {_pingAddress} ping statistics ---\n5 packets transmitted, 5 received, 0% packet loss, time 1249ms");
+        private void DeferredPing()
+        {
+            _pingTimes++;
+            OnPing?.Invoke($"64 bytes from {_pingAddress}: ttl=55 time={Math.Round(_nextPingMilliseconds, 2)}ms");
+
+            _nextPingMilliseconds = _random.Next(250, 1500) * (1.0 + _random.NextDouble());
+            _totalPingMilliseconds += _nextPingMilliseconds;
+
+            _timerService.Wait(_nextPingMilliseconds);
+            _timerService.Resume();
+        }
     }
 }

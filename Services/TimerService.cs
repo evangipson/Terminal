@@ -47,5 +47,10 @@ namespace Terminal.Services
         /// Stops the <see cref="Timer"/>.
         /// </summary>
         public void Done() => _timer.Stop();
+
+        /// <summary>
+        /// Starts the <see cref="Timer"/>.
+        /// </summary>
+        public void Resume() => _timer.Start();
     }
 }

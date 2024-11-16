@@ -59,7 +59,8 @@ namespace Terminal.Containers
                 Theme = _defaultUserInputTheme,
                 Text = string.Empty,
                 FocusMode = FocusModeEnum.All,
-                AutowrapMode = TextServer.AutowrapMode.Arbitrary
+                AutowrapMode = TextServer.AutowrapMode.Arbitrary,
+                MouseFilter = MouseFilterEnum.Ignore
             };
 
             newUserInput.AddThemeColorOverride("font_color", _persistService.CurrentColor);
@@ -98,7 +99,8 @@ namespace Terminal.Containers
                 Theme = _defaultUserInputTheme,
                 Text = message,
                 FocusMode = FocusModeEnum.None,
-                AutowrapMode = TextServer.AutowrapMode.WordSmart
+                AutowrapMode = TextServer.AutowrapMode.WordSmart,
+                MouseFilter = MouseFilterEnum.Ignore
             };
 
             commandResponse.AddThemeColorOverride("font_color", _persistService.CurrentColor);
