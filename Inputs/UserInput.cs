@@ -325,7 +325,7 @@ namespace Terminal.Inputs
                 UserCommand.Exit => () => Exit(),
                 UserCommand.DeleteFile => () => DeleteFile(parsedTokens.Take(2).Last()),
                 UserCommand.DeleteDirectory => () => DeleteDirectory(parsedTokens.Take(2).Last(), parsedTokens.Skip(2)),
-                UserCommand.Ping => () => StartPing(parsedTokens.Take(2).Last()),
+                UserCommand.Ping => () => StartPing(parsedTokens.Take(2).Last(), parsedTokens.Skip(2)),
                 _ => () => CreateSimpleTerminalResponse($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.")
             };
         }
@@ -575,9 +575,9 @@ namespace Terminal.Inputs
             EmitSignal(SignalName.KnownCommand, $"\"{directoryName}\" deleted.");
         }
 
-        private void StartPing(string address)
+        private void StartPing(string address, IEnumerable<string> arguments)
         {
-            _networkService.StartPingResponse(address);
+            _networkService.StartPingResponse(address, arguments);
         }
 
         private void PingResponse(string pingMessage)

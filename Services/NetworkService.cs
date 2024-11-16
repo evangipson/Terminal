@@ -47,6 +47,11 @@ namespace Terminal.Services
             ["noaddress"] = new() { "-na", "--no-address" },
             ["ipv8"] = new() { "-v8", "--ipv8" },
         };
+        private static readonly Dictionary<string, List<string>> _pingCommandFlags = new()
+        {
+            ["ipv8"] = new() { "-v8", "--ipv8" },
+            ["ipv6"] = new() { "-v6", "--ipv6" },
+        };
         private const int nameColumnLength = -10;
         private const int deviceColumnLength = -8;
         private const int ipv6ColumnLength = -39;
@@ -56,7 +61,8 @@ namespace Terminal.Services
         private DirectoryService _directoryService;
         private TimerService _timerService;
         private Random _random;
-        private int _pingTimes = 0;
+        private int _pingsResponded = 0;
+        private int _pingsSent = 0;
         private string _pingAddress = string.Empty;
         private double _totalPingMilliseconds = 0;
         private double _nextPingMilliseconds = 0;
@@ -178,35 +184,64 @@ namespace Terminal.Services
             OnShowNetwork?.Invoke(string.Join("\n", wrappedOutput));
         }
 
-        public void StartPingResponse(string address)
+        public void StartPingResponse(string address, IEnumerable<string> arguments)
         {
+            var pingOnlyIpv6 = _pingCommandFlags["ipv6"].Any(flag => arguments.Contains(flag));
+            var pingOnlyIpv8 = _pingCommandFlags["ipv8"].Any(flag => arguments.Contains(flag));
+
+            // if there was an unexpected argument, tell the user
+            List<string> unrecognizedArgs = new();
+            foreach (var argument in arguments)
+            {
+                if (_pingCommandFlags.Values.All(flag => !flag.Contains(argument)))
+                {
+                    unrecognizedArgs.Add(argument);
+                }
+            }
+
+            if (unrecognizedArgs.Any())
+            {
+                OnPingDone?.Invoke($"\"{unrecognizedArgs.First()}\" is an invalid argument for the \"ping\" command. Use \"help ping\" to see valid arguments.");
+                return;
+            }
+
             var pingAddress = string.Empty;
-            if (IPAddress.TryParse(address, out IPAddress ipAddress))
+            if (!pingOnlyIpv8 && IPAddress.TryParse(address, out IPAddress ipAddress))
             {
                 pingAddress = ipAddress.MapToIPv6().ToString();
             }
 
-            if (IpAddressV8.TryParse(address, out IpAddressV8 ipv8Address))
+            if (!pingOnlyIpv6 && IpAddressV8.TryParse(address, out IpAddressV8 ipv8Address))
             {
                 pingAddress = ipv8Address.Address;
             }
 
             if (string.IsNullOrEmpty(pingAddress))
             {
-                OnPing?.Invoke($"Could not ping {address}, it was not a valid ipv6 or ipv8 address.");
+                var failureMessage = $"Could not ping {address}, it was not a valid ipv6 or ipv8 address.";
+                if(pingOnlyIpv6 && !pingOnlyIpv8)
+                {
+                    failureMessage = $"Could not ping {address}, it was not a valid ipv6 address.";
+                }
+                if(pingOnlyIpv8 && !pingOnlyIpv6)
+                {
+                    failureMessage = $"Could not ping {address}, it was not a valid ipv8 address.";
+                }
+                OnPingDone?.Invoke(failureMessage);
                 return;
             }
 
-            _pingTimes = 0;
+            ResetPing();
             _pingAddress = pingAddress;
             _nextPingMilliseconds = _random.Next(250, 1500) * (1.0 + _random.NextDouble());
             _totalPingMilliseconds += _nextPingMilliseconds;
+            _pingsSent++;
             _timerService = new((_, _) => Ping(), _nextPingMilliseconds);
         }
 
         public void Ping()
         {
-            if (_pingTimes > 4)
+            if(_pingsResponded > 4)
             {
                 CallDeferred("FinishPing");
                 return;
@@ -221,7 +256,7 @@ namespace Terminal.Services
         /// </summary>
         public void InterruptPing()
         {
-            if(_pingTimes == 0 && _totalPingMilliseconds == 0 && _pingAddress == string.Empty)
+            if(_pingsResponded == 0 && _pingsSent == 0 && _totalPingMilliseconds == 0 && _pingAddress == string.Empty)
             {
                 return;
             }
@@ -232,16 +267,14 @@ namespace Terminal.Services
         private void FinishPing()
         {
             _timerService.Done();
-            OnPingDone?.Invoke($"--- {_pingAddress} ping statistics ---\n5 packets transmitted, 5 received, 0% packet loss, time {Math.Round(_totalPingMilliseconds, 2)}ms");
+            OnPingDone?.Invoke($"--- {_pingAddress} ping statistics ---\n{_pingsSent} packets transmitted, {_pingsResponded} received, 0% packet loss, time {Math.Round(_totalPingMilliseconds, 2)}ms");
 
-            _pingTimes = 0;
-            _totalPingMilliseconds = 0;
-            _pingAddress = string.Empty;
+            ResetPing();
         }
 
         private void DeferredPing()
         {
-            _pingTimes++;
+            _pingsResponded++;
             OnPing?.Invoke($"64 bytes from {_pingAddress}: ttl=55 time={Math.Round(_nextPingMilliseconds, 2)}ms");
 
             _nextPingMilliseconds = _random.Next(250, 1500) * (1.0 + _random.NextDouble());
@@ -249,6 +282,19 @@ namespace Terminal.Services
 
             _timerService.Wait(_nextPingMilliseconds);
             _timerService.Resume();
+            if (_pingsSent < 5)
+            {
+                _pingsSent++;
+            }
+        }
+
+        private void ResetPing()
+        {
+            _pingsResponded = 0;
+            _pingsSent = 0;
+            _totalPingMilliseconds = 0;
+            _nextPingMilliseconds = 0;
+            _pingAddress = string.Empty;
         }
     }
 }
