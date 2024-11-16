@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Terminal.Enums;
+using Terminal.Factories;
 using Terminal.Models;
 
 namespace Terminal.Constants
@@ -129,7 +130,7 @@ namespace Terminal.Constants
             {
                 ["COMMAND"] = "net [network]",
                 ["REMARKS"] = "View current networking information.",
-                ["ARGUMENTS"] = "-a [--active]: Show active networks.\n-d [--device]: Show network devices.\n-n [--name]: Show network names.\n-v6 [--ipv6]: Show ipv6 addresses.\n-v8 [--ipv8]: Show ipv8 addresses.",
+                ["ARGUMENTS"] = "-a [--active]: Show active networks.\n-v8 [--ipv8]: Show ipv8 addresses.",
                 ["EXAMPLES"] = "net -a -v8    : Show the ipv8 addresses for active networks."
             },
             ["deletefile"] = new()
@@ -144,6 +145,13 @@ namespace Terminal.Constants
                 ["REMARKS"] = "Deletes a directory.",
                 ["ARGUMENTS"] = "-r [--recursive]: Deletes a folder and all child files and folders.",
                 ["EXAMPLES"] = "dd newdir    : Deletes the \"newdir\" directory.\ndd newdir -r : Deletes the \"newdir\" directory and all files and folders inside of it."
+            },
+            ["ping"] = new()
+            {
+                ["COMMAND"] = "ping",
+                ["REMARKS"] = "Network utility used to test a host's reachability.",
+                ["ARGUMENTS"] = "-v6 [--ipv6]: Ping the address using ipv6.\n-v8 [--ipv8]: Ping the address using ipv8.",
+                ["EXAMPLES"] = "ping 12525         : Pings the \"12525\" ipv6 or ipv8 address 5 times.\nping 127.0.0.1 -v6 : Pings the \"127.0.0.1\" ipv6 address 5 times."
             }
         };
 
@@ -191,14 +199,14 @@ namespace Terminal.Constants
                 new DirectoryFile()
                 {
                     Name = "ethernet",
-                    Contents = "device:eth-0\ncapacity:1073741824\nactive:true\nipv6:2bae::a93c::dd1e::8ane\nipv8:zEw-F_92!#2A3(3j",
+                    Contents = $"device:eth-0\ncapacity:1073741824\nactive:true\nipv6:{NetworkFactory.CreateIpAddressV6()}\nipv8:{NetworkFactory.CreateIpAddressV8()}",
                     ParentId = systemNetworkDirectory.Id,
                     Permissions = _adminReadWritePermissions
                 },
                 new DirectoryFile()
                 {
                     Name = "loopback",
-                    Contents = "device:local-0\ncapacity:0\nactive:true\nipv6:fe02::29aa::39ba::f12e\nipv8:a!9v(J#M8W*E3@inld",
+                    Contents = $"device:local-0\ncapacity:0\nactive:true\nipv6:{NetworkFactory.CreateIpAddressV6(loopback: true)}\nipv8:{NetworkFactory.CreateIpAddressV8(loopback: true)}",
                     ParentId = systemNetworkDirectory.Id,
                     Permissions = _adminReadWritePermissions
                 }

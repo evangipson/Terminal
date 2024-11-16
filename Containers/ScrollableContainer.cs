@@ -22,6 +22,7 @@ namespace Terminal.Containers
         private DirectoryService _directoryService;
         private PersistService _persistService;
         private ConfigService _configService;
+        private NetworkService _networkService;
         private StyleBoxEmpty _emptyStyleBox = new();
         private FileInput _fileInput;
 
@@ -30,6 +31,7 @@ namespace Terminal.Containers
             _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
             _configService = GetNode<ConfigService>(ServicePathConstants.ConfigServicePath);
+            _networkService = GetNode<NetworkService>(ServicePathConstants.NetworkServicePath);
             _defaultUserInputTheme = GD.Load<Theme>(ThemePathConstants.MonospaceFontThemePath);
             _userInput = GetNode<UserInput>("UserInput");
             _fileInput = GetNode<FileInput>("%FileInput");
@@ -37,6 +39,24 @@ namespace Terminal.Containers
             _fileInput.CloseFileCommand += CloseFileCommandResponse;
 
             AddNewUserInput();
+        }
+
+        public override void _Input(InputEvent @event)
+        {
+            if (!@event.IsPressed())
+            {
+                return;
+            }
+
+            if (@event is InputEventKey keyEvent && keyEvent.Pressed)
+            {
+                // allow control+c to stop in-flight ping command
+                if (keyEvent.IsCommandOrControlPressed() && keyEvent.Keycode == Key.C)
+                {
+                    _networkService.InterruptPing();
+                    return;
+                }
+            }
         }
 
         private void AddNewUserInput()
@@ -59,7 +79,8 @@ namespace Terminal.Containers
                 Theme = _defaultUserInputTheme,
                 Text = string.Empty,
                 FocusMode = FocusModeEnum.All,
-                AutowrapMode = TextServer.AutowrapMode.Arbitrary
+                AutowrapMode = TextServer.AutowrapMode.Arbitrary,
+                MouseFilter = MouseFilterEnum.Ignore
             };
 
             newUserInput.AddThemeColorOverride("font_color", _persistService.CurrentColor);
@@ -98,7 +119,8 @@ namespace Terminal.Containers
                 Theme = _defaultUserInputTheme,
                 Text = message,
                 FocusMode = FocusModeEnum.None,
-                AutowrapMode = TextServer.AutowrapMode.WordSmart
+                AutowrapMode = TextServer.AutowrapMode.WordSmart,
+                MouseFilter = MouseFilterEnum.Ignore
             };
 
             commandResponse.AddThemeColorOverride("font_color", _persistService.CurrentColor);

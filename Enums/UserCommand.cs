@@ -30,6 +30,7 @@ namespace Terminal.Enums
         Network,
         DeleteFile,
         DeleteDirectory,
+        Ping,
         Unknown
     };
 }

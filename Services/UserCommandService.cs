@@ -94,6 +94,7 @@ namespace Terminal.Services
             "network" or "net" => UserCommand.Network,
             "df" or "deletefile" => UserCommand.DeleteFile,
             "dd" or "deletedir" or "deletedirectory" => UserCommand.DeleteDirectory,
+            "ping" => UserCommand.Ping,
             _ => UserCommand.Unknown
         };
 
@@ -177,6 +178,7 @@ namespace Terminal.Services
                 UserCommand.Network => GetOutputFromTokens(AllCommands["network"]),
                 UserCommand.DeleteFile => GetOutputFromTokens(AllCommands["deletefile"]),
                 UserCommand.DeleteDirectory => GetOutputFromTokens(AllCommands["deletedirectory"]),
+                UserCommand.Ping => GetOutputFromTokens(AllCommands["ping"]),
                 _ => string.Empty
             };
         }

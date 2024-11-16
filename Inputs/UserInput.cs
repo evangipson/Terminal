@@ -7,7 +7,6 @@ using Terminal.Audio;
 using Terminal.Constants;
 using Terminal.Enums;
 using Terminal.Extensions;
-using Terminal.Models;
 using Terminal.Services;
 
 namespace Terminal.Inputs
@@ -161,7 +160,14 @@ namespace Terminal.Inputs
             UserCommand.ViewPermissions,
             UserCommand.ChangePermissions,
             UserCommand.DeleteFile,
-            UserCommand.DeleteDirectory
+            UserCommand.DeleteDirectory,
+            UserCommand.Ping
+        };
+
+        private static readonly List<UserCommand> _interactiveResponseCommands = new()
+        {
+            UserCommand.EditFile,
+            UserCommand.Ping
         };
 
         private KeyboardSounds _keyboardSounds;
@@ -186,6 +192,8 @@ namespace Terminal.Inputs
             _autoCompleteService.OnInvalidAutocomplete += ListDirectoryAndCreateNewInput;
             _autoCompleteService.OnAutocomplete += FillInputWithAutocompletedPhrase;
             _networkService.OnShowNetwork += ShowNetworkResponse;
+            _networkService.OnPing += PingResponse;
+            _networkService.OnPingDone += FinishPing;
 
             Text = _userCommandService.GetCommandPrompt();
             SetCaretColumn(Text.Length);
@@ -221,6 +229,13 @@ namespace Terminal.Inputs
                     GetTree().Root.SetInputAsHandled();
                     return;
                 }
+
+                // allow control+c to stop in-flight ping command
+                if (keyEvent.IsCommandOrControlPressed() && keyEvent.Keycode == Key.C)
+                {
+                    _networkService.InterruptPing();
+                    return;
+                }
             }
 
             EvaluateKeyboardInput().Invoke();
@@ -234,24 +249,50 @@ namespace Terminal.Inputs
             _persistService.AddCommandToMemory(inputWithoutDirectory);
             RouteCommand(inputWithoutDirectory).Invoke();
 
-            // editing files updates the console without creating a new user input before,
-            // saving/closing a file is what will create the new input.
-            if(UserCommandService.EvaluateUserInput(inputWithoutDirectory) != UserCommand.EditFile)
+            var command = UserCommandService.EvaluateUserInput(inputWithoutDirectory);
+
+            // for commands that have interactive responses, don't immediately create a new input, unless the user is getting more
+            // help/info about the command, e.g.: just typing in "edit" instead of qualifying with a filename as well.
+            if (!_interactiveResponseCommands.Contains(command) || (_interactiveResponseCommands.Contains(command) && inputWithoutDirectory.Split(' ').Length == 1))
             {
                 EmitSignal(SignalName.Evaluated);
+                UnsubscribeAndStopInput();
             }
-            UnsubscribeAndStopInput();
+
+            // if we are in an interactive command, just ignore the "enter" used to trigger it and wait for the command logic
+            // to create you the new input when it's needed (i.e.: with "edit" or "ping").
+            if(command == UserCommand.Ping && inputWithoutDirectory.Split(' ').Length > 1)
+            {
+                StopInput();
+                ReleaseFocus();
+            }
+            if(command == UserCommand.EditFile && inputWithoutDirectory.Split(' ').Length > 1)
+            {
+                ReleaseFocus();
+                UnsubscribeFromEvents();
+            }
         }
 
         private void UnsubscribeAndStopInput()
         {
+            StopInput();
+            UnsubscribeFromEvents();
+        }
+
+        private void StopInput()
+        {
             SetProcessInput(false);
             GetTree().Root.SetInputAsHandled();
+        }
 
+        private void UnsubscribeFromEvents()
+        {
             // unsubscribe from the auto-complete events to prevent old inputs from getting autocompleted.
             _autoCompleteService.OnInvalidAutocomplete -= ListDirectoryAndCreateNewInput;
             _autoCompleteService.OnAutocomplete -= FillInputWithAutocompletedPhrase;
             _networkService.OnShowNetwork -= ShowNetworkResponse;
+            _networkService.OnPing -= PingResponse;
+            _networkService.OnPingDone -= FinishPing;
         }
 
         private Action RouteCommand(string command)
@@ -284,6 +325,7 @@ namespace Terminal.Inputs
                 UserCommand.Exit => () => Exit(),
                 UserCommand.DeleteFile => () => DeleteFile(parsedTokens.Take(2).Last()),
                 UserCommand.DeleteDirectory => () => DeleteDirectory(parsedTokens.Take(2).Last(), parsedTokens.Skip(2)),
+                UserCommand.Ping => () => StartPing(parsedTokens.Take(2).Last(), parsedTokens.Skip(2)),
                 _ => () => CreateSimpleTerminalResponse($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.")
             };
         }
@@ -531,6 +573,23 @@ namespace Terminal.Inputs
 
             _directoryService.DeleteEntity(existingDirectory);
             EmitSignal(SignalName.KnownCommand, $"\"{directoryName}\" deleted.");
+        }
+
+        private void StartPing(string address, IEnumerable<string> arguments)
+        {
+            _networkService.StartPingResponse(address, arguments);
+        }
+
+        private void PingResponse(string pingMessage)
+        {
+            CreateSimpleTerminalResponse(pingMessage);
+        }
+
+        private void FinishPing(string message)
+        {
+            EmitSignal(SignalName.KnownCommand, message);
+            EmitSignal(SignalName.Evaluated);
+            UnsubscribeAndStopInput();
         }
     }
 }
