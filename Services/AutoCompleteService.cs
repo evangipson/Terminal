@@ -61,7 +61,10 @@ namespace Terminal.Services
         /// <param name="currentCommand">
         /// The current user's terminal input to attempt to auto-complete.
         /// </param>
-        public void AutocompletePhrase(string currentCommand)
+        /// <param name="previousResult">
+        /// A flag to indicate the user wants the autocomplete phrase to be the previous result.
+        /// </param>
+        public void AutocompletePhrase(string currentCommand, bool previousResult = false)
         {
             var inputWithoutDirectory = currentCommand.Replace(_userCommandService.GetCommandPrompt(), string.Empty).Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var userCommand = UserCommandService.EvaluateToken(inputWithoutDirectory.FirstOrDefault());
@@ -132,8 +135,8 @@ namespace Terminal.Services
 
             // filter autocomplete results down to the partial path defined by the user
             var filteredEntities = string.IsNullOrEmpty(_partialPath)
-                ? directoryToSearch.Entities
-                : directoryToSearch.Entities.Where(entity => entity.Name.StartsWith(_partialPath));
+                ? directoryToSearch.Entities.OrderBy(entity => entity.Name)
+                : directoryToSearch.Entities.OrderBy(entity => entity.Name).Where(entity => entity.Name.StartsWith(_partialPath));
 
             // if there are no autocomplete results and the user is searching with a partial path,
             // list the directory contents then fill up the next input with the current command.
@@ -156,12 +159,15 @@ namespace Terminal.Services
                 });
             }
 
-            DirectoryEntity matchingEntity = filteredEntities.FirstOrDefault();
+            DirectoryEntity matchingEntity = previousResult
+                ? filteredEntities.LastOrDefault()
+                : filteredEntities.FirstOrDefault();
             if (_autocompletedEntity != null)
             {
                 // wrap the autocomplete results
-                matchingEntity = filteredEntities.SkipWhile(p => p.Name != _autocompletedEntity.Name).Skip(1).FirstOrDefault()
-                    ?? filteredEntities.FirstOrDefault();
+                matchingEntity = previousResult
+                    ? filteredEntities.LastOrDefault(p => p.Name.CompareTo(_autocompletedEntity.Name) < 0) ?? filteredEntities.LastOrDefault()
+                    : filteredEntities.FirstOrDefault(p => p.Name.CompareTo(_autocompletedEntity.Name) > 0) ?? filteredEntities.FirstOrDefault();
             }
 
             // determine which path to show as a result
