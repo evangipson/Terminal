@@ -26,6 +26,7 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 - Get the current date and time using the `now` command
     - Get the current date using the `date` command
     - Get the current time using the `time` command
+- Make a user with the `makeuser` command
 - Get the current networking information using the `network` command
     - Use the `help network` command to get information about valid arguments
 - Test responses from any ip address using the `ping` command
