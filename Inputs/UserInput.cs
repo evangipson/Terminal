@@ -233,9 +233,9 @@ namespace Terminal.Inputs
                 }
 
                 // allow control+c to stop in-flight ping command
-                if (keyEvent.IsCommandOrControlPressed() && keyEvent.Keycode == Key.C)
+                if (keyEvent.ShiftPressed && keyEvent.Keycode == Key.Tab)
                 {
-                    _networkService.InterruptPing();
+                    _autoCompleteService.AutocompletePhrase(Text, previousResult: true);
                     return;
                 }
             }
