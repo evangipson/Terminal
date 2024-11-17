@@ -802,12 +802,102 @@ namespace Terminal.Inputs
 
         private void AddUserToGroup(IEnumerable<string> arguments)
         {
+            if(arguments.Count() != 2)
+            {
+                EmitSignal(SignalName.KnownCommand, $"\"addusertogroup\" takes 2 arguments, use \"help addusertogroup\" to see an example.");
+                return;
+            }
 
+            var userName = arguments.FirstOrDefault();
+            if (string.IsNullOrEmpty(userName))
+            {
+                GD.Print($"Attempted to add a user to a group, but user name was not provided.");
+                return;
+            }
+
+            var groupName = arguments.LastOrDefault();
+            if (string.IsNullOrEmpty(groupName))
+            {
+                GD.Print($"Attempted to add a user to a group, but user group was not provided.");
+                return;
+            }
+
+            var rootUserGroupsDirectory = _directoryService.GetRootDirectory().FindDirectory("users/groups");
+            if (rootUserGroupsDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Attempted to add the \"{userName}\" user to the \"{groupName}\" user group, but there was no root /users/ directory.");
+                return;
+            }
+
+            var groupDirectory = rootUserGroupsDirectory.FindDirectory(groupName);
+            if (groupDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"\"{groupName}\" user group does not exist.");
+                return;
+            }
+
+            var userFileInGroup = groupDirectory.FindFile(userName);
+            if (userFileInGroup != null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"\"{userName}\" is already a part of the \"{groupName}\" user group.");
+                return;
+            }
+
+            DirectoryFile userGroupFile = new()
+            {
+                Name = userName,
+                ParentId = groupDirectory.Id,
+                Permissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead, Permission.UserWrite }
+            };
+            groupDirectory.Entities.Add(userGroupFile);
+            EmitSignal(SignalName.KnownCommand, $"\"{userName}\" added to the \"{groupName}\" user group.");
         }
 
         private void DeleteUserFromGroup(IEnumerable<string> arguments)
         {
+            if (arguments.Count() != 2)
+            {
+                EmitSignal(SignalName.KnownCommand, $"\"deleteuserfromgroup\" takes 2 arguments, use \"help deleteuserfromgroup\" to see an example.");
+                return;
+            }
 
+            var userName = arguments.FirstOrDefault();
+            if (string.IsNullOrEmpty(userName))
+            {
+                GD.Print($"Attempted to remove a user from a group, but user name was not provided.");
+                return;
+            }
+
+            var groupName = arguments.LastOrDefault();
+            if (string.IsNullOrEmpty(groupName))
+            {
+                GD.Print($"Attempted to remove a user from a group, but user group was not provided.");
+                return;
+            }
+
+            var rootUserGroupsDirectory = _directoryService.GetRootDirectory().FindDirectory("users/groups");
+            if (rootUserGroupsDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Attempted to remove the \"{userName}\" user from the \"{groupName}\" user group, but there was no root /users/ directory.");
+                return;
+            }
+
+            var groupDirectory = rootUserGroupsDirectory.FindDirectory(groupName);
+            if (groupDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"\"{groupName}\" user group does not exist.");
+                return;
+            }
+
+            var userFileInGroup = groupDirectory.FindFile(userName);
+            if (userFileInGroup == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"\"{userName}\" is not part of the \"{groupName}\" user group.");
+                return;
+            }
+
+            groupDirectory.Entities.Remove(userFileInGroup);
+            EmitSignal(SignalName.KnownCommand, $"\"{userName}\" removed from the \"{groupName}\" user group.");
         }
     }
 }
