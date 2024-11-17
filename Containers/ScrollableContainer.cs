@@ -93,8 +93,6 @@ namespace Terminal.Containers
             newUserInput.ListDirectoryCommand += ListDirectoryCommandResponse;
             newUserInput.EditFileCommand += EditFileCommandResponse;
             newUserInput.ListHardwareCommand += ListHardwareCommandResponse;
-            newUserInput.ViewPermissionsCommand += ViewPermissionsCommandResponse;
-            newUserInput.ChangePermissionsCommand += ChangePermissionsCommandResponse;
             newUserInput.NetworkCommand += NetworkCommandResponse;
 
             AddChild(newUserInput);
@@ -277,54 +275,6 @@ namespace Terminal.Containers
 
             //var deviceList = hardwareResponse.Select(hwr => $"{hwr.Key}\n{string.Concat(hwr.Key.Select(hwrc => '-'))}\n{string.Join("\n\n", hwr.Value.Select(hwri => string.Join('\n', hwri)))}");
             CreateResponse(string.Join("\n", hardwareColumnsOutput.Select(hardwareOutputTuple => $"{hardwareOutputTuple.Item1,-15}{hardwareOutputTuple.Item2,-15}{hardwareOutputTuple.Item3}")));
-        }
-
-        private void ViewPermissionsCommandResponse(string entityName)
-        {
-            var entity = entityName.StartsWith('/')
-                ? _directoryService.GetAbsoluteFile(entityName) ?? _directoryService.GetAbsoluteDirectory(entityName.TrimEnd('/'))
-                : _directoryService.GetRelativeFile(entityName) ?? _directoryService.GetRelativeDirectory(entityName.TrimEnd('/'));
-
-            if (entityName == "/" || entityName == "root")
-            {
-                entity = _directoryService.GetRootDirectory();
-            }
-
-            if (entity == null)
-            {
-                CreateResponse($"No folder or file with the name \"{entityName}\" exists.");
-                return;
-            }
-
-            CreateResponse(PermissionsService.GetPermissionDisplay(entity.Permissions));
-        }
-
-        private void ChangePermissionsCommandResponse(string entityName, string newPermissionSet)
-        {
-            var entity = entityName.StartsWith('/')
-                ? _directoryService.GetAbsoluteFile(entityName) ?? _directoryService.GetAbsoluteDirectory(entityName.TrimEnd('/'))
-                : _directoryService.GetRelativeFile(entityName) ?? _directoryService.GetRelativeDirectory(entityName.TrimEnd('/'));
-
-            if (entityName == "/" || entityName == "root")
-            {
-                entity = _directoryService.GetRootDirectory();
-            }
-
-            if (entity == null)
-            {
-                CreateResponse($"No folder or file with the name \"{entityName}\" exists.");
-                return;
-            }
-
-            var newPermissions = PermissionsService.GetPermissionFromInput(newPermissionSet);
-            if (newPermissions == null)
-            {
-                CreateResponse($"Permissions set \"{newPermissionSet}\" was in an incorrect format. Permission sets are 6 bits (011011).");
-                return;
-            }
-
-            entity.Permissions = newPermissions;
-            CreateResponse($"\"{entityName}\" permissions updated to {PermissionsService.GetPermissionDisplay(entity.Permissions)}");
         }
 
         private void NetworkCommandResponse()

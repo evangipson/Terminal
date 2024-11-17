@@ -1,14 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Godot;
 
+using Terminal.Constants;
 using Terminal.Enums;
 
 namespace Terminal.Services
 {
     /// <summary>
-    /// A <see langword="static"/> service that manages <see cref="Permission"/>.
+    /// A global singleton service that manages <see cref="Permission"/>.
     /// </summary>
-    public static class PermissionsService
+    public partial class PermissionsService : Node
     {
         private static readonly Dictionary<Permission, int> _permissionsDisplayMap = new()
         {
@@ -20,6 +22,79 @@ namespace Terminal.Services
             [Permission.AdminWrite] = 0b010000,
             [Permission.AdminExecutable] = 0b100000
         };
+
+        private DirectoryService _directoryService;
+
+        public override void _Ready()
+        {
+            _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
+        }
+
+        /// <summary>
+        /// Views the permissions of the file or folder with the <paramref name="entityName"/> name.
+        /// </summary>
+        /// <param name="entityName">
+        /// The name of the file or folder to view the permissions of.
+        /// </param>
+        /// <returns>
+        /// A <see langword="string"/> containing the permissions for the <paramref name="entityName"/>.
+        /// </returns>
+        public string ViewPermissions(string entityName)
+        {
+            var entity = entityName.StartsWith('/')
+                ? _directoryService.GetAbsoluteFile(entityName) ?? _directoryService.GetAbsoluteDirectory(entityName.TrimEnd('/'))
+                : _directoryService.GetRelativeFile(entityName) ?? _directoryService.GetRelativeDirectory(entityName.TrimEnd('/'));
+
+            if (entityName == "/" || entityName == "root")
+            {
+                entity = _directoryService.GetRootDirectory();
+            }
+
+            if (entity == null)
+            {
+                return $"No folder or file with the name \"{entityName}\" exists.";
+            }
+
+            return GetPermissionDisplay(entity.Permissions);
+        }
+
+        /// <summary>
+        /// Changes the permissions for the file or folder with the <paramref name="entityName"/> name.
+        /// </summary>
+        /// <param name="entityName">
+        /// The name of the file or folder to change the permissions of.
+        /// </param>
+        /// <param name="newPermissionsSet">
+        /// The new set of permissions for the <paramref name="entityName"/>.
+        /// </param>
+        /// <returns>
+        /// A <see langword="string"/> containing the status of the permissions change.
+        /// </returns>
+        public string ChangePermissions(string entityName, string newPermissionsSet)
+        {
+            var entity = entityName.StartsWith('/')
+                ? _directoryService.GetAbsoluteFile(entityName) ?? _directoryService.GetAbsoluteDirectory(entityName.TrimEnd('/'))
+                : _directoryService.GetRelativeFile(entityName) ?? _directoryService.GetRelativeDirectory(entityName.TrimEnd('/'));
+
+            if (entityName == "/" || entityName == "root")
+            {
+                entity = _directoryService.GetRootDirectory();
+            }
+
+            if (entity == null)
+            {
+                return $"No folder or file with the name \"{entityName}\" exists.";
+            }
+
+            var newPermissions = GetPermissionFromInput(newPermissionsSet);
+            if (newPermissions == null)
+            {
+                return $"Permissions set \"{newPermissionsSet}\" was in an incorrect format. Permission sets are 6 bits (011011).";
+            }
+
+            entity.Permissions = newPermissions;
+            return $"\"{entityName}\" permissions updated to {GetPermissionDisplay(entity.Permissions)}";
+        }
 
         /// <summary>
         /// Gets a display value for the provided <paramref name="permissions"/> collection.

@@ -61,27 +61,6 @@ namespace Terminal.Inputs
         public delegate void ListHardwareCommandEventHandler();
 
         /// <summary>
-        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.ViewPermissions"/> command is invoked.
-        /// </summary>
-        /// <param name="entityName">
-        /// The name of the file or folder to view the permissions of.
-        /// </param>
-        [Signal]
-        public delegate void ViewPermissionsCommandEventHandler(string entityName);
-
-        /// <summary>
-        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.ChangePermissions"/> command is invoked.
-        /// </summary>
-        /// <param name="entityName">
-        /// The name of the file or folder to change the permissions of.
-        /// </param>
-        /// <param name="newPermissionSet">
-        /// A <see langword="string"/> represntation of the new permission set for the file or folder with the provided <paramref name="entityName"/>.
-        /// </param>
-        [Signal]
-        public delegate void ChangePermissionsCommandEventHandler(string entityName, string newPermissionSet);
-
-        /// <summary>
         /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.Network"/> command is invoked.
         /// </summary>
         [Signal]
@@ -125,6 +104,7 @@ namespace Terminal.Inputs
         private AutoCompleteService _autoCompleteService;
         private NetworkService _networkService;
         private UserService _userService;
+        private PermissionsService _permissionsService;
         private bool _hasFocus = false;
         private int _commandMemoryIndex;
 
@@ -137,6 +117,7 @@ namespace Terminal.Inputs
             _autoCompleteService = GetNode<AutoCompleteService>(ServicePathConstants.AutoCompleteServicePath);
             _networkService = GetNode<NetworkService>(ServicePathConstants.NetworkServicePath);
             _userService = GetNode<UserService>(ServicePathConstants.UserServicePath);
+            _permissionsService = GetNode<PermissionsService>(ServicePathConstants.PermissionsServicePath);
             _keyboardSounds = GetTree().Root.GetNode<KeyboardSounds>(KeyboardSounds.AbsolutePath);
             _commandMemoryIndex = _persistService.CommandMemory.Count;
 
@@ -265,8 +246,8 @@ namespace Terminal.Inputs
                 UserCommand.MakeDirectory => () => CreateSimpleTerminalResponse(_directoryService.CreateDirectory(parsedTokens.Take(2).Last())),
                 UserCommand.EditFile => () => EditFile(parsedTokens.Take(2).Last()),
                 UserCommand.ListHardware => () => ListHardware(),
-                UserCommand.ViewPermissions => () => ViewPermissions(parsedTokens.Take(2).Last()),
-                UserCommand.ChangePermissions => () => ChangePermissions(parsedTokens.Skip(1).Take(2).FirstOrDefault(), parsedTokens.Skip(1).Take(2).LastOrDefault()),
+                UserCommand.ViewPermissions => () => CreateSimpleTerminalResponse(_permissionsService.ViewPermissions(parsedTokens.Take(2).Last())),
+                UserCommand.ChangePermissions => () => CreateSimpleTerminalResponse(_permissionsService.ChangePermissions(parsedTokens.Skip(1).Take(2).FirstOrDefault(), parsedTokens.Skip(1).Take(2).LastOrDefault())),
                 UserCommand.Date => () => CreateSimpleTerminalResponse(DateTime.UtcNow.AddYears(250).ToLongDateString()),
                 UserCommand.Time => () => CreateSimpleTerminalResponse(DateTime.UtcNow.AddYears(250).ToLongTimeString()),
                 UserCommand.Now => () => CreateSimpleTerminalResponse(string.Join(", ", DateTime.UtcNow.AddYears(250).ToLongTimeString(), DateTime.UtcNow.AddYears(250).ToLongDateString())),
@@ -371,10 +352,6 @@ namespace Terminal.Inputs
         }
 
         private void ListHardware() => EmitSignal(SignalName.ListHardwareCommand);
-
-        private void ViewPermissions(string entityName) => EmitSignal(SignalName.ViewPermissionsCommand, entityName);
-
-        private void ChangePermissions(string entityName, string newPermissionsSet) => EmitSignal(SignalName.ChangePermissionsCommand, entityName, newPermissionsSet);
 
         private void ShowNetworkResponse(string networkResponse) => EmitSignal(SignalName.KnownCommand, networkResponse);
 
