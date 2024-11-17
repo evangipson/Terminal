@@ -135,8 +135,8 @@ namespace Terminal.Services
 
             // filter autocomplete results down to the partial path defined by the user
             var filteredEntities = string.IsNullOrEmpty(_partialPath)
-                ? directoryToSearch.Entities.OrderBy(entity => entity.Name)
-                : directoryToSearch.Entities.OrderBy(entity => entity.Name).Where(entity => entity.Name.StartsWith(_partialPath));
+                ? directoryToSearch.Entities?.OrderBy(entity => entity.Name)
+                : directoryToSearch.Entities?.OrderBy(entity => entity.Name).Where(entity => entity.Name.StartsWith(_partialPath));
 
             // if there are no autocomplete results and the user is searching with a partial path,
             // list the directory contents then fill up the next input with the current command.

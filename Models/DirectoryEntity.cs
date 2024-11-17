@@ -47,6 +47,11 @@ namespace Terminal.Models
         public bool IsRoot { get; set; } = false;
 
         /// <summary>
+        /// A flag that determines if a <see cref="DirectoryEntity"/> is the home folder of a user. Defaults to <see langword="false"/>.
+        /// </summary>
+        public bool IsHome { get; set; } = false;
+
+        /// <summary>
         /// A reference to a parent <see cref="Id"/> for a <see cref="DirectoryEntity"/>.
         /// </summary>
         public Guid ParentId { get; set; }

@@ -14,5 +14,10 @@
         /// The character separating the directory and user input in the terminal.
         /// </summary>
         public const char Prompt = '>';
+
+        /// <summary>
+        /// The character that represents the home directory for a user.
+        /// </summary>
+        public const char HomeDirectory = '~';
     }
 }

@@ -65,7 +65,7 @@ namespace Terminal.Services
                 return;
             }
 
-            if (newDirectoryPath == "/")
+            if (newDirectoryPath == TerminalCharactersConstants.Separator.ToString())
             {
                 SetCurrentDirectory(GetRootDirectory());
             }
@@ -122,7 +122,18 @@ namespace Terminal.Services
         /// <returns>
         /// The absolute path of the current directory of the <see cref="FileSystem"/>.
         /// </returns>
-        public string GetCurrentDirectoryPath() => FileSystem?.GetDirectoryPath(GetCurrentDirectory());
+        public string GetCurrentDirectoryPath()
+        {
+            if (GetHomeDirectory().FindDirectory(GetCurrentDirectory().Id) != null)
+            {
+                var homeDirectoryPath = FileSystem?.GetDirectoryPath(GetHomeDirectory());
+                return string.Concat(TerminalCharactersConstants.HomeDirectory,
+                    TerminalCharactersConstants.Separator,
+                    FileSystem?.GetDirectoryPath(GetCurrentDirectory()).Replace(homeDirectoryPath, string.Empty));
+            }
+
+            return FileSystem?.GetDirectoryPath(GetCurrentDirectory());
+        }
 
         /// <summary>
         /// Gets an absolute path for the provided <paramref name="directory"/> folder.
@@ -136,7 +147,18 @@ namespace Terminal.Services
         /// <returns>
         /// An absolute path of the provided <paramref name="directory"/> folder.
         /// </returns>
-        public string GetAbsoluteDirectoryPath(DirectoryEntity directory) => FileSystem?.GetDirectoryPath(directory);
+        public string GetAbsoluteDirectoryPath(DirectoryEntity directory)
+        {
+            if(GetHomeDirectory().FindDirectory(directory.Id) != null)
+            {
+                var homeDirectoryPath = FileSystem?.GetDirectoryPath(GetHomeDirectory());
+                return string.Concat(TerminalCharactersConstants.HomeDirectory,
+                    TerminalCharactersConstants.Separator,
+                    FileSystem?.GetDirectoryPath(directory).Replace(homeDirectoryPath, string.Empty));
+            }
+
+            return FileSystem?.GetDirectoryPath(directory);
+        }
 
         /// <summary>
         /// Gets an absolute path for the provided <paramref name="entity"/> file or folder.
@@ -150,7 +172,18 @@ namespace Terminal.Services
         /// <returns>
         /// An absolute path of the provided <paramref name="entity"/> file or folder.
         /// </returns>
-        public string GetAbsoluteEntityPath(DirectoryEntity entity) => FileSystem?.GetEntityPath(entity);
+        public string GetAbsoluteEntityPath(DirectoryEntity entity)
+        {
+            if (GetHomeDirectory().FindDirectory(entity.ParentId) != null)
+            {
+                var homeDirectoryPath = FileSystem?.GetDirectoryPath(GetHomeDirectory());
+                return string.Concat(TerminalCharactersConstants.HomeDirectory,
+                    TerminalCharactersConstants.Separator,
+                    FileSystem?.GetEntityPath(entity).Replace(homeDirectoryPath, string.Empty));
+            }
+
+            return FileSystem?.GetEntityPath(entity);
+        }
 
         /// <summary>
         /// Gets a relative path for the provided <paramref name="entity"/> file or folder.
@@ -164,7 +197,18 @@ namespace Terminal.Services
         /// <returns>
         /// A relative path of the provided <paramref name="entity"/> file or folder.
         /// </returns>
-        public string GetRelativeEntityPath(DirectoryEntity entity) => FileSystem?.GetEntityPath(entity).Replace(GetCurrentDirectoryPath(), string.Empty);
+        public string GetRelativeEntityPath(DirectoryEntity entity)
+        {
+            if (GetHomeDirectory().FindDirectory(entity.ParentId) != null)
+            {
+                var homeDirectoryPath = FileSystem?.GetDirectoryPath(GetHomeDirectory());
+                return string.Concat(TerminalCharactersConstants.HomeDirectory,
+                    TerminalCharactersConstants.Separator,
+                    FileSystem?.GetEntityPath(entity).Replace(homeDirectoryPath, string.Empty));
+            }
+
+            return FileSystem?.GetEntityPath(entity).Replace(GetCurrentDirectoryPath(), string.Empty);
+        }
 
         /// <summary>
         /// Gets a file with the provided <paramref name="fileName"/> from the current directory.
