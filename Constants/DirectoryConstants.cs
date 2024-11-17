@@ -170,6 +170,36 @@ namespace Terminal.Constants
                 ["COMMAND"] = "mu [makeuser]",
                 ["REMARKS"] = "Makes a new user, with all the default files and folders, in /users/.",
                 ["EXAMPLES"] = "mu newuser    : Makes a user with the name \"newuser\"."
+            },
+            ["deleteuser"] = new()
+            {
+                ["COMMAND"] = "du [deleteuser]",
+                ["REMARKS"] = "Deletes a user, and all the default files and folders, from /users/.",
+                ["EXAMPLES"] = "du newuser    : Removes all associated files and folders for the \"newuser\" user."
+            },
+            ["makegroup"] = new()
+            {
+                ["COMMAND"] = "mg [makegroup]",
+                ["REMARKS"] = "Makes a new user group.",
+                ["EXAMPLES"] = "mg usergroup    : Makes a new user group with the name \"usergroup\"."
+            },
+            ["deletegroup"] = new()
+            {
+                ["COMMAND"] = "dg [deletegroup]",
+                ["REMARKS"] = "Deletes a user group.",
+                ["EXAMPLES"] = "dg usergroup    : Deletes the \"usergroup\" user group."
+            },
+            ["addusertogroup"] = new()
+            {
+                ["COMMAND"] = "aug [adduser] [addusertogroup]",
+                ["REMARKS"] = "Adds a user to a user group.",
+                ["EXAMPLES"] = "aug newuser usergroup    : Adds the \"newuser\" user to the \"usergroup\" group."
+            },
+            ["deleteuserfromgroup"] = new()
+            {
+                ["COMMAND"] = "dug [removeuser] [deleteuserfromgroup]",
+                ["REMARKS"] = "Deletes a user from a user group.",
+                ["EXAMPLES"] = "dug newuser usergroup    : Deletes the \"newuser\" user from the \"usergroup\" group."
             }
         };
 
@@ -265,7 +295,8 @@ namespace Terminal.Constants
 
             rootUsersDirectory.Entities = new()
             {
-                userDirectory
+                userDirectory,
+                new DirectoryFolder() { Name = "groups", ParentId = rootUsersDirectory.Id, Permissions = _userReadWritePermissions }
             };
 
             return new() { rootDirectory };

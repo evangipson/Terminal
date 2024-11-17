@@ -7,6 +7,7 @@ using Terminal.Audio;
 using Terminal.Constants;
 using Terminal.Enums;
 using Terminal.Extensions;
+using Terminal.Models;
 using Terminal.Services;
 
 namespace Terminal.Inputs
@@ -164,7 +165,12 @@ namespace Terminal.Inputs
             UserCommand.Ping,
             UserCommand.MoveFile,
             UserCommand.MoveDirectory,
-            UserCommand.MakeUser
+            UserCommand.MakeUser,
+            UserCommand.DeleteUser,
+            UserCommand.MakeGroup,
+            UserCommand.DeleteGroup,
+            UserCommand.AddUserToGroup,
+            UserCommand.DeleteUserFromGroup
         };
 
         private static readonly List<UserCommand> _interactiveResponseCommands = new()
@@ -332,6 +338,11 @@ namespace Terminal.Inputs
                 UserCommand.MoveDirectory => () => MoveDirectory(parsedTokens.Skip(1)),
                 UserCommand.Ping => () => StartPing(parsedTokens.Take(2).Last(), parsedTokens.Skip(2)),
                 UserCommand.MakeUser => () => MakeUser(parsedTokens.Skip(1)),
+                UserCommand.DeleteUser => () => DeleteUser(parsedTokens.Skip(1)),
+                UserCommand.MakeGroup => () => MakeGroup(parsedTokens.Skip(1)),
+                UserCommand.DeleteGroup => () => DeleteGroup(parsedTokens.Skip(1)),
+                UserCommand.AddUserToGroup => () => AddUserToGroup(parsedTokens.Skip(1)),
+                UserCommand.DeleteUserFromGroup => () => DeleteUserFromGroup(parsedTokens.Skip(1)),
                 _ => () => CreateSimpleTerminalResponse($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.")
             };
         }
@@ -700,6 +711,103 @@ namespace Terminal.Inputs
             var newUserDirectory = DirectoryConstants.GetDefaultUserDirectory(rootUsersDirectory, userName);
             rootUsersDirectory.Entities.Add(newUserDirectory);
             EmitSignal(SignalName.KnownCommand, $"\"{userName}\" user created.");
+        }
+
+        private void DeleteUser(IEnumerable<string> arguments)
+        {
+            var userName = arguments.FirstOrDefault();
+            if(string.IsNullOrEmpty(userName))
+            {
+                GD.Print($"Attempted to delete a user, but user name was not provided.");
+                return;
+            }
+
+            var rootUsersDirectory = _directoryService.GetRootDirectory().FindDirectory("users");
+            if (rootUsersDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Attempted to remove the \"{userName}\" user, but there was no root /users/ directory.");
+                return;
+            }
+
+            var userDirectoryToRemove = rootUsersDirectory.FindDirectory(userName);
+            if (userDirectoryToRemove == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Attempted to remove the \"{userName}\" user, but it does not exist.");
+                return;
+            }
+
+            rootUsersDirectory.Entities.Remove(userDirectoryToRemove);
+            EmitSignal(SignalName.KnownCommand, $"\"{userName}\" user removed.");
+        }
+
+        private void MakeGroup(IEnumerable<string> arguments)
+        {
+            var groupName = arguments.FirstOrDefault();
+            if (string.IsNullOrEmpty(groupName))
+            {
+                GD.Print($"Attempted to make a user group, but group name was not provided.");
+                return;
+            }
+
+            var rootUserGroupsDirectory = _directoryService.GetRootDirectory().FindDirectory("users/groups");
+            if (rootUserGroupsDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Attempted to add the \"{groupName}\" user group, but there was no root /users/ directory.");
+                return;
+            }
+
+            var groupDirectoryExists = rootUserGroupsDirectory.FindDirectory(groupName) != null;
+            if (groupDirectoryExists)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Attempted to make the new user group \"{groupName}\", but it already existed.");
+                return;
+            }
+
+            DirectoryFolder newUserGroupFolder = new()
+            {
+                Name = groupName,
+                ParentId = rootUserGroupsDirectory.Id,
+                Permissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead, Permission.UserWrite }
+            };
+            rootUserGroupsDirectory.Entities.Add(newUserGroupFolder);
+            EmitSignal(SignalName.KnownCommand, $"\"{groupName}\" user group created.");
+        }
+
+        private void DeleteGroup(IEnumerable<string> arguments)
+        {
+            var groupName = arguments.FirstOrDefault();
+            if (string.IsNullOrEmpty(groupName))
+            {
+                GD.Print($"Attempted to delete a user group, but group name was not provided.");
+                return;
+            }
+
+            var rootUserGroupsDirectory = _directoryService.GetRootDirectory().FindDirectory("users/groups");
+            if (rootUserGroupsDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Attempted to delete the \"{groupName}\" user group, but there was no root /users/ directory.");
+                return;
+            }
+
+            var groupDirectory = rootUserGroupsDirectory.FindDirectory(groupName);
+            if (groupDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Attempted to delete the \"{groupName}\" user group, but it does not exist.");
+                return;
+            }
+
+            rootUserGroupsDirectory.Entities.Remove(groupDirectory);
+            EmitSignal(SignalName.KnownCommand, $"\"{groupName}\" user group removed.");
+        }
+
+        private void AddUserToGroup(IEnumerable<string> arguments)
+        {
+
+        }
+
+        private void DeleteUserFromGroup(IEnumerable<string> arguments)
+        {
+
         }
     }
 }

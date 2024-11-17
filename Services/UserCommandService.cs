@@ -98,6 +98,11 @@ namespace Terminal.Services
             "mvf" or "movefile" => UserCommand.MoveFile,
             "mvd" or "movedir" or "movedirectory" => UserCommand.MoveDirectory,
             "mu" or "makeuser" => UserCommand.MakeUser,
+            "du" or "deleteuser" => UserCommand.DeleteUser,
+            "mg" or "makegroup" => UserCommand.MakeGroup,
+            "dg" or "deletegroup" => UserCommand.DeleteGroup,
+            "aug" or "adduser" or "addusertogroup" => UserCommand.AddUserToGroup,
+            "dug" or "removeuser" or "deleteuserfromgroup" => UserCommand.DeleteUserFromGroup,
             _ => UserCommand.Unknown
         };
 
@@ -185,6 +190,11 @@ namespace Terminal.Services
                 UserCommand.MoveFile => GetOutputFromTokens(AllCommands["movefile"]),
                 UserCommand.MoveDirectory => GetOutputFromTokens(AllCommands["movedirectory"]),
                 UserCommand.MakeUser => GetOutputFromTokens(AllCommands["makeuser"]),
+                UserCommand.DeleteUser => GetOutputFromTokens(AllCommands["deleteuser"]),
+                UserCommand.MakeGroup => GetOutputFromTokens(AllCommands["makegroup"]),
+                UserCommand.DeleteGroup => GetOutputFromTokens(AllCommands["deletegroup"]),
+                UserCommand.AddUserToGroup => GetOutputFromTokens(AllCommands["addusertogroup"]),
+                UserCommand.DeleteUserFromGroup => GetOutputFromTokens(AllCommands["deleteuserfromgroup"]),
                 _ => string.Empty
             };
         }
