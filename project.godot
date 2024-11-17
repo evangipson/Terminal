@@ -26,6 +26,8 @@ PersistService="*res://Services/PersistService.cs"
 ScreenNavigator="*res://Navigators/ScreenNavigator.cs"
 AutoCompleteService="*res://Services/AutoCompleteService.cs"
 NetworkService="*res://Services/NetworkService.cs"
+UserService="*res://Services/UserService.cs"
+PermissionsService="*res://Services/PermissionsService.cs"
 
 [display]
 
