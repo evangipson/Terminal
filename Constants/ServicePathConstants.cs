@@ -42,5 +42,10 @@ namespace Terminal.Constants
         /// The <see cref="NetworkService"/> single path in Godot.
         /// </summary>
         public const string NetworkServicePath = "/root/NetworkService";
+
+        /// <summary>
+        /// The <see cref="UserService"/> single path in Godot.
+        /// </summary>
+        public const string UserServicePath = "/root/UserService";
     }
 }

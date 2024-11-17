@@ -21,7 +21,6 @@ namespace Terminal.Containers
         private Theme _defaultUserInputTheme;
         private DirectoryService _directoryService;
         private PersistService _persistService;
-        private ConfigService _configService;
         private NetworkService _networkService;
         private StyleBoxEmpty _emptyStyleBox = new();
         private FileInput _fileInput;
@@ -30,7 +29,6 @@ namespace Terminal.Containers
         {
             _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
-            _configService = GetNode<ConfigService>(ServicePathConstants.ConfigServicePath);
             _networkService = GetNode<NetworkService>(ServicePathConstants.NetworkServicePath);
             _defaultUserInputTheme = GD.Load<Theme>(ThemePathConstants.MonospaceFontThemePath);
             _userInput = GetNode<UserInput>("UserInput");
@@ -92,11 +90,7 @@ namespace Terminal.Containers
 
             newUserInput.Evaluated += AddNewUserInput;
             newUserInput.KnownCommand += CreateResponse;
-            newUserInput.ColorCommand += ColorCommandResponse;
-            newUserInput.SaveCommand += SaveCommandResponse;
             newUserInput.ListDirectoryCommand += ListDirectoryCommandResponse;
-            newUserInput.MakeFileCommand += MakeFileCommandResponse;
-            newUserInput.MakeDirectoryCommand += MakeDirectoryCommandResponse;
             newUserInput.EditFileCommand += EditFileCommandResponse;
             newUserInput.ListHardwareCommand += ListHardwareCommandResponse;
             newUserInput.ViewPermissionsCommand += ViewPermissionsCommandResponse;
@@ -169,32 +163,6 @@ namespace Terminal.Containers
             EmitSignal(SignalName.ChildEnteredTree);
         }
 
-        private void ColorCommandResponse(string colorName)
-        {
-            if (!_configService.Colors.TryGetValue(colorName, out Color newColor))
-            {
-                var sortedColors = string.Join(", ", _configService.Colors.Keys.OrderBy(key => key).Select(key => key));
-                CreateResponse($"Invalid color option. Possible color options are: {sortedColors}.");
-                return;
-            }
-
-            if (!_configService.ExecutableColors.TryGetValue(colorName, out Color executableColor))
-            {
-                GD.PrintErr($"Unable to find executable color mapping for '{colorName}'.");
-                return;
-            }
-
-            _persistService.CurrentColor = newColor;
-            _persistService.ExecutableColor = executableColor;
-            CreateResponse($"Color updated to {colorName}.");
-        }
-
-        private void SaveCommandResponse()
-        {
-            _persistService.SaveGame();
-            CreateResponse("Progress saved.");
-        }
-
         private void ListDirectoryCommandResponse(string directoryToList)
         {
             if(string.IsNullOrEmpty(directoryToList))
@@ -217,44 +185,6 @@ namespace Terminal.Containers
             }
 
             CreateListDirectoryResponse(absoluteDirectoryToList.Entities);
-        }
-
-        private void MakeFileCommandResponse(string fileName)
-        {
-            if (string.IsNullOrEmpty(fileName))
-            {
-                GD.PrintErr("File can't be made without a name.");
-                return;
-            }
-
-            var existingFile = _directoryService.GetRelativeFile(fileName);
-            if (existingFile != null)
-            {
-                CreateResponse($"File with the name of '{fileName}' already exists.");
-                return;
-            }
-
-            _directoryService.CreateFile(fileName);
-            CreateResponse($"New file '{fileName}' created.");
-        }
-
-        private void MakeDirectoryCommandResponse(string directoryName)
-        {
-            if (string.IsNullOrEmpty(directoryName))
-            {
-                GD.PrintErr("Directory can't be made without a name.");
-                return;
-            }
-
-            var existingDirectory = _directoryService.GetRelativeDirectory(directoryName);
-            if (existingDirectory != null)
-            {
-                CreateResponse($"Directory with the name of '{directoryName}' already exists.");
-                return;
-            }
-
-            _directoryService.CreateDirectory(directoryName);
-            CreateResponse($"New directory '{directoryName}' created.");
         }
 
         private void EditFileCommandResponse(string fileName)

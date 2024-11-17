@@ -284,6 +284,36 @@ namespace Terminal.Services
         public DirectoryEntity GetHomeDirectory() => GetRootDirectory().FindDirectory("users/user/home");
 
         /// <summary>
+        /// Views a file by returning it's contents.
+        /// </summary>
+        /// <param name="fileName">
+        /// The name of the file to view the contents of.
+        /// </param>
+        /// <returns>
+        /// The <paramref name="fileName"/> contents.
+        /// </returns>
+        public string ViewFile(string fileName)
+        {
+            var file = GetRelativeFile(fileName);
+            if (file == null)
+            {
+                return $"\"{fileName}\" does not exist.";
+            }
+
+            if (file.Permissions.Contains(Permission.AdminExecutable) || file.Permissions.Contains(Permission.UserExecutable))
+            {
+                return $"\"{fileName}\" is an executable.";
+            }
+
+            if (!file.Permissions.Contains(Permission.UserRead))
+            {
+                return $"Insufficient permissions to view the \"{fileName}\" file.";
+            }
+
+            return file.Contents;
+        }
+
+        /// <summary>
         /// Creates a file with the provided <paramref name="fileName"/> in the current directory.
         /// <para>
         /// Default permissions are <see cref="Permission.UserRead"/> and <see cref="Permission.UserWrite"/>.
@@ -292,8 +322,28 @@ namespace Terminal.Services
         /// <param name="fileName">
         /// The name of the file to create in the current directory.
         /// </param>
-        public void CreateFile(string fileName)
+        /// <returns>
+        /// A <see langword="string"/> containing the status of the file creation.
+        /// </returns>
+        public string CreateFile(string fileName)
         {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return "File can't be made without a name.";
+            }
+
+            var existingFile = GetRelativeFile(fileName);
+            if (existingFile != null)
+            {
+                return $"File with the name of '{fileName}' already exists.";
+            }
+
+            var currentDirectory = GetCurrentDirectory();
+            if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
+            {
+                return "Insufficient permissions to create a file in the current directory.";
+            }
+
             var newFile = new DirectoryFile()
             {
                 ParentId = GetCurrentDirectory().Id,
@@ -310,6 +360,77 @@ namespace Terminal.Services
 
             newFile.Name = name;
             GetCurrentDirectory().Entities.Add(newFile);
+            return $"New file '{fileName}' created.";
+        }
+
+        /// <summary>
+        /// Deletes a file from the file system.
+        /// </summary>
+        /// <param name="fileName">
+        /// The name of the file to delete.
+        /// </param>
+        /// <returns>
+        /// A <see langword="string"/> containing the status of the file deletion.
+        /// </returns>
+        public string DeleteFile(string fileName)
+        {
+            var currentDirectory = GetCurrentDirectory();
+            if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
+            {
+                return $"Insufficient permissions to delete \"{fileName}\" in the current directory.";
+            }
+
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return "File can't be deleted without a name.";
+            }
+
+            var existingFile = GetRelativeFile(fileName);
+            if (existingFile == null)
+            {
+                return $"No file with the name of \"{fileName}\" exists.";
+            }
+
+            DeleteEntity(existingFile);
+            return $"\"{fileName}\" deleted.";
+        }
+
+        /// <summary>
+        /// Sets the current directory to the <paramref name="newDirectory"/>.
+        /// </summary>
+        /// <param name="newDirectory">
+        /// The name of the directory to set as the current directory.
+        /// </param>
+        /// <returns>
+        /// A <see langword="string"/> containing the status of the directory change.
+        /// </returns>
+        public string ChangeDirectory(string newDirectory)
+        {
+            var directory = newDirectory.ToLowerInvariant() switch
+            {
+                ".." => GetParentDirectory(GetCurrentDirectory()),
+                "." or "./" => GetCurrentDirectory(),
+                "~" => GetHomeDirectory(),
+                "root" or "/" => GetRootDirectory(),
+                _ => newDirectory.StartsWith(TerminalCharactersConstants.Separator)
+                    ? GetAbsoluteDirectory(newDirectory.TrimEnd(TerminalCharactersConstants.Separator))
+                    : newDirectory.Contains(TerminalCharactersConstants.HomeDirectory)
+                        ? GetHomeDirectory().FindDirectory(newDirectory.Split(TerminalCharactersConstants.HomeDirectory).LastOrDefault()?.TrimEnd(TerminalCharactersConstants.Separator))
+                        : GetRelativeDirectory(newDirectory.TrimEnd(TerminalCharactersConstants.Separator))
+            };
+
+            if (directory == null)
+            {
+                return $"\"{newDirectory}\" is not a directory.";
+            }
+
+            if (!directory.Permissions.Contains(Permission.UserRead))
+            {
+                return $"Insufficient permissions to enter the \"{GetAbsoluteDirectoryPath(directory)}\" directory.";
+            }
+
+            SetCurrentDirectory(directory);
+            return string.Empty;
         }
 
         /// <summary>
@@ -321,8 +442,28 @@ namespace Terminal.Services
         /// <param name="directoryName">
         /// The name of the folder to create in the current directory.
         /// </param>
-        public void CreateDirectory(string directoryName)
+        /// <returns>
+        /// A <see langword="string"/> containing the status of the directory creation.
+        /// </returns>
+        public string CreateDirectory(string directoryName)
         {
+            if (string.IsNullOrEmpty(directoryName))
+            {
+                return "Directory can't be made without a name.";
+            }
+
+            var existingDirectory = GetRelativeDirectory(directoryName);
+            if (existingDirectory != null)
+            {
+                return $"Directory with the name of '{directoryName}' already exists.";
+            }
+
+            var currentDirectory = GetCurrentDirectory();
+            if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
+            {
+                return $"Insufficient permissions to create a directory in the current directory.";
+            }
+
             var newDirectory = new DirectoryFolder()
             {
                 Name = directoryName,
@@ -331,15 +472,135 @@ namespace Terminal.Services
             };
 
             GetCurrentDirectory().Entities.Add(newDirectory);
+            return $"New directory '{directoryName}' created.";
         }
 
         /// <summary>
-        /// Removes a <paramref name="entity"/> from the current directory. Does nothing if the <paramref name="entity"/> doesn't exist.
+        /// Deletes the <paramref name="directoryName"/>.
         /// </summary>
-        /// <param name="entity">
-        /// The entity to delete.
+        /// <param name="directoryName">
+        /// The name of the directory to delete.
         /// </param>
-        public void DeleteEntity(DirectoryEntity entity)
+        /// <param name="arguments">
+        /// A collection of arguments provided by the user.
+        /// </param>
+        /// <returns>
+        /// A <see langword="string"/> containing the status of the directory deletion.
+        /// </returns>
+        public string DeleteDirectory(string directoryName, IEnumerable<string> arguments)
+        {
+            var currentDirectory = GetCurrentDirectory();
+            if (!currentDirectory.Permissions.Contains(Permission.UserWrite))
+            {
+                return $"Insufficient permissions to delete \"{directoryName}\" in the current directory.";
+            }
+
+            if (string.IsNullOrEmpty(directoryName))
+            {
+                return "Directory can't be deleted without a name.";
+            }
+
+            var existingDirectory = GetRelativeDirectory(directoryName);
+            if (existingDirectory == null)
+            {
+                return $"No folder with the name of \"{directoryName}\" exists.";
+            }
+
+            var recurse = arguments.Contains("-r") || arguments.Contains("--recurse");
+            if (recurse == false && existingDirectory.Entities.Any())
+            {
+                return $"Cannot delete the \"{directoryName}\" directory, it has files or folders in it.";
+            }
+
+            DeleteEntity(existingDirectory);
+            return $"\"{directoryName}\" deleted.";
+        }
+
+        /// <summary>
+        /// Moves a file from one location to another.
+        /// </summary>
+        /// <param name="arguments">
+        /// A collection of arguments that should contain the file name and destination.
+        /// </param>
+        /// <returns>
+        /// A <see langword="string"/> containing the status of the file move.
+        /// </returns>
+        public string MoveFile(IEnumerable<string> arguments)
+        {
+            var fileName = arguments.FirstOrDefault();
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return "Cannot move file without a file name.";
+            }
+
+            var destinationPath = arguments.Skip(1).FirstOrDefault();
+            if (string.IsNullOrEmpty(destinationPath))
+            {
+                return $"Cannot move file without a destination.";
+            }
+
+            var fileToMove = GetRelativeFile(fileName);
+            if (fileName.Trim('/').Contains('/'))
+            {
+                var fileNameWithoutPath = fileName.Split('/').LastOrDefault();
+                var filePath = fileName.Split('/').SkipLast(1);
+                fileToMove = GetRelativeDirectory(string.Join('/', filePath)).FindFile(fileNameWithoutPath);
+            }
+            if (fileToMove == null)
+            {
+                return $"Cannot move, file \"{fileName}\" does not exist in the current directory.";
+            }
+
+            var destinationDirectory = GetAbsoluteDirectory(destinationPath.TrimEnd('/'));
+            if (destinationDirectory == null)
+            {
+                return $"Cannot move, destination folder \"{destinationDirectory}\" does not exist.";
+            }
+
+            MoveEntity(fileToMove, destinationDirectory);
+            return $"\"{fileToMove}\" moved to \"{destinationDirectory}\".";
+        }
+
+        /// <summary>
+        /// Moves a folder and all child files and folders from one location to another.
+        /// </summary>
+        /// <param name="arguments">
+        /// A collection of arguments that should contain the folder name and destination.
+        /// </param>
+        /// <returns>
+        /// A <see langword="string"/> containing the status of the folder move.
+        /// </returns>
+        public string MoveDirectory(IEnumerable<string> arguments)
+        {
+            var directoryToMovePath = arguments.FirstOrDefault();
+            if (string.IsNullOrEmpty(directoryToMovePath))
+            {
+                return "Cannot move directory without a directory name.";
+            }
+
+            var destinationPath = arguments.Skip(1).FirstOrDefault();
+            if (string.IsNullOrEmpty(destinationPath))
+            {
+                return $"Cannot move directory without a destination.";
+            }
+
+            var directoryToMove = GetRelativeDirectory(directoryToMovePath);
+            if (directoryToMove == null)
+            {
+                return $"Cannot move, directory \"{directoryToMove}\" does not exist in the current directory.";
+            }
+
+            var destinationDirectory = GetAbsoluteDirectory(destinationPath);
+            if (destinationDirectory == null)
+            {
+                return $"Cannot move, destination folder \"{destinationDirectory}\" does not exist.";
+            }
+
+            MoveEntity(directoryToMove, destinationDirectory);
+            return $"\"{directoryToMove}\" moved to \"{destinationDirectory}\".";
+        }
+
+        private void DeleteEntity(DirectoryEntity entity)
         {
             if(GetCurrentDirectory().Entities.Contains(entity))
             {
@@ -347,18 +608,7 @@ namespace Terminal.Services
             }
         }
 
-        /// <summary>
-        /// Moves an <paramref name="entity"/> from the current directory to the provided <paramref name="destination"/>.
-        /// Does nothing if the <paramref name="entity"/> or <paramref name="destination"/> don't exist, or if <paramref name="entity"/>
-        /// is already part of or equal to <paramref name="destination"/>.
-        /// </summary>
-        /// <param name="entity">
-        /// The entity to move to the provided <paramref name="destination"/>.
-        /// </param>
-        /// <param name="destination">
-        /// The new destination for the provided <paramref name="entity"/>.
-        /// </param>
-        public void MoveEntity(DirectoryEntity entity, DirectoryEntity destination)
+        private void MoveEntity(DirectoryEntity entity, DirectoryEntity destination)
         {
             if (GetRootDirectory().FindDirectory(destination.Id) == null)
             {
