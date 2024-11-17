@@ -200,6 +200,12 @@ namespace Terminal.Constants
                 ["COMMAND"] = "dug [removeuser] [deleteuserfromgroup]",
                 ["REMARKS"] = "Deletes a user from a user group.",
                 ["EXAMPLES"] = "dug newuser usergroup    : Deletes the \"newuser\" user from the \"usergroup\" group."
+            },
+            ["viewgroup"] = new()
+            {
+                ["COMMAND"] = "vg [viewgroup]",
+                ["REMARKS"] = "Views a user group.",
+                ["EXAMPLES"] = "vg usergroup    : Views the \"usergroup\" user group."
             }
         };
 

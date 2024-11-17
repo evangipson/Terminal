@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -170,7 +170,8 @@ namespace Terminal.Inputs
             UserCommand.MakeGroup,
             UserCommand.DeleteGroup,
             UserCommand.AddUserToGroup,
-            UserCommand.DeleteUserFromGroup
+            UserCommand.DeleteUserFromGroup,
+            UserCommand.ViewGroup
         };
 
         private static readonly List<UserCommand> _interactiveResponseCommands = new()
@@ -343,6 +344,7 @@ namespace Terminal.Inputs
                 UserCommand.DeleteGroup => () => DeleteGroup(parsedTokens.Skip(1)),
                 UserCommand.AddUserToGroup => () => AddUserToGroup(parsedTokens.Skip(1)),
                 UserCommand.DeleteUserFromGroup => () => DeleteUserFromGroup(parsedTokens.Skip(1)),
+                UserCommand.ViewGroup => () => ViewUserGroup(parsedTokens.Take(2).Last()),
                 _ => () => CreateSimpleTerminalResponse($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.")
             };
         }
@@ -898,6 +900,38 @@ namespace Terminal.Inputs
 
             groupDirectory.Entities.Remove(userFileInGroup);
             EmitSignal(SignalName.KnownCommand, $"\"{userName}\" removed from the \"{groupName}\" user group.");
+        }
+
+        private void ViewUserGroup(string groupName)
+        {
+            if (string.IsNullOrEmpty(groupName))
+            {
+                GD.Print($"Attempted to view a user group, but user group name was not provided.");
+                return;
+            }
+
+            var rootUserGroupsDirectory = _directoryService.GetRootDirectory().FindDirectory("users/groups");
+            if (rootUserGroupsDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Attempted to view the \"{groupName}\" user group, but there was no root /users/ directory.");
+                return;
+            }
+
+            var groupDirectory = rootUserGroupsDirectory.FindDirectory(groupName);
+            if (groupDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"\"{groupName}\" user group does not exist.");
+                return;
+            }
+
+            var usersInGroup = groupDirectory.Entities.Where(entity => !entity.IsDirectory);
+            if (!usersInGroup.Any())
+            {
+                EmitSignal(SignalName.KnownCommand, $"No users in the \"{groupName}\" user group.");
+                return;
+            }
+
+            EmitSignal(SignalName.KnownCommand, string.Join('\n', $"{groupName} users", "═".Repeat($"{groupName} users".Length), string.Join(", ", usersInGroup)));
         }
     }
 }

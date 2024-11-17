@@ -41,6 +41,7 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 ### User Commands
 - Make a user with the `makeuser` command
 - Delete a user with the `deleteuser` command
+- View a user group with the `viewgroup` command
 - Make a user group with the `makegroup` command
 - Delete a user gropu with the `deletegroup` command
 - Add a user to a group with the `addusertogroup` command

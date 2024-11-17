@@ -103,6 +103,7 @@ namespace Terminal.Services
             "dg" or "deletegroup" => UserCommand.DeleteGroup,
             "aug" or "adduser" or "addusertogroup" => UserCommand.AddUserToGroup,
             "dug" or "removeuser" or "deleteuserfromgroup" => UserCommand.DeleteUserFromGroup,
+            "vg" or "viewgroup" => UserCommand.ViewGroup,
             _ => UserCommand.Unknown
         };
 
@@ -195,6 +196,7 @@ namespace Terminal.Services
                 UserCommand.DeleteGroup => GetOutputFromTokens(AllCommands["deletegroup"]),
                 UserCommand.AddUserToGroup => GetOutputFromTokens(AllCommands["addusertogroup"]),
                 UserCommand.DeleteUserFromGroup => GetOutputFromTokens(AllCommands["deleteuserfromgroup"]),
+                UserCommand.ViewGroup => GetOutputFromTokens(AllCommands["viewgroup"]),
                 _ => string.Empty
             };
         }

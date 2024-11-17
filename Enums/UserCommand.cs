@@ -39,6 +39,7 @@ namespace Terminal.Enums
         DeleteGroup,
         AddUserToGroup,
         DeleteUserFromGroup,
+        ViewGroup,
         Unknown
     };
 }
