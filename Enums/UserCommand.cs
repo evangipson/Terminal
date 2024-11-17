@@ -33,6 +33,7 @@ namespace Terminal.Enums
         Ping,
         MoveFile,
         MoveDirectory,
+        MakeUser,
         Unknown
     };
 }

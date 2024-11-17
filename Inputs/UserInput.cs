@@ -163,7 +163,8 @@ namespace Terminal.Inputs
             UserCommand.DeleteDirectory,
             UserCommand.Ping,
             UserCommand.MoveFile,
-            UserCommand.MoveDirectory
+            UserCommand.MoveDirectory,
+            UserCommand.MakeUser
         };
 
         private static readonly List<UserCommand> _interactiveResponseCommands = new()
@@ -330,6 +331,7 @@ namespace Terminal.Inputs
                 UserCommand.MoveFile => () => MoveFile(parsedTokens.Skip(1)),
                 UserCommand.MoveDirectory => () => MoveDirectory(parsedTokens.Skip(1)),
                 UserCommand.Ping => () => StartPing(parsedTokens.Take(2).Last(), parsedTokens.Skip(2)),
+                UserCommand.MakeUser => () => MakeUser(parsedTokens.Skip(1)),
                 _ => () => CreateSimpleTerminalResponse($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.")
             };
         }
@@ -670,6 +672,34 @@ namespace Terminal.Inputs
 
             _directoryService.MoveEntity(directoryToMove, destinationDirectory);
             EmitSignal(SignalName.KnownCommand, $"\"{directoryToMove}\" moved to \"{destinationDirectory}\".");
+        }
+
+        private void MakeUser(IEnumerable<string> arguments)
+        {
+            var userName = arguments.FirstOrDefault();
+            if(string.IsNullOrEmpty(userName))
+            {
+                GD.Print($"Attempted to make the new user, but user name was not provided.");
+                return;
+            }
+
+            var rootUsersDirectory = _directoryService.GetRootDirectory().FindDirectory("users");
+            if(rootUsersDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Attempted to make the new user \"{userName}\", but there was no root /users/ directory.");
+                return;
+            }
+
+            var newUserDirectoryExists = rootUsersDirectory.FindDirectory(userName) != null;
+            if(newUserDirectoryExists)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Attempted to make the new user \"{userName}\", but it already existed.");
+                return;
+            }
+
+            var newUserDirectory = DirectoryConstants.GetDefaultUserDirectory(rootUsersDirectory, userName);
+            rootUsersDirectory.Entities.Add(newUserDirectory);
+            EmitSignal(SignalName.KnownCommand, $"\"{userName}\" user created.");
         }
     }
 }

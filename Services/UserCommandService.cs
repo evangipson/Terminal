@@ -97,6 +97,7 @@ namespace Terminal.Services
             "ping" => UserCommand.Ping,
             "mvf" or "movefile" => UserCommand.MoveFile,
             "mvd" or "movedir" or "movedirectory" => UserCommand.MoveDirectory,
+            "mu" or "makeuser" => UserCommand.MakeUser,
             _ => UserCommand.Unknown
         };
 
@@ -183,6 +184,7 @@ namespace Terminal.Services
                 UserCommand.Ping => GetOutputFromTokens(AllCommands["ping"]),
                 UserCommand.MoveFile => GetOutputFromTokens(AllCommands["movefile"]),
                 UserCommand.MoveDirectory => GetOutputFromTokens(AllCommands["movedirectory"]),
+                UserCommand.MakeUser => GetOutputFromTokens(AllCommands["makeuser"]),
                 _ => string.Empty
             };
         }
