@@ -39,7 +39,9 @@ namespace Terminal.Services
             UserCommand.ChangePermissions,
             UserCommand.ListDirectory,
             UserCommand.DeleteFile,
-            UserCommand.DeleteDirectory
+            UserCommand.DeleteDirectory,
+            UserCommand.MoveFile,
+            UserCommand.MoveDirectory
         };
 
         private DirectoryService _directoryService;
@@ -145,7 +147,13 @@ namespace Terminal.Services
             // qualify autocomplete results to be a file or folder unless the command is agnostic
             if (userCommand != UserCommand.ViewPermissions && userCommand != UserCommand.ChangePermissions)
             {
-                filteredEntities = filteredEntities.Where(entity => entity.IsDirectory == (userCommand == UserCommand.ChangeDirectory || userCommand == UserCommand.ListDirectory || userCommand == UserCommand.DeleteDirectory));
+                filteredEntities = filteredEntities.Where(entity =>
+                {
+                    return entity.IsDirectory == (userCommand == UserCommand.ChangeDirectory
+                        || userCommand == UserCommand.ListDirectory
+                        || userCommand == UserCommand.DeleteDirectory
+                        || userCommand == UserCommand.MoveDirectory);
+                });
             }
 
             DirectoryEntity matchingEntity = filteredEntities.FirstOrDefault();

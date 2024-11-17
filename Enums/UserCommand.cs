@@ -31,6 +31,8 @@ namespace Terminal.Enums
         DeleteFile,
         DeleteDirectory,
         Ping,
+        MoveFile,
+        MoveDirectory,
         Unknown
     };
 }

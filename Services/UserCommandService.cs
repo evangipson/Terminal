@@ -95,6 +95,8 @@ namespace Terminal.Services
             "df" or "deletefile" => UserCommand.DeleteFile,
             "dd" or "deletedir" or "deletedirectory" => UserCommand.DeleteDirectory,
             "ping" => UserCommand.Ping,
+            "mvf" or "movefile" => UserCommand.MoveFile,
+            "mvd" or "movedir" or "movedirectory" => UserCommand.MoveDirectory,
             _ => UserCommand.Unknown
         };
 
@@ -179,6 +181,8 @@ namespace Terminal.Services
                 UserCommand.DeleteFile => GetOutputFromTokens(AllCommands["deletefile"]),
                 UserCommand.DeleteDirectory => GetOutputFromTokens(AllCommands["deletedirectory"]),
                 UserCommand.Ping => GetOutputFromTokens(AllCommands["ping"]),
+                UserCommand.MoveFile => GetOutputFromTokens(AllCommands["movefile"]),
+                UserCommand.MoveDirectory => GetOutputFromTokens(AllCommands["movedirectory"]),
                 _ => string.Empty
             };
         }

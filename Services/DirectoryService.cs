@@ -284,5 +284,52 @@ namespace Terminal.Services
                 GetCurrentDirectory().Entities.Remove(entity);
             }
         }
+
+        /// <summary>
+        /// Moves a <paramref name="entity"/> from the current directory to the provided <paramref name="destination"/>.
+        /// Does nothing if the <paramref name="entity"/> or <paramref name="destination"/> don't exist, or if <paramref name="entity"/>
+        /// is already part of or equal to <paramref name="destination"/>.
+        /// </summary>
+        /// <param name="entity">
+        /// The entity to move to <paramref name="destination"/>.
+        /// </param>
+        /// <param name="destination">
+        /// The destination for the <paramref name="entity"/>.
+        /// </param>
+        public void MoveEntity(DirectoryEntity entity, DirectoryEntity destination)
+        {
+            if (GetRootDirectory().FindDirectory(destination.Id) == null)
+            {
+                GD.Print($"Attempted to move {entity} into {destination} but could not find destination folder \"{destination}\" in the file system.");
+                return;
+            }
+
+            if (GetCurrentDirectory().FindEntity($"{entity}") == null)
+            {
+                GD.Print($"Attempted to move {entity} into {destination} but could not find target entity \"{entity}\" in the file system.");
+                return;
+            }
+
+            if (destination == entity)
+            {
+                GD.Print($"Attempted to move {entity} into {destination} but they are the same entity.");
+                return;
+            }
+
+            if(destination.Entities.Contains(entity))
+            {
+                GD.Print($"Attempted to move {entity} into {destination} but {destination} already contains {entity}.");
+                return;
+            }
+
+            if(!GetCurrentDirectory().FindDirectory(entity.ParentId).Entities.Remove(entity))
+            {
+                GD.Print($"Attempted to remove {entity} from it's parent folder, but was unable to.");
+                return;
+            }
+
+            entity.ParentId = destination.Id;
+            destination.Entities.Add(entity);
+        }
     }
 }
