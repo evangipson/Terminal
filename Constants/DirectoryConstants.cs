@@ -164,6 +164,12 @@ namespace Terminal.Constants
                 ["COMMAND"] = "md [movedir] [movedirectory]",
                 ["REMARKS"] = "Moves a folder and all files and folders within to a destination folder.",
                 ["EXAMPLES"] = "md olddir /users/user/newdir    : Moves the \"olddir\" folder in the current directory to the \"/users/user/newdir\" folder."
+            },
+            ["makeuser"] = new()
+            {
+                ["COMMAND"] = "mu [makeuser]",
+                ["REMARKS"] = "Makes a new user, with all the default files and folders, in /users/.",
+                ["EXAMPLES"] = "mu newuser    : Makes a user with the name \"newuser\"."
             }
         };
 
@@ -248,12 +254,38 @@ namespace Terminal.Constants
                 new DirectoryFolder() { Name = "logs", ParentId = rootTempDirectory.Id, Permissions = _userReadPermissions }
             };
 
-            DirectoryFolder userDirectory = new() { Name = "user", ParentId = rootUsersDirectory.Id, Permissions = _userReadWritePermissions };
+            DirectoryEntity userDirectory = GetDefaultUserDirectory(rootUsersDirectory, "user");
+            var userHomeDirectory = userDirectory.Entities
+                .Where(entity => entity.Name.Equals("home", StringComparison.OrdinalIgnoreCase))
+                .FirstOrDefault();
+            if(userHomeDirectory != null)
+            {
+                userHomeDirectory.IsHome = true;
+            }
+
             rootUsersDirectory.Entities = new()
             {
                 userDirectory
             };
 
+            return new() { rootDirectory };
+        }
+
+        /// <summary>
+        /// Gets the default user directory structure for <paramref name="userName"/>, and hooks up necessary entity links for all files and folders.
+        /// </summary>
+        /// <param name="rootUsersDirectory">
+        /// The <c>/users/</c> directory, where the user will be made.
+        /// </param>
+        /// <param name="userName">
+        /// The name of the new user.
+        /// </param>
+        /// <returns>
+        /// A new user directory with all the default files and folders.
+        /// </returns>
+        public static DirectoryEntity GetDefaultUserDirectory(DirectoryEntity rootUsersDirectory, string userName)
+        {
+            DirectoryFolder userDirectory = new() { Name = userName, ParentId = rootUsersDirectory.Id, Permissions = _userReadWritePermissions };
             DirectoryFolder configDirectory = new() { Name = "config", ParentId = userDirectory.Id, Permissions = _userReadWritePermissions };
             configDirectory.Entities = new()
             {
@@ -267,7 +299,7 @@ namespace Terminal.Constants
                 }
             };
 
-            DirectoryFolder homeDirectory = new() { Name = "home", ParentId = userDirectory.Id, Permissions = _userReadWritePermissions, IsHome = true };
+            DirectoryFolder homeDirectory = new() { Name = "home", ParentId = userDirectory.Id, Permissions = _userReadWritePermissions };
             DirectoryFolder mailDirectory = new() { Name = "mail", ParentId = homeDirectory.Id, Permissions = _userReadWritePermissions };
             mailDirectory.Entities = new()
             {
@@ -280,9 +312,7 @@ namespace Terminal.Constants
                     Permissions = _userReadWritePermissions
                 }
             };
-
             homeDirectory.Entities = new() { mailDirectory };
-
             userDirectory.Entities = new()
             {
                 configDirectory,
@@ -290,7 +320,7 @@ namespace Terminal.Constants
                 new DirectoryFolder() { Name = "programs", ParentId = userDirectory.Id, Permissions = _userReadWritePermissions },
             };
 
-            return new() { rootDirectory };
+            return userDirectory;
         }
 
         private static DirectoryEntity GetDefaultSystemDeviceDirectory(Guid rootSystemDirectoryId)

@@ -202,9 +202,18 @@ namespace Terminal.Services
             if (GetHomeDirectory().FindDirectory(entity.ParentId) != null)
             {
                 var homeDirectoryPath = FileSystem?.GetDirectoryPath(GetHomeDirectory());
-                return string.Concat(TerminalCharactersConstants.HomeDirectory,
-                    TerminalCharactersConstants.Separator,
-                    FileSystem?.GetEntityPath(entity).Replace(homeDirectoryPath, string.Empty));
+                var currentDirectoryPath = GetCurrentDirectoryPath().Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+                if (string.IsNullOrEmpty(currentDirectoryPath))
+                {
+                    return FileSystem?.GetEntityPath(entity)
+                        .Replace(homeDirectoryPath, string.Empty)
+                        .TrimStart('/');
+                }
+
+                return FileSystem?.GetEntityPath(entity)
+                    .Replace(homeDirectoryPath, string.Empty)
+                    .Replace($"{currentDirectoryPath}/", string.Empty)
+                    .TrimStart('/');
             }
 
             return FileSystem?.GetEntityPath(entity).Replace(GetCurrentDirectoryPath(), string.Empty);
@@ -219,7 +228,16 @@ namespace Terminal.Services
         /// <returns>
         /// A file with the provided <paramref name="fileName"/> from the current directory.
         /// </returns>
-        public DirectoryEntity GetRelativeFile(string fileName) => GetCurrentDirectory().FindFile(fileName);
+        public DirectoryEntity GetRelativeFile(string fileName)
+        {
+            //if(fileName.TrimStart('/').Contains('/'))
+            //{
+            //    var trimmedRelativeFilePath = string.Join(TerminalCharactersConstants.Separator, fileName.Split(TerminalCharactersConstants.Separator, StringSplitOptions.RemoveEmptyEntries).SkipLast(1));
+            //    return GetCurrentDirectory().FindDirectory(trimmedRelativeFilePath).FindFile(fileName);
+            //}
+
+            return GetCurrentDirectory().FindFile(fileName);
+        }
 
         /// <summary>
         /// Gets a file with the provided <paramref name="fileName"/> from the root directory.
