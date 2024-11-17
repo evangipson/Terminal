@@ -361,12 +361,14 @@ namespace Terminal.Inputs
             var directory = newDirectory.ToLowerInvariant() switch
             {
                 ".." => _directoryService.GetParentDirectory(_directoryService.GetCurrentDirectory()),
-                "." => _directoryService.GetCurrentDirectory(),
+                "." or "./" => _directoryService.GetCurrentDirectory(),
                 "~" => _directoryService.GetHomeDirectory(),
                 "root" or "/" => _directoryService.GetRootDirectory(),
-                _ => newDirectory.StartsWith('/')
-                    ? _directoryService.GetAbsoluteDirectory(newDirectory.TrimEnd('/'))
-                    : _directoryService.GetRelativeDirectory(newDirectory.TrimEnd('/'))
+                _ => newDirectory.StartsWith(TerminalCharactersConstants.Separator)
+                    ? _directoryService.GetAbsoluteDirectory(newDirectory.TrimEnd(TerminalCharactersConstants.Separator))
+                    : newDirectory.Contains(TerminalCharactersConstants.HomeDirectory)
+                        ? _directoryService.GetHomeDirectory().FindDirectory(newDirectory.Split(TerminalCharactersConstants.HomeDirectory).LastOrDefault()?.TrimEnd(TerminalCharactersConstants.Separator))
+                        : _directoryService.GetRelativeDirectory(newDirectory.TrimEnd(TerminalCharactersConstants.Separator))
             };
 
             if (directory == null)
