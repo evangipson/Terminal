@@ -7,7 +7,6 @@ using Terminal.Audio;
 using Terminal.Constants;
 using Terminal.Enums;
 using Terminal.Extensions;
-using Terminal.Models;
 using Terminal.Services;
 
 namespace Terminal.Inputs

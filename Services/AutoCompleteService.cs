@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System;
 using Godot;
@@ -5,7 +6,6 @@ using Godot;
 using Terminal.Enums;
 using Terminal.Models;
 using Terminal.Constants;
-using System.Collections.Generic;
 
 namespace Terminal.Services
 {
