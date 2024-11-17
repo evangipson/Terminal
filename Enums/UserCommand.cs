@@ -34,6 +34,12 @@ namespace Terminal.Enums
         MoveFile,
         MoveDirectory,
         MakeUser,
+        DeleteUser,
+        MakeGroup,
+        DeleteGroup,
+        AddUserToGroup,
+        DeleteUserFromGroup,
+        ViewGroup,
         Unknown
     };
 }
