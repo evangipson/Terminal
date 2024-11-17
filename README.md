@@ -16,6 +16,8 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 - Delete a file in the current directory using the `deletefile` command
 - Delete a directory in the current directory using the `deletedirectory` command
     - Use the `help deletedirectory` command to get information about valid arguments
+- Move a file from the current directory using the `movefile` command
+- Move a directory from the current directory using the `movedirectory` command
 - List the hardware using the `listhardware` command
 - View the permissions of a file or directory using the `viewpermissions` command
     - Use the `help viewpermissions` command to get information about permission bits

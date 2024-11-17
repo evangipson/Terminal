@@ -142,9 +142,9 @@ namespace Terminal.Constants
             ["deletedirectory"] = new()
             {
                 ["COMMAND"] = "dd [deletedirectory]",
-                ["REMARKS"] = "Deletes a directory.",
+                ["REMARKS"] = "Deletes a folder.",
                 ["ARGUMENTS"] = "-r [--recursive]: Deletes a folder and all child files and folders.",
-                ["EXAMPLES"] = "dd newdir    : Deletes the \"newdir\" directory.\ndd newdir -r : Deletes the \"newdir\" directory and all files and folders inside of it."
+                ["EXAMPLES"] = "dd newdir    : Deletes the \"newdir\" folder.\ndd newdir -r : Deletes the \"newdir\" folder and all files and folders inside of it."
             },
             ["ping"] = new()
             {
@@ -152,6 +152,18 @@ namespace Terminal.Constants
                 ["REMARKS"] = "Network utility used to test a host's reachability.",
                 ["ARGUMENTS"] = "-v6 [--ipv6]: Ping the address using ipv6.\n-v8 [--ipv8]: Ping the address using ipv8.",
                 ["EXAMPLES"] = "ping 12525         : Pings the \"12525\" ipv6 or ipv8 address 5 times.\nping 127.0.0.1 -v6 : Pings the \"127.0.0.1\" ipv6 address 5 times."
+            },
+            ["movefile"] = new()
+            {
+                ["COMMAND"] = "mf [movefile]",
+                ["REMARKS"] = "Moves a file to a destination folder.",
+                ["EXAMPLES"] = "mf new-file.txt /users/user/    : Moves the \"new-file.txt\" file in the current directory to the \"/users/user/\" folder."
+            },
+            ["movedirectory"] = new()
+            {
+                ["COMMAND"] = "md [movedir] [movedirectory]",
+                ["REMARKS"] = "Moves a folder and all files and folders within to a destination folder.",
+                ["EXAMPLES"] = "md olddir /users/user/newdir    : Moves the \"olddir\" folder in the current directory to the \"/users/user/newdir\" folder."
             }
         };
 

@@ -161,7 +161,9 @@ namespace Terminal.Inputs
             UserCommand.ChangePermissions,
             UserCommand.DeleteFile,
             UserCommand.DeleteDirectory,
-            UserCommand.Ping
+            UserCommand.Ping,
+            UserCommand.MoveFile,
+            UserCommand.MoveDirectory
         };
 
         private static readonly List<UserCommand> _interactiveResponseCommands = new()
@@ -325,6 +327,8 @@ namespace Terminal.Inputs
                 UserCommand.Exit => () => Exit(),
                 UserCommand.DeleteFile => () => DeleteFile(parsedTokens.Take(2).Last()),
                 UserCommand.DeleteDirectory => () => DeleteDirectory(parsedTokens.Take(2).Last(), parsedTokens.Skip(2)),
+                UserCommand.MoveFile => () => MoveFile(parsedTokens.Skip(1)),
+                UserCommand.MoveDirectory => () => MoveDirectory(parsedTokens.Skip(1)),
                 UserCommand.Ping => () => StartPing(parsedTokens.Take(2).Last(), parsedTokens.Skip(2)),
                 _ => () => CreateSimpleTerminalResponse($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.")
             };
@@ -590,6 +594,80 @@ namespace Terminal.Inputs
             EmitSignal(SignalName.KnownCommand, message);
             EmitSignal(SignalName.Evaluated);
             UnsubscribeAndStopInput();
+        }
+
+        private void MoveFile(IEnumerable<string> arguments)
+        {
+            var fileName = arguments.FirstOrDefault();
+            if(string.IsNullOrEmpty(fileName))
+            {
+                EmitSignal(SignalName.KnownCommand, $"Cannot move file without a file name.");
+                return;
+            }
+
+            var destinationPath = arguments.Skip(1).FirstOrDefault();
+            if (string.IsNullOrEmpty(destinationPath))
+            {
+                EmitSignal(SignalName.KnownCommand, $"Cannot move file without a destination.");
+                return;
+            }
+
+            var fileToMove = _directoryService.GetRelativeFile(fileName);
+            if(fileName.Trim('/').Contains('/'))
+            {
+                var fileNameWithoutPath = fileName.Split('/').LastOrDefault();
+                var filePath = fileName.Split('/').SkipLast(1);
+                fileToMove = _directoryService.GetRelativeDirectory(string.Join('/', filePath)).FindFile(fileNameWithoutPath);
+            }
+            if(fileToMove == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Cannot move, file \"{fileName}\" does not exist in the current directory.");
+                return;
+            }
+
+            var destinationDirectory = _directoryService.GetAbsoluteDirectory(destinationPath.TrimEnd('/'));
+            if (destinationDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Cannot move, destination folder \"{destinationDirectory}\" does not exist.");
+                return;
+            }
+
+            _directoryService.MoveEntity(fileToMove, destinationDirectory);
+            EmitSignal(SignalName.KnownCommand, $"\"{fileToMove}\" moved to \"{destinationDirectory}\".");
+        }
+
+        private void MoveDirectory(IEnumerable<string> arguments)
+        {
+            var directoryToMovePath = arguments.FirstOrDefault();
+            if (string.IsNullOrEmpty(directoryToMovePath))
+            {
+                EmitSignal(SignalName.KnownCommand, $"Cannot move directory without a directory name.");
+                return;
+            }
+
+            var destinationPath = arguments.Skip(1).FirstOrDefault();
+            if (string.IsNullOrEmpty(destinationPath))
+            {
+                EmitSignal(SignalName.KnownCommand, $"Cannot move directory without a destination.");
+                return;
+            }
+
+            var directoryToMove = _directoryService.GetRelativeDirectory(directoryToMovePath);
+            if (directoryToMove == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Cannot move, directory \"{directoryToMove}\" does not exist in the current directory.");
+                return;
+            }
+
+            var destinationDirectory = _directoryService.GetAbsoluteDirectory(destinationPath);
+            if (destinationDirectory == null)
+            {
+                EmitSignal(SignalName.KnownCommand, $"Cannot move, destination folder \"{destinationDirectory}\" does not exist.");
+                return;
+            }
+
+            _directoryService.MoveEntity(directoryToMove, destinationDirectory);
+            EmitSignal(SignalName.KnownCommand, $"\"{directoryToMove}\" moved to \"{destinationDirectory}\".");
         }
     }
 }
