@@ -286,15 +286,15 @@ namespace Terminal.Services
         }
 
         /// <summary>
-        /// Moves a <paramref name="entity"/> from the current directory to the provided <paramref name="destination"/>.
+        /// Moves an <paramref name="entity"/> from the current directory to the provided <paramref name="destination"/>.
         /// Does nothing if the <paramref name="entity"/> or <paramref name="destination"/> don't exist, or if <paramref name="entity"/>
         /// is already part of or equal to <paramref name="destination"/>.
         /// </summary>
         /// <param name="entity">
-        /// The entity to move to <paramref name="destination"/>.
+        /// The entity to move to the provided <paramref name="destination"/>.
         /// </param>
         /// <param name="destination">
-        /// The destination for the <paramref name="entity"/>.
+        /// The new destination for the provided <paramref name="entity"/>.
         /// </param>
         public void MoveEntity(DirectoryEntity entity, DirectoryEntity destination)
         {
