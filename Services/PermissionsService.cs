@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Godot;
 
 using Terminal.Constants;
@@ -12,15 +14,14 @@ namespace Terminal.Services
     /// </summary>
     public partial class PermissionsService : Node
     {
-        private static readonly Dictionary<Permission, int> _permissionsDisplayMap = new()
+        private static readonly List<Permission> _permissionsDisplayMap = new()
         {
-            [Permission.None] = 0b000000,
-            [Permission.UserRead] = 0b000001,
-            [Permission.UserWrite] = 0b000010,
-            [Permission.UserExecutable] = 0b000100,
-            [Permission.AdminRead] = 0b001000,
-            [Permission.AdminWrite] = 0b010000,
-            [Permission.AdminExecutable] = 0b100000
+            Permission.UserRead,
+            Permission.UserWrite,
+            Permission.UserExecutable,
+            Permission.AdminRead,
+            Permission.AdminWrite,
+            Permission.AdminExecutable
         };
 
         private DirectoryService _directoryService;
@@ -107,13 +108,18 @@ namespace Terminal.Services
         /// </returns>
         public static string GetPermissionDisplay(IEnumerable<Permission> permissions)
         {
-            int permissionDisplay = 0;
-            foreach(var permission in permissions)
+            var stringBuilder = new StringBuilder();
+            foreach (var permission in _permissionsDisplayMap)
             {
-                permissionDisplay += _permissionsDisplayMap[permission];
+                if (permissions.Contains(permission))
+                {
+                    stringBuilder.Append('1');
+                    continue;
+                }
+                stringBuilder.Append('0');
             }
 
-            return string.Format("{0:b6}", (byte)permissionDisplay);
+            return stringBuilder.ToString();
         }
 
         /// <summary>
@@ -129,37 +135,36 @@ namespace Terminal.Services
         /// A collection of <see cref="Permission"/> based on the provided <paramref name="newPermissionsSet"/>,
         /// assuming it's in the right format. Defaults to <see langword="null"/>.
         /// </returns>
-        public static List<Permission> GetPermissionFromInput(string newPermissionsSet)
+        private static List<Permission> GetPermissionFromInput(string newPermissionsSet)
         {
-            if(string.IsNullOrEmpty(newPermissionsSet))
+            if (string.IsNullOrEmpty(newPermissionsSet))
             {
                 return null;
             }
 
             var newPermissionChars = newPermissionsSet.ToCharArray();
-            if(newPermissionChars.Length != 6)
+            if (newPermissionChars.Length != 6)
             {
                 return null;
             }
 
-            return newPermissionChars.Select((permissionChar, index) =>
+            List<Permission> newPermissions = new();
+            for (var i = newPermissionChars.Length - 1; i >= 0; i--)
             {
-                if (permissionChar != '1')
+                if (newPermissionChars[i] != '1')
                 {
-                    return Permission.None;
+                    continue;
                 }
 
-                return index switch
-                {
-                    5 => Permission.UserRead,
-                    4 => Permission.UserWrite,
-                    3 => Permission.UserExecutable,
-                    2 => Permission.AdminRead,
-                    1 => Permission.AdminWrite,
-                    0 => Permission.AdminExecutable,
-                    _ => Permission.None
-                };
-            }).Where(permission => permission != Permission.None).ToList();
+                newPermissions.Add(_permissionsDisplayMap.ElementAt(i));
+            };
+
+            if(!newPermissions.Any())
+            {
+                newPermissions.Add(Permission.None);
+            }
+
+            return newPermissions;
         }
     }
 }
