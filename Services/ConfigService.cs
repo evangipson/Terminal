@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -12,18 +13,26 @@ namespace Terminal.Services
     /// </summary>
     public partial class ConfigService : Node
     {
+        /// <summary>
+        /// An event that will be invoked when the "display.conf" config file is updated.
+        /// </summary>
+        public event Action<int> OnDisplayConfigChange;
+
         private DirectoryService _directoryService;
         private Dictionary<string, Color> _colors;
         private int? _volume;
+        private int? _monitorShaderIntensity;
 
         public override void _Ready()
         {
             _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
         }
 
-        private Dictionary<string, string> ColorConfig => LoadConfigFile("color.conf");
+        private Dictionary<string, string> ColorConfig => LoadConfigFile(ConfigFileConstants.ColorConfigFileName);
 
-        private Dictionary<string, string> UserConfig => LoadConfigFile("user.conf", true);
+        private Dictionary<string, string> UserConfig => LoadConfigFile(ConfigFileConstants.UserConfigFileName, true);
+
+        private Dictionary<string, string> DisplayConfig => LoadConfigFile(ConfigFileConstants.DisplayConfigFileName, true);
 
         /// <summary>
         /// A map of color names to <see cref="Color"/>, which are supported for the console.
@@ -50,6 +59,18 @@ namespace Terminal.Services
         }
 
         /// <summary>
+        /// Represents the parsed value for the user-defined "display" setting in the display.conf file.
+        /// <para>
+        /// Defaults to <c>100</c>.
+        /// </para>
+        /// </summary>
+        public int MonitorShaderIntensity
+        {
+            get => _monitorShaderIntensity ??= GetLatestDisplayEffectConfig();
+            private set => _monitorShaderIntensity = value;
+        }
+
+        /// <summary>
         /// The <see cref="Colors"/> map, but with values shifted, to show executable files as a different color.
         /// <para>
         /// Can be modified in runtime by editing the <c>/system/config/color.conf</c> file.
@@ -68,6 +89,9 @@ namespace Terminal.Services
         {
             Colors = GetLatestColorConfigValues();
             Volume = GetLatestUserConfigVolume();
+            MonitorShaderIntensity = GetLatestDisplayEffectConfig();
+
+            OnDisplayConfigChange?.Invoke(MonitorShaderIntensity);
         }
 
         private Dictionary<string, string> LoadConfigFile(string fileName, bool userConfig = false)
@@ -131,7 +155,7 @@ namespace Terminal.Services
         {
             if (ColorConfig == null)
             {
-                GD.Print($"Attempted to parse color data from color.conf, but \"color.conf\" file was not found.");
+                GD.Print($"Attempted to parse color data from {ConfigFileConstants.ColorConfigFileName}, but \"{ConfigFileConstants.ColorConfigFileName}\" file was not found.");
                 return new Dictionary<string, Color>()
                 {
                     ["green"] = ColorConstants.TerminalGreen,
@@ -143,7 +167,7 @@ namespace Terminal.Services
             {
                 if (!int.TryParse(config.Value, System.Globalization.NumberStyles.HexNumber, null, out int colorValidation))
                 {
-                    GD.Print($"Attempted to parse color data from color.conf, but {config.Value} isn't a valid hex string.");
+                    GD.Print($"Attempted to parse color data from {ConfigFileConstants.ColorConfigFileName}, but {config.Value} isn't a valid hex string.");
                     return default;
                 }
 
@@ -156,31 +180,8 @@ namespace Terminal.Services
             return allColors;
         }
 
-        private int GetLatestUserConfigVolume()
-        {
-            if(UserConfig == null)
-            {
-                GD.Print($"Attempted to parse user data from user.conf, but \"user.conf\" file was not found.");
-                return 100;
-            }
+        private int GetLatestUserConfigVolume() => UserConfig.GetLatestIntegerConfig(100, ConfigFileConstants.UserConfigFileName);
 
-            var userConfigVolume = UserConfig.FirstOrDefault(config =>
-            {
-                if (!int.TryParse(config.Value, out int volumeLevel))
-                {
-                    GD.Print($"Attempted to parse user data from user.conf, but {config.Value} isn't a valid number.");
-                    return false;
-                }
-
-                return true;
-            });
-
-            if (userConfigVolume.Key == default || userConfigVolume.Value == default)
-            {
-                return 100;
-            }
-
-            return int.Parse(userConfigVolume.Value);
-        }
+        private int GetLatestDisplayEffectConfig() => DisplayConfig.GetLatestIntegerConfig(100, ConfigFileConstants.DisplayConfigFileName);
     }
 }

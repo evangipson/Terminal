@@ -8,6 +8,9 @@ using Terminal.Models;
 
 namespace Terminal.Constants
 {
+    /// <summary>
+    /// A <see langword="static"/> collection of constant values and methods for managing or creating directories.
+    /// </summary>
     public static class DirectoryConstants
     {
         /// <summary>
@@ -239,8 +242,8 @@ namespace Terminal.Constants
             {
                 new DirectoryFile()
                 {
-                    Name = "color",
-                    Extension = "conf",
+                    Name = ConfigFileConstants.ColorConfigName,
+                    Extension = ConfigFileConstants.ConfigFileExtension,
                     Contents = "green:377a1c\nblue:1c387a\nteal:1c677a\npurple:5e1c7a\norange:7a2f1c\nred:7a1c38",
                     ParentId = systemConfigDirectory.Id,
                     Permissions = _userReadWritePermissions
@@ -329,9 +332,17 @@ namespace Terminal.Constants
             {
                 new DirectoryFile()
                 {
-                    Name = "user",
-                    Extension = "conf",
+                    Name = ConfigFileConstants.UserConfigName,
+                    Extension = ConfigFileConstants.ConfigFileExtension,
                     Contents = "volume:100",
+                    ParentId = configDirectory.Id,
+                    Permissions = _userReadWritePermissions
+                },
+                new DirectoryFile()
+                {
+                    Name = ConfigFileConstants.DisplayConfigName,
+                    Extension = ConfigFileConstants.ConfigFileExtension,
+                    Contents = "effect:100",
                     ParentId = configDirectory.Id,
                     Permissions = _userReadWritePermissions
                 }
