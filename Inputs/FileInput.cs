@@ -38,7 +38,6 @@ namespace Terminal.Inputs
 
         private PersistService _persistService;
         private ConfigService _configService;
-        private Theme _defaultUserInputTheme;
         private ScrollableContainer _scrollableContainer;
         private VBoxContainer _fileEditorContainer;
         private RichTextLabel _saveLabel;
@@ -50,7 +49,6 @@ namespace Terminal.Inputs
         {
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
             _configService = GetNode<ConfigService>(ServicePathConstants.ConfigServicePath);
-            _defaultUserInputTheme = GD.Load<Theme>(ThemePathConstants.MonospaceFontThemePath);
             _scrollableContainer = GetNode<ScrollableContainer>("%ScrollableContainer");
             _fileEditorContainer = GetParent<VBoxContainer>();
             _saveLabel = GetNode<RichTextLabel>("%SaveLabel");

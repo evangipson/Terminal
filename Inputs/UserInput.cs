@@ -200,7 +200,7 @@ namespace Terminal.Inputs
             if(command == UserCommand.EditFile && inputWithoutDirectory.Split(' ').Length > 1)
             {
                 ReleaseFocus();
-                UnsubscribeFromEvents();
+                UnsubscribeAndStopInput();
             }
         }
 

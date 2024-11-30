@@ -1,7 +1,8 @@
-[gd_scene load_steps=20 format=3 uid="uid://dtvpxppojlasm"]
+[gd_scene load_steps=21 format=3 uid="uid://dtvpxppojlasm"]
 
 [ext_resource type="Shader" path="res://Shaders/crt.gdshader" id="1_4876q"]
 [ext_resource type="PackedScene" uid="uid://u7cbeq44pw08" path="res://Screens/intro_screen.tscn" id="1_iu054"]
+[ext_resource type="Script" path="res://Shaders/Monitor.cs" id="2_lv3bt"]
 [ext_resource type="PackedScene" uid="uid://nddd2eqotbpa" path="res://Screens/console_screen.tscn" id="3_3efbf"]
 [ext_resource type="PackedScene" uid="uid://vu437t7g2cwv" path="res://Screens/welcome_screen.tscn" id="3_13snw"]
 [ext_resource type="AudioStream" uid="uid://dwryw0shwo6gj" path="res://Audio/Keyboard/keypress-001.ogg" id="5_yofx3"]
@@ -19,7 +20,7 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_gl2w5"]
 shader = ExtResource("1_4876q")
-shader_parameter/overlay = false
+shader_parameter/overlay = true
 shader_parameter/scanlines_opacity = 0.2
 shader_parameter/scanlines_width = 0.059
 shader_parameter/grille_opacity = 0.088
@@ -71,6 +72,7 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+script = ExtResource("2_lv3bt")
 
 [node name="IntroScreen" parent="Monitor" instance=ExtResource("1_iu054")]
 
