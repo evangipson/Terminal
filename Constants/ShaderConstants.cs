@@ -22,11 +22,6 @@ namespace Terminal.Constants
             },
             new()
             {
-                Name = "roll_speed",
-                MaxValue = 3.0
-            },
-            new()
-            {
                 Name = "scanlines_opacity",
                 MaxValue = 0.2
             },
@@ -34,6 +29,11 @@ namespace Terminal.Constants
             {
                 Name = "noise_opacity",
                 MaxValue = 0.084
+            },
+            new()
+            {
+                Name = "vignette_opacity",
+                MaxValue = 0.4
             },
             new()
             {
@@ -54,11 +54,6 @@ namespace Terminal.Constants
             {
                 Name = "vignette_intensity",
                 MaxValue = 0.2
-            },
-            new()
-            {
-                Name = "vignette_opacity",
-                MaxValue = 0.4
             },
             new()
             {

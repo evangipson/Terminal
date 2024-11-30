@@ -19,6 +19,7 @@ namespace Terminal.Containers
     {
         private UserInput _userInput;
         private Theme _defaultUserInputTheme;
+        private ConfigService _configService;
         private DirectoryService _directoryService;
         private PersistService _persistService;
         private NetworkService _networkService;
@@ -28,6 +29,7 @@ namespace Terminal.Containers
         public override void _Ready()
         {
             _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
+            _configService = GetNode<ConfigService>(ServicePathConstants.ConfigServicePath);
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
             _networkService = GetNode<NetworkService>(ServicePathConstants.NetworkServicePath);
             _defaultUserInputTheme = GD.Load<Theme>(ThemePathConstants.MonospaceFontThemePath);
@@ -35,6 +37,9 @@ namespace Terminal.Containers
             _fileInput = GetNode<FileInput>("%FileInput");
             _fileInput.SaveFileCommand += SaveFileCommandResponse;
             _fileInput.CloseFileCommand += CloseFileCommandResponse;
+
+            UpdateThemeFontSize(_configService.FontSize);
+            _configService.OnFontSizeConfigChange += UpdateThemeFontSize;
 
             AddNewUserInput();
         }
@@ -56,6 +61,8 @@ namespace Terminal.Containers
                 }
             }
         }
+
+        private void UpdateThemeFontSize(int fontSize) => _defaultUserInputTheme.DefaultFontSize = fontSize;
 
         private void AddNewUserInput()
         {

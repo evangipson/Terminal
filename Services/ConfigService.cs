@@ -14,25 +14,31 @@ namespace Terminal.Services
     public partial class ConfigService : Node
     {
         /// <summary>
-        /// An event that will be invoked when the "display.conf" config file is updated.
+        /// An event that will be invoked when the "display.conf" config file is updated, with <see cref="MonitorShaderIntensity"/> as a parameter.
         /// </summary>
-        public event Action<int> OnDisplayConfigChange;
+        public event Action<int> OnMonitorIntensityConfigChange;
+
+        /// <summary>
+        /// An event that will be invoked when the "display.conf" config file is updated, with <see cref="FontSize"/> as a parameter.
+        /// </summary>
+        public event Action<int> OnFontSizeConfigChange;
 
         private DirectoryService _directoryService;
         private Dictionary<string, Color> _colors;
         private int? _volume;
         private int? _monitorShaderIntensity;
+        private int? _fontSize;
 
         public override void _Ready()
         {
             _directoryService = GetNode<DirectoryService>(ServicePathConstants.DirectoryServicePath);
         }
 
-        private Dictionary<string, string> ColorConfig => LoadConfigFile(ConfigFileConstants.ColorConfigFileName);
+        private Dictionary<string, string> ColorConfig => LoadConfigFile(ConfigConstants.ColorConfigFileName);
 
-        private Dictionary<string, string> UserConfig => LoadConfigFile(ConfigFileConstants.UserConfigFileName, true);
+        private Dictionary<string, string> UserConfig => LoadConfigFile(ConfigConstants.UserConfigFileName, true);
 
-        private Dictionary<string, string> DisplayConfig => LoadConfigFile(ConfigFileConstants.DisplayConfigFileName, true);
+        private Dictionary<string, string> DisplayConfig => LoadConfigFile(ConfigConstants.DisplayConfigFileName, true);
 
         /// <summary>
         /// A map of color names to <see cref="Color"/>, which are supported for the console.
@@ -54,7 +60,7 @@ namespace Terminal.Services
         /// </summary>
         public int Volume
         {
-            get => _volume ??= GetLatestUserConfigVolume();
+            get => _volume ??= GetLatestVolumeConfig();
             private set => _volume = value;
         }
 
@@ -66,8 +72,20 @@ namespace Terminal.Services
         /// </summary>
         public int MonitorShaderIntensity
         {
-            get => _monitorShaderIntensity ??= GetLatestDisplayEffectConfig();
+            get => _monitorShaderIntensity ??= GetLatestMonitorIntensityConfig();
             private set => _monitorShaderIntensity = value;
+        }
+
+        /// <summary>
+        /// Represents the parsed value for the user-defined "font-size" setting in the display.conf file.
+        /// <para>
+        /// Defaults to <c>36</c>.
+        /// </para>
+        /// </summary>
+        public int FontSize
+        {
+            get => _fontSize ??= GetLatestFontSizeConfig();
+            private set => _fontSize = value;
         }
 
         /// <summary>
@@ -83,15 +101,18 @@ namespace Terminal.Services
         }));
 
         /// <summary>
-        /// Refreshes system and user configuration values.
+        /// Refreshes system and user configuration values, and broadcasts events.
         /// </summary>
         public void UpdateConfigInformation()
         {
             Colors = GetLatestColorConfigValues();
-            Volume = GetLatestUserConfigVolume();
-            MonitorShaderIntensity = GetLatestDisplayEffectConfig();
+            Volume = GetLatestVolumeConfig();
 
-            OnDisplayConfigChange?.Invoke(MonitorShaderIntensity);
+            MonitorShaderIntensity = GetLatestMonitorIntensityConfig();
+            OnMonitorIntensityConfigChange?.Invoke(MonitorShaderIntensity);
+
+            FontSize = GetLatestFontSizeConfig();
+            OnFontSizeConfigChange?.Invoke(FontSize);
         }
 
         private Dictionary<string, string> LoadConfigFile(string fileName, bool userConfig = false)
@@ -155,7 +176,7 @@ namespace Terminal.Services
         {
             if (ColorConfig == null)
             {
-                GD.Print($"Attempted to parse color data from {ConfigFileConstants.ColorConfigFileName}, but \"{ConfigFileConstants.ColorConfigFileName}\" file was not found.");
+                GD.Print($"Attempted to parse color data from {ConfigConstants.ColorConfigFileName}, but \"{ConfigConstants.ColorConfigFileName}\" file was not found.");
                 return new Dictionary<string, Color>()
                 {
                     ["green"] = ColorConstants.TerminalGreen,
@@ -167,7 +188,7 @@ namespace Terminal.Services
             {
                 if (!int.TryParse(config.Value, System.Globalization.NumberStyles.HexNumber, null, out int colorValidation))
                 {
-                    GD.Print($"Attempted to parse color data from {ConfigFileConstants.ColorConfigFileName}, but {config.Value} isn't a valid hex string.");
+                    GD.Print($"Attempted to parse color data from {ConfigConstants.ColorConfigFileName}, but {config.Value} isn't a valid hex string.");
                     return default;
                 }
 
@@ -180,8 +201,10 @@ namespace Terminal.Services
             return allColors;
         }
 
-        private int GetLatestUserConfigVolume() => UserConfig.GetLatestIntegerConfig(100, ConfigFileConstants.UserConfigFileName);
+        private int GetLatestVolumeConfig() => UserConfig.GetLatestIntegerConfig(ConfigConstants.VolumeConfigKey, ConfigConstants.UserConfigFileName);
 
-        private int GetLatestDisplayEffectConfig() => DisplayConfig.GetLatestIntegerConfig(100, ConfigFileConstants.DisplayConfigFileName);
+        private int GetLatestMonitorIntensityConfig() => DisplayConfig.GetLatestIntegerConfig(ConfigConstants.MonitorShaderIntensityConfigKey, ConfigConstants.DisplayConfigFileName);
+
+        private int GetLatestFontSizeConfig() => DisplayConfig.GetLatestIntegerConfig(ConfigConstants.FontSizeConfigKey, ConfigConstants.DisplayConfigFileName, 36, 8);
     }
 }

@@ -242,8 +242,8 @@ namespace Terminal.Constants
             {
                 new DirectoryFile()
                 {
-                    Name = ConfigFileConstants.ColorConfigName,
-                    Extension = ConfigFileConstants.ConfigFileExtension,
+                    Name = ConfigConstants.ColorConfigName,
+                    Extension = ConfigConstants.ConfigFileExtension,
                     Contents = "green:377a1c\nblue:1c387a\nteal:1c677a\npurple:5e1c7a\norange:7a2f1c\nred:7a1c38",
                     ParentId = systemConfigDirectory.Id,
                     Permissions = _userReadWritePermissions
@@ -332,17 +332,17 @@ namespace Terminal.Constants
             {
                 new DirectoryFile()
                 {
-                    Name = ConfigFileConstants.UserConfigName,
-                    Extension = ConfigFileConstants.ConfigFileExtension,
-                    Contents = "volume:100",
+                    Name = ConfigConstants.UserConfigName,
+                    Extension = ConfigConstants.ConfigFileExtension,
+                    Contents = $"{ConfigConstants.VolumeConfigKey}:100",
                     ParentId = configDirectory.Id,
                     Permissions = _userReadWritePermissions
                 },
                 new DirectoryFile()
                 {
-                    Name = ConfigFileConstants.DisplayConfigName,
-                    Extension = ConfigFileConstants.ConfigFileExtension,
-                    Contents = "effect:100",
+                    Name = ConfigConstants.DisplayConfigName,
+                    Extension = ConfigConstants.ConfigFileExtension,
+                    Contents = $"{ConfigConstants.MonitorShaderIntensityConfigKey}:100\n{ConfigConstants.FontSizeConfigKey}:36",
                     ParentId = configDirectory.Id,
                     Permissions = _userReadWritePermissions
                 }

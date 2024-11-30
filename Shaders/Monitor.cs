@@ -23,7 +23,7 @@ namespace Terminal.Shaders
             AdjustShaderFromDisplayConfig(_configService.MonitorShaderIntensity);
 
             // Whenever the user updates the config file, adjust it in real time.
-            _configService.OnDisplayConfigChange += AdjustShaderFromDisplayConfig;
+            _configService.OnMonitorIntensityConfigChange += AdjustShaderFromDisplayConfig;
         }
 
         private void AdjustShaderFromDisplayConfig(int displayConfigValue)

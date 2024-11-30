@@ -1,9 +1,9 @@
 ﻿namespace Terminal.Constants
 {
     /// <summary>
-    /// A <see langword="static"/> collection of constants that contain values relevant to config files.
+    /// A <see langword="static"/> collection of constants that contain values relevant to config files and their keys.
     /// </summary>
-    public static class ConfigFileConstants
+    public static class ConfigConstants
     {
         /// <summary>
         /// The extension for config files.
@@ -39,5 +39,20 @@
         /// The full name of the display config file.
         /// </summary>
         public const string DisplayConfigFileName = $"{DisplayConfigName}.{ConfigFileExtension}";
+
+        /// <summary>
+        /// The key for volume configuration.
+        /// </summary>
+        public const string VolumeConfigKey = "volume";
+
+        /// <summary>
+        /// The key for monitor shader intensity configuration.
+        /// </summary>
+        public const string MonitorShaderIntensityConfigKey = "monitor-effect-intensity";
+
+        /// <summary>
+        /// The key for font size configuration.
+        /// </summary>
+        public const string FontSizeConfigKey = "font-size";
     }
 }
