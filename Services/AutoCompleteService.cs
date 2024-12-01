@@ -170,6 +170,14 @@ namespace Terminal.Services
                     : filteredEntities.FirstOrDefault(p => p.Name.CompareTo(_autocompletedEntity.Name) > 0) ?? filteredEntities.FirstOrDefault();
             }
 
+            // if there are no matching entities, list the current directory contents fill up the next input with the current command.
+            if (matchingEntity == null)
+            {
+                OnInvalidAutocomplete?.Invoke(null);
+                OnAutocomplete?.Invoke(currentCommand);
+                return;
+            }
+
             // determine which path to show as a result
             var autoCompletedPath = (isAbsoluteSearch || isRootSearch || isCompleteAbsolutePath)
                 ? _directoryService.GetAbsoluteEntityPath(matchingEntity)
