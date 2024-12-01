@@ -176,10 +176,25 @@ namespace Terminal.Containers
 
         private void ClearScreen()
         {
-            foreach(var child in GetChildren().Where(child => child is Label).Where(child => IsInstanceValid(child)))
+            // Delete the children, besides the last one, if they aren't already deleted.
+            var childrenWithoutInputProcessingTextEdits = GetChildren()
+                .Where(IsInstanceValid)
+                .Where(child =>
+                {
+                    return (child is TextEdit && child.IsProcessingInput() == false) || child is not TextEdit;
+                });
+            foreach (var child in childrenWithoutInputProcessingTextEdits)
             {
                 child.QueueFree();
             }
+
+            // Just hide the last child, if it's a TextEdit, because autocomplete uses the
+            // last TextEdit. It will be removed during the next ClearScreen().
+            if(GetChildren().Where(child => child is TextEdit).LastOrDefault() is not TextEdit lastInputToHide)
+            {
+                return;
+            }
+            lastInputToHide.Visible = false;
         }
 
         private void UpdateThemeFontSize(int fontSize) => _defaultUserInputTheme.DefaultFontSize = fontSize;
