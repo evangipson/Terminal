@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Godot;
-
+using Terminal.Audio;
 using Terminal.Constants;
 using Terminal.Enums;
 using Terminal.Extensions;
@@ -27,8 +27,11 @@ namespace Terminal.Containers
         private DirectoryService _directoryService;
         private PersistService _persistService;
         private NetworkService _networkService;
+        private HardDriveSounds _hardDriveSounds;
+        private TurnOnSounds _turnOnSounds;
         private StyleBoxEmpty _emptyStyleBox = new();
         private FileInput _fileInput;
+        private Tween _tween;
         private bool _shouldShowLoadingMessages = true;
         private int _bootTime = 0;
 
@@ -38,6 +41,8 @@ namespace Terminal.Containers
             _configService = GetNode<ConfigService>(ServicePathConstants.ConfigServicePath);
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
             _networkService = GetNode<NetworkService>(ServicePathConstants.NetworkServicePath);
+            _hardDriveSounds = GetNode<HardDriveSounds>(HardDriveSounds.AbsolutePath);
+            _turnOnSounds = GetNode<TurnOnSounds>(TurnOnSounds.AbsolutePath);
             _defaultUserInputTheme = GD.Load<Theme>(ThemePathConstants.MonospaceFontThemePath);
             _userInput = GetNode<UserInput>("UserInput");
             _fileInput = GetNode<FileInput>("%FileInput");
@@ -77,6 +82,29 @@ namespace Terminal.Containers
 
         private async Task ShowLoadingMessages()
         {
+            _turnOnSounds.PlayTurnOnSound();
+
+            _bootTime += 1200;
+            await Task.Delay(1200);
+
+            FadeInScreen();
+
+            _ = _hardDriveSounds.PlayHardDriveSounds(4, 10, 100, 400);
+
+            CreateResponse("                                               ___ ");
+            CreateResponse("                                     _____________ ");
+            CreateResponse("                      ____________________________ ");
+            CreateResponse(" _________________________________________________ ");
+            CreateResponse(@" _____ ___ ___ __ __ _ __  _  __  _      __    __  ");
+            CreateResponse(@"|_   _| __| _ \  V  | |  \| |/  \| |    /__\ /' _/ ");
+            CreateResponse(@"  | | | _|| v / \_/ | | | ' | /\ | |_  | \/ |`._`. ");
+            CreateResponse(@"  |_| |___|_|_\_| |_|_|_|\__|_||_|___|  \__/ |___/ ");
+            CreateResponse(" _________________________________________________ ");
+            CreateResponse("                                     _____________ \n\n");
+
+            _bootTime += 1800;
+            await Task.Delay(1800);
+
             await ShowDotsResponse(10, 25, "BOOT INITIALIZING");
             CreateResponse($"\nDOT (C) 2197 Motherboard");
             CreateResponse($"BIOS Date {DateTime.UtcNow.AddYears(250).ToShortDateString()}\n\n");
@@ -102,6 +130,7 @@ namespace Terminal.Containers
                 }
             }
 
+            _ = _hardDriveSounds.PlayHardDriveSounds();
             await ShowHardwareBootMessages(hardwareBootOutput);
             ShowWelcomeMessageAndInput();
         }
@@ -111,12 +140,16 @@ namespace Terminal.Containers
             foreach (var message in hardwareBootMessages)
             {
                 CreateResponse(message);
+                var nextBootTime = GetNextBootTime(50, 500);
+                _ = _hardDriveSounds.PlayHardDriveSounds(1, Math.Min(nextBootTime / 10, 15));
                 await Task.Delay(GetNextBootTime(50, 500));
+                _ = _hardDriveSounds.PlayHardDriveSounds();
                 await ShowDotsResponse();
             }
 
             CreateResponse("\nBOOT COMPLETE");
             CreateResponse($"{_bootTime / 1000.0:F5} SECONDS ELAPSED\n");
+            _ = _hardDriveSounds.PlayHardDriveSounds();
             await ShowDotsResponse(6, 11, "LOADING USER TERMINAL ", 250, 500);
         }
 
@@ -138,6 +171,7 @@ namespace Terminal.Containers
 
         private void ShowWelcomeMessageAndInput()
         {
+            _ = _hardDriveSounds.PlayHardDriveSounds();
             ClearScreen();
             CreateResponse($"DOT Personal Computer Terminal OS Version {ProjectSettings.GetSetting("application/config/version")}\n\n");
             AddNewUserInput();
@@ -158,6 +192,13 @@ namespace Terminal.Containers
             var nextTime = _random.Next(min, max);
             _bootTime += nextTime;
             return nextTime;
+        }
+
+        private void FadeInScreen()
+        {
+            Modulate = Colors.Transparent;
+            _tween = CreateTween().SetTrans(Tween.TransitionType.Cubic);
+            _tween.TweenProperty(this, "modulate", Colors.White, _random.Next(3000, 5000) / 1000.0);
         }
 
         private void AddNewUserInput()
@@ -207,6 +248,12 @@ namespace Terminal.Containers
 
         private void CreateResponse(string message)
         {
+            var randomChanceForLoadingNoise = _random.Next(20) > 16;
+            if(randomChanceForLoadingNoise)
+            {
+                _ = _hardDriveSounds.PlayHardDriveSounds();
+            }
+
             var commandResponse = new Label()
             {
                 Name = $"Response-{GetChildCount()}",
