@@ -132,7 +132,11 @@ namespace Terminal.Containers
 
             _ = _hardDriveSounds.PlayHardDriveSounds();
             await ShowHardwareBootMessages(hardwareBootOutput);
-            ShowWelcomeMessageAndInput();
+
+            _ = _hardDriveSounds.PlayHardDriveSounds();
+            ClearScreen();
+            CreateResponse($"DOT Personal Computer Terminal OS Version {ProjectSettings.GetSetting("application/config/version")}\n\n");
+            AddNewUserInput();
         }
 
         private async Task ShowHardwareBootMessages(List<string> hardwareBootMessages)
@@ -169,17 +173,9 @@ namespace Terminal.Containers
 
         private Label GetLastLabel() => GetChild<Label>(GetChildCount() - 1);
 
-        private void ShowWelcomeMessageAndInput()
-        {
-            _ = _hardDriveSounds.PlayHardDriveSounds();
-            ClearScreen();
-            CreateResponse($"DOT Personal Computer Terminal OS Version {ProjectSettings.GetSetting("application/config/version")}\n\n");
-            AddNewUserInput();
-        }
-
         private void ClearScreen()
         {
-            foreach(var child in GetChildren())
+            foreach(var child in GetChildren().Where(child => child is Label).Where(child => IsInstanceValid(child)))
             {
                 child.QueueFree();
             }
@@ -214,7 +210,7 @@ namespace Terminal.Containers
                 CaretBlink = true,
                 CaretMoveOnRightClick = false,
                 CaretMultiple = false,
-                Name = $"UserInput-{GetChildCount()}",
+                Name = $"UserInput",
                 GrowHorizontal = GrowDirection.End,
                 GrowVertical = GrowDirection.End,
                 ScrollFitContentHeight = true,
@@ -256,7 +252,7 @@ namespace Terminal.Containers
 
             var commandResponse = new Label()
             {
-                Name = $"Response-{GetChildCount()}",
+                Name = $"Response",
                 GrowHorizontal = GrowDirection.End,
                 GrowVertical = GrowDirection.End,
                 Theme = _defaultUserInputTheme,
@@ -283,7 +279,7 @@ namespace Terminal.Containers
         {
             var directoryResponse = new RichTextLabel()
             {
-                Name = $"Response-{GetChildCount()}",
+                Name = $"ListDirectoryResponse",
                 GrowHorizontal = GrowDirection.End,
                 GrowVertical = GrowDirection.End,
                 FitContent = true,
