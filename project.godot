@@ -10,24 +10,28 @@ config_version=5
 
 [application]
 
-config/name="Terminal"
+config/name="Terminal OS"
 config/description="A terminal game that involves discovering and solving puzzles on an old computer running an unfamiliar operating system."
 config/version="0.0.1"
-run/main_scene="res://Screens/root.tscn"
+run/main_scene="res://src/Screens/root.tscn"
 config/features=PackedStringArray("4.3", "C#", "Forward Plus")
 config/icon="res://icon.png"
 
+[audio]
+
+buses/default_bus_layout="res://src/default_bus_layout.tres"
+
 [autoload]
 
-DirectoryService="*res://Services/DirectoryService.cs"
-UserCommandService="*res://Services/UserCommandService.cs"
-ConfigService="*res://Services/ConfigService.cs"
-PersistService="*res://Services/PersistService.cs"
-ScreenNavigator="*res://Navigators/ScreenNavigator.cs"
-AutoCompleteService="*res://Services/AutoCompleteService.cs"
-NetworkService="*res://Services/NetworkService.cs"
-UserService="*res://Services/UserService.cs"
-PermissionsService="*res://Services/PermissionsService.cs"
+DirectoryService="*res://src/Services/DirectoryService.cs"
+UserCommandService="*res://src/Services/UserCommandService.cs"
+ConfigService="*res://src/Services/ConfigService.cs"
+PersistService="*res://src/Services/PersistService.cs"
+ScreenNavigator="*res://src/Navigators/ScreenNavigator.cs"
+AutoCompleteService="*res://src/Services/AutoCompleteService.cs"
+NetworkService="*res://src/Services/NetworkService.cs"
+UserService="*res://src/Services/UserService.cs"
+PermissionsService="*res://src/Services/PermissionsService.cs"
 
 [display]
 
@@ -36,6 +40,12 @@ window/size/mode=3
 [dotnet]
 
 project/assembly_name="Terminal"
+
+[file_customization]
+
+folder_colors={
+"res://tests/": "gray"
+}
 
 [rendering]
 
