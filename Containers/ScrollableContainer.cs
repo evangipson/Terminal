@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Godot;
 
 using Terminal.Constants;
@@ -17,6 +19,8 @@ namespace Terminal.Containers
     /// </summary>
     public partial class ScrollableContainer : VBoxContainer
     {
+        private readonly Random _random = new(DateTime.UtcNow.GetHashCode());
+
         private UserInput _userInput;
         private Theme _defaultUserInputTheme;
         private ConfigService _configService;
@@ -25,6 +29,8 @@ namespace Terminal.Containers
         private NetworkService _networkService;
         private StyleBoxEmpty _emptyStyleBox = new();
         private FileInput _fileInput;
+        private bool _shouldShowLoadingMessages = true;
+        private int _bootTime = 0;
 
         public override void _Ready()
         {
@@ -40,8 +46,15 @@ namespace Terminal.Containers
 
             UpdateThemeFontSize(_configService.FontSize);
             _configService.OnFontSizeConfigChange += UpdateThemeFontSize;
+        }
 
-            AddNewUserInput();
+        public override void _Draw()
+        {
+            if(_shouldShowLoadingMessages)
+            {
+                _ = ShowLoadingMessages();
+                _shouldShowLoadingMessages = false;
+            }
         }
 
         public override void _Input(InputEvent @event)
@@ -62,7 +75,90 @@ namespace Terminal.Containers
             }
         }
 
+        private async Task ShowLoadingMessages()
+        {
+            await ShowDotsResponse(10, 25, "BOOT INITIALIZING");
+            CreateResponse($"\nDOT (C) 2197 Motherboard");
+            CreateResponse($"BIOS Date {DateTime.UtcNow.AddYears(250).ToShortDateString()}\n\n");
+            List<string> hardwareToBoot = new() { "motherboard", "processor", "memory", "input", "storage", "display" };
+            var builder = new StringBuilder();
+            List<string> hardwareBootOutput = new();
+            foreach (var hardware in hardwareToBoot)
+            {
+                var hardwareInfo = GetHardwareDeviceInfo(hardware);
+                foreach (var info in hardwareInfo)
+                {
+                    if(info.Key.Equals("name", StringComparison.OrdinalIgnoreCase) && builder.Length > 0)
+                    {
+                        hardwareBootOutput.Add($"{builder.ToString().TrimEnd()}");
+                        builder.Clear();
+                    }
+
+                    var outputString = info.Key.Equals("name") || info.Key.Equals("manufacturer")
+                        ? $"{info.Value}{(info.Key.Equals("manufacturer") ? "\n" : "")}"
+                        : $"{info.Key.ToUpper()} {info.Value}";
+
+                    builder.Append($"{outputString} ");
+                }
+            }
+
+            await ShowHardwareBootMessages(hardwareBootOutput);
+            ShowWelcomeMessageAndInput();
+        }
+
+        private async Task ShowHardwareBootMessages(List<string> hardwareBootMessages)
+        {
+            foreach (var message in hardwareBootMessages)
+            {
+                CreateResponse(message);
+                await Task.Delay(GetNextBootTime(50, 500));
+                await ShowDotsResponse();
+            }
+
+            CreateResponse("\nBOOT COMPLETE");
+            CreateResponse($"{_bootTime / 1000.0:F5} SECONDS ELAPSED\n");
+            await ShowDotsResponse(6, 11, "LOADING USER TERMINAL ", 250, 500);
+        }
+
+        private async Task ShowDotsResponse(int minDots = 3, int maxDots = 20, string initialText = ".", int minDotTime = 25, int maxDotTime = 200)
+        {
+            CreateResponse($"{initialText}");
+
+            var dotsToDraw = _random.Next(minDots, maxDots);
+            var lastResponse = GetLastLabel();
+            foreach (var _ in Enumerable.Range(0, dotsToDraw))
+            {
+                var nextDotWait = GetNextBootTime(minDotTime, maxDotTime);
+                await Task.Delay(nextDotWait);
+                lastResponse.Text += ".";
+            }
+        }
+
+        private Label GetLastLabel() => GetChild<Label>(GetChildCount() - 1);
+
+        private void ShowWelcomeMessageAndInput()
+        {
+            ClearScreen();
+            CreateResponse($"DOT Personal Computer Terminal OS Version {ProjectSettings.GetSetting("application/config/version")}\n\n");
+            AddNewUserInput();
+        }
+
+        private void ClearScreen()
+        {
+            foreach(var child in GetChildren())
+            {
+                child.QueueFree();
+            }
+        }
+
         private void UpdateThemeFontSize(int fontSize) => _defaultUserInputTheme.DefaultFontSize = fontSize;
+
+        private int GetNextBootTime(int min, int max)
+        {
+            var nextTime = _random.Next(min, max);
+            _bootTime += nextTime;
+            return nextTime;
+        }
 
         private void AddNewUserInput()
         {
@@ -235,6 +331,37 @@ namespace Terminal.Containers
                 CreateResponse(closeMessage);
             }
             AddNewUserInput();
+        }
+
+        private List<KeyValuePair<string, string>> GetHardwareDeviceInfo(string deviceName)
+        {
+            var deviceDirectory = _directoryService.GetRootDirectory().FindDirectory("system").FindDirectory("device");
+            return deviceDirectory.Entities
+                .Where(entity => entity.IsDirectory && entity.Name.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
+                .SelectMany(entity =>
+                {
+                    var hardwareEntities = entity.Entities
+                        .Where(entity => !entity.IsDirectory)
+                        .Select(hardware => new KeyValuePair<string, DirectoryEntity>(entity.Name, hardware));
+
+                    return hardwareEntities.SelectMany(hwe =>
+                    {
+                        var hardwareInfoLines = hwe.Value.Contents.Split('\n');
+                        return hardwareInfoLines.Select(hwel =>
+                        {
+                            var nameAndValue = hwel.Split(':');
+
+                            if (nameAndValue.Length != 2)
+                            {
+                                return new KeyValuePair<string, string>();
+                            }
+
+                            return new KeyValuePair<string, string>(nameAndValue.First(), nameAndValue.Last());
+                        });
+                    });
+                })
+                .Where(x => x.Key != default && x.Value != default)
+                .ToList();
         }
 
         private void ListHardwareCommandResponse()
