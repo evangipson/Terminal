@@ -1,7 +1,9 @@
 # Terminal OS
 terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 
-![image](https://github.com/user-attachments/assets/4d4f92c8-3938-4590-8a6f-7b5dafccfe3b)
+<video width="1200" loop="true" autoplay="autoplay" mute>
+  <source src="terminal-os-startup.mp4" type="video/mp4">
+</video>
 
 ## Supported Platforms
 | |Windows|MacOS|Linux|Web|Android|iOS|
@@ -26,6 +28,7 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
     - See previous autocomplete result using shift + tab
 
 ### User Interface Commands
+- Clear the terminal screen using the `clearscreen` command
 - Change the terminal colors using the `color` command
 
 ### Navigation Commands
@@ -68,4 +71,5 @@ terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 ## Configuration
 - Modify config values in real-time by using `edit` on any `.conf` file
     - `/system/config/color.conf` to create/remove colors
+    - `/users/user/config/display.conf` to modify the CRT monitor effect or font size
     - `/users/user/config/user.conf` to modify volume

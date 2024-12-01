@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Godot;
-
+using Terminal.Audio;
 using Terminal.Constants;
 using Terminal.Enums;
 using Terminal.Extensions;
@@ -17,14 +19,21 @@ namespace Terminal.Containers
     /// </summary>
     public partial class ScrollableContainer : VBoxContainer
     {
+        private readonly Random _random = new(DateTime.UtcNow.GetHashCode());
+
         private UserInput _userInput;
         private Theme _defaultUserInputTheme;
         private ConfigService _configService;
         private DirectoryService _directoryService;
         private PersistService _persistService;
         private NetworkService _networkService;
+        private HardDriveSounds _hardDriveSounds;
+        private TurnOnSounds _turnOnSounds;
         private StyleBoxEmpty _emptyStyleBox = new();
         private FileInput _fileInput;
+        private Tween _tween;
+        private bool _shouldShowLoadingMessages = true;
+        private int _bootTime = 0;
 
         public override void _Ready()
         {
@@ -32,6 +41,8 @@ namespace Terminal.Containers
             _configService = GetNode<ConfigService>(ServicePathConstants.ConfigServicePath);
             _persistService = GetNode<PersistService>(ServicePathConstants.PersistServicePath);
             _networkService = GetNode<NetworkService>(ServicePathConstants.NetworkServicePath);
+            _hardDriveSounds = GetNode<HardDriveSounds>(HardDriveSounds.AbsolutePath);
+            _turnOnSounds = GetNode<TurnOnSounds>(TurnOnSounds.AbsolutePath);
             _defaultUserInputTheme = GD.Load<Theme>(ThemePathConstants.MonospaceFontThemePath);
             _userInput = GetNode<UserInput>("UserInput");
             _fileInput = GetNode<FileInput>("%FileInput");
@@ -40,8 +51,15 @@ namespace Terminal.Containers
 
             UpdateThemeFontSize(_configService.FontSize);
             _configService.OnFontSizeConfigChange += UpdateThemeFontSize;
+        }
 
-            AddNewUserInput();
+        public override void _Draw()
+        {
+            if(_shouldShowLoadingMessages)
+            {
+                _ = ShowLoadingMessages();
+                _shouldShowLoadingMessages = false;
+            }
         }
 
         public override void _Input(InputEvent @event)
@@ -62,7 +80,126 @@ namespace Terminal.Containers
             }
         }
 
+        private async Task ShowLoadingMessages()
+        {
+            _turnOnSounds.PlayTurnOnSound();
+
+            _bootTime += 1200;
+            await Task.Delay(1200);
+
+            FadeInScreen();
+
+            _ = _hardDriveSounds.PlayHardDriveSounds(4, 10, 100, 400);
+
+            CreateResponse("                                               ___ ");
+            CreateResponse("                                     _____________ ");
+            CreateResponse("                      ____________________________ ");
+            CreateResponse(" _________________________________________________ ");
+            CreateResponse(@" _____ ___ ___ __ __ _ __  _  __  _      __    __  ");
+            CreateResponse(@"|_   _| __| _ \  V  | |  \| |/  \| |    /__\ /' _/ ");
+            CreateResponse(@"  | | | _|| v / \_/ | | | ' | /\ | |_  | \/ |`._`. ");
+            CreateResponse(@"  |_| |___|_|_\_| |_|_|_|\__|_||_|___|  \__/ |___/ ");
+            CreateResponse(" _________________________________________________ ");
+            CreateResponse("                                     _____________ \n\n");
+
+            _bootTime += 1800;
+            await Task.Delay(1800);
+
+            await ShowDotsResponse(10, 25, "BOOT INITIALIZING");
+            CreateResponse($"\nDOT (C) 2197 Motherboard");
+            CreateResponse($"BIOS Date {DateTime.UtcNow.AddYears(250).ToShortDateString()}\n\n");
+            List<string> hardwareToBoot = new() { "motherboard", "processor", "memory", "input", "storage", "display" };
+            var builder = new StringBuilder();
+            List<string> hardwareBootOutput = new();
+            foreach (var hardware in hardwareToBoot)
+            {
+                var hardwareInfo = GetHardwareDeviceInfo(hardware);
+                foreach (var info in hardwareInfo)
+                {
+                    if(info.Key.Equals("name", StringComparison.OrdinalIgnoreCase) && builder.Length > 0)
+                    {
+                        hardwareBootOutput.Add($"{builder.ToString().TrimEnd()}");
+                        builder.Clear();
+                    }
+
+                    var outputString = info.Key.Equals("name") || info.Key.Equals("manufacturer")
+                        ? $"{info.Value}{(info.Key.Equals("manufacturer") ? "\n" : "")}"
+                        : $"{info.Key.ToUpper()} {info.Value}";
+
+                    builder.Append($"{outputString} ");
+                }
+            }
+
+            _ = _hardDriveSounds.PlayHardDriveSounds();
+            await ShowHardwareBootMessages(hardwareBootOutput);
+            ShowWelcomeMessageAndInput();
+        }
+
+        private async Task ShowHardwareBootMessages(List<string> hardwareBootMessages)
+        {
+            foreach (var message in hardwareBootMessages)
+            {
+                CreateResponse(message);
+                var nextBootTime = GetNextBootTime(50, 500);
+                _ = _hardDriveSounds.PlayHardDriveSounds(1, Math.Min(nextBootTime / 10, 15));
+                await Task.Delay(GetNextBootTime(50, 500));
+                _ = _hardDriveSounds.PlayHardDriveSounds();
+                await ShowDotsResponse();
+            }
+
+            CreateResponse("\nBOOT COMPLETE");
+            CreateResponse($"{_bootTime / 1000.0:F5} SECONDS ELAPSED\n");
+            _ = _hardDriveSounds.PlayHardDriveSounds();
+            await ShowDotsResponse(6, 11, "LOADING USER TERMINAL ", 250, 500);
+        }
+
+        private async Task ShowDotsResponse(int minDots = 3, int maxDots = 20, string initialText = ".", int minDotTime = 25, int maxDotTime = 200)
+        {
+            CreateResponse($"{initialText}");
+
+            var dotsToDraw = _random.Next(minDots, maxDots);
+            var lastResponse = GetLastLabel();
+            foreach (var _ in Enumerable.Range(0, dotsToDraw))
+            {
+                var nextDotWait = GetNextBootTime(minDotTime, maxDotTime);
+                await Task.Delay(nextDotWait);
+                lastResponse.Text += ".";
+            }
+        }
+
+        private Label GetLastLabel() => GetChild<Label>(GetChildCount() - 1);
+
+        private void ShowWelcomeMessageAndInput()
+        {
+            _ = _hardDriveSounds.PlayHardDriveSounds();
+            ClearScreen();
+            CreateResponse($"DOT Personal Computer Terminal OS Version {ProjectSettings.GetSetting("application/config/version")}\n\n");
+            AddNewUserInput();
+        }
+
+        private void ClearScreen()
+        {
+            foreach(var child in GetChildren())
+            {
+                child.QueueFree();
+            }
+        }
+
         private void UpdateThemeFontSize(int fontSize) => _defaultUserInputTheme.DefaultFontSize = fontSize;
+
+        private int GetNextBootTime(int min, int max)
+        {
+            var nextTime = _random.Next(min, max);
+            _bootTime += nextTime;
+            return nextTime;
+        }
+
+        private void FadeInScreen()
+        {
+            Modulate = Colors.Transparent;
+            _tween = CreateTween().SetTrans(Tween.TransitionType.Cubic);
+            _tween.TweenProperty(this, "modulate", Colors.White, _random.Next(3000, 5000) / 1000.0);
+        }
 
         private void AddNewUserInput()
         {
@@ -101,6 +238,7 @@ namespace Terminal.Containers
             newUserInput.EditFileCommand += EditFileCommandResponse;
             newUserInput.ListHardwareCommand += ListHardwareCommandResponse;
             newUserInput.NetworkCommand += NetworkCommandResponse;
+            newUserInput.ClearScreen += ClearScreen;
 
             AddChild(newUserInput);
             newUserInput.Owner = this;
@@ -110,6 +248,12 @@ namespace Terminal.Containers
 
         private void CreateResponse(string message)
         {
+            var randomChanceForLoadingNoise = _random.Next(20) > 16;
+            if(randomChanceForLoadingNoise)
+            {
+                _ = _hardDriveSounds.PlayHardDriveSounds();
+            }
+
             var commandResponse = new Label()
             {
                 Name = $"Response-{GetChildCount()}",
@@ -235,6 +379,37 @@ namespace Terminal.Containers
                 CreateResponse(closeMessage);
             }
             AddNewUserInput();
+        }
+
+        private List<KeyValuePair<string, string>> GetHardwareDeviceInfo(string deviceName)
+        {
+            var deviceDirectory = _directoryService.GetRootDirectory().FindDirectory("system").FindDirectory("device");
+            return deviceDirectory.Entities
+                .Where(entity => entity.IsDirectory && entity.Name.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
+                .SelectMany(entity =>
+                {
+                    var hardwareEntities = entity.Entities
+                        .Where(entity => !entity.IsDirectory)
+                        .Select(hardware => new KeyValuePair<string, DirectoryEntity>(entity.Name, hardware));
+
+                    return hardwareEntities.SelectMany(hwe =>
+                    {
+                        var hardwareInfoLines = hwe.Value.Contents.Split('\n');
+                        return hardwareInfoLines.Select(hwel =>
+                        {
+                            var nameAndValue = hwel.Split(':');
+
+                            if (nameAndValue.Length != 2)
+                            {
+                                return new KeyValuePair<string, string>();
+                            }
+
+                            return new KeyValuePair<string, string>(nameAndValue.First(), nameAndValue.Last());
+                        });
+                    });
+                })
+                .Where(x => x.Key != default && x.Value != default)
+                .ToList();
         }
 
         private void ListHardwareCommandResponse()

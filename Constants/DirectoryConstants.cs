@@ -210,6 +210,11 @@ namespace Terminal.Constants
                 ["COMMAND"] = "vg [viewgroup]",
                 ["REMARKS"] = "Views a user group.",
                 ["EXAMPLES"] = "vg usergroup    : Views the \"usergroup\" user group."
+            },
+            ["clearscreen"] = new()
+            {
+                ["COMMAND"] = "cls [clear] [clearscreen]",
+                ["REMARKS"] = "Clears the terminal screen.",
             }
         };
 
@@ -386,6 +391,7 @@ namespace Terminal.Constants
                     Permissions = _userReadPermissions
                 }
             };
+
             DirectoryFolder deviceInputDirectory = new() { Name = "input", ParentId = systemDeviceDirectory.Id, Permissions = _userReadPermissions };
             deviceInputDirectory.Entities = new()
             {
@@ -397,6 +403,7 @@ namespace Terminal.Constants
                     Permissions = _userReadPermissions
                 }
             };
+
             DirectoryFolder deviceMemoryDirectory = new() { Name = "memory", ParentId = systemDeviceDirectory.Id, Permissions = _userReadPermissions };
             deviceMemoryDirectory.Entities = new()
             {
@@ -429,6 +436,19 @@ namespace Terminal.Constants
                     Permissions = _userReadPermissions
                 },
             };
+
+            DirectoryFolder deviceMotherboardDirectory = new() { Name = "motherboard", ParentId = systemDeviceDirectory.Id, Permissions = _userReadPermissions };
+            deviceMotherboardDirectory.Entities = new()
+            {
+                new DirectoryFile()
+                {
+                    Name = "0",
+                    Contents = "name:BIOS\nmanufacturer:DOT\nversion:0.1.4.1",
+                    ParentId = deviceMotherboardDirectory.Id,
+                    Permissions = _userReadPermissions
+                }
+            };
+
             DirectoryFolder deviceProcessorDirectory = new() { Name = "processor", ParentId = systemDeviceDirectory.Id, Permissions = _userReadPermissions };
             deviceProcessorDirectory.Entities = new()
             {
@@ -440,6 +460,7 @@ namespace Terminal.Constants
                     Permissions = _userReadPermissions
                 }
             };
+
             DirectoryFolder deviceStorageDirectory = new() { Name = "storage", ParentId = systemDeviceDirectory.Id, Permissions = _userReadPermissions };
             deviceStorageDirectory.Entities = new()
             {
@@ -464,6 +485,7 @@ namespace Terminal.Constants
                 deviceDisplayDirectory,
                 deviceInputDirectory,
                 deviceMemoryDirectory,
+                deviceMotherboardDirectory,
                 deviceProcessorDirectory,
                 deviceStorageDirectory
             };
