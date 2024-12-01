@@ -215,6 +215,11 @@ namespace Terminal.Constants
             {
                 ["COMMAND"] = "cls [clear] [clearscreen]",
                 ["REMARKS"] = "Clears the terminal screen.",
+            },
+            ["deletesave"] = new()
+            {
+                ["COMMAND"] = "deletesave",
+                ["REMARKS"] = "Deletes the saved state of the terminal.\nWARNING: There is no recovery of the saved state after running this command."
             }
         };
 

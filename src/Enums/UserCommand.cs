@@ -41,6 +41,7 @@ namespace Terminal.Enums
         DeleteUserFromGroup,
         ViewGroup,
         ClearScreen,
+        DeleteSave,
         Unknown
     };
 }
