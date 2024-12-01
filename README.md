@@ -1,9 +1,7 @@
 # Terminal OS
 terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
 
-<video width="1200" loop="true" autoplay="autoplay" mute>
-  <source src="terminal-os-startup.mp4" type="video/mp4">
-</video>
+https://github.com/user-attachments/assets/3dd76518-b6b1-4403-9dc3-a4ee95be8a44
 
 ## Supported Platforms
 | |Windows|MacOS|Linux|Web|Android|iOS|
