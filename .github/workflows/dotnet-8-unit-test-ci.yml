@@ -1,6 +1,6 @@
 # This workflow will build and test the Terminal.UnitTests .NET 8 project
 
-name: .NET
+name: .NET 8.0 unit tests
 
 on:
   push:

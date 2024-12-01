@@ -90,6 +90,36 @@ namespace Terminal.Services
             SaveDataToFile(_path, _fileName, saveDataJson);
         }
 
+        /// <summary>
+        /// Deletes the save game JSON file, if it exists.
+        /// <para>
+        /// Logs an error if it does not exist.
+        /// </para>
+        /// </summary>
+        public string DeleteSaveGame()
+        {
+            if (!Directory.Exists(_path))
+            {
+                return "Unable to remove saved state, one did not exist.";
+            }
+
+            var saveFileLocation = Path.Join(_path, _fileName);
+            if(!File.Exists(saveFileLocation))
+            {
+                return "Unable to remove saved state, one did not exist.";
+            }
+
+            try
+            {
+                File.Delete(saveFileLocation);
+                return "Saved state deleted.";
+            }
+            catch (Exception)
+            {
+                return "Could not delete saved state.";
+            }
+        }
+
         private void LoadGame()
         {
             var saveDataJson = LoadDataFromFile(_path, _fileName);

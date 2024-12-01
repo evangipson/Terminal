@@ -273,6 +273,7 @@ namespace Terminal.Inputs
                 UserCommand.DeleteUserFromGroup => () => CreateSimpleTerminalResponse(_userService.DeleteUserFromGroup(parsedTokens.Skip(1))),
                 UserCommand.ViewGroup => () => CreateSimpleTerminalResponse(_userService.ViewUserGroup(parsedTokens.Take(2).Last())),
                 UserCommand.ClearScreen => () => EmitSignal(SignalName.ClearScreen),
+                UserCommand.DeleteSave => () => CreateSimpleTerminalResponse(_persistService.DeleteSaveGame()),
                 _ => () => CreateSimpleTerminalResponse($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.")
             };
         }

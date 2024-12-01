@@ -1,5 +1,7 @@
+![Unit Tests](https://github.com/evangipson/terminal-os/actions/workflows/dotnet-8-unit-test-ci.yml/badge.svg)
+
 # Terminal OS
-terminal_os is a terminal game written in the Godot engine using .NET 8 and C#.
+Terminal OS is a terminal game written in the Godot engine using .NET 8 and C#.
 
 https://github.com/user-attachments/assets/3dd76518-b6b1-4403-9dc3-a4ee95be8a44
 
@@ -11,7 +13,7 @@ https://github.com/user-attachments/assets/3dd76518-b6b1-4403-9dc3-a4ee95be8a44
 
 ## Features
 ### Informational Commands
-- View all the commands for terminal_os using the `commands` command
+- View all the commands using the `commands` command
 - Get help about any command using the `help` command
 - See the contents of any directory using the `list` command
 - List the hardware using the `listhardware` command
@@ -21,6 +23,8 @@ https://github.com/user-attachments/assets/3dd76518-b6b1-4403-9dc3-a4ee95be8a44
 
 ### State Commands
 - Save your game by using the `save` command
+- Delete your save game by using the `deletesave` command
+    - Warning: This command will remove save game; it is not recoverable
 - Exit the terminal using the `exit` command
 - Contextual autocomplete for commands by pressing tab
     - See previous autocomplete result using shift + tab
@@ -71,3 +75,18 @@ https://github.com/user-attachments/assets/3dd76518-b6b1-4403-9dc3-a4ee95be8a44
     - `/system/config/color.conf` to create/remove colors
     - `/users/user/config/display.conf` to modify the CRT monitor effect or font size
     - `/users/user/config/user.conf` to modify volume
+
+## Contributing
+### Coding Style
+- All `public` and `protected` methods and properties must be documented
+- Prefer using a `static` `class` which can be unit tested to accomplish small chunks of functionality instead of making everything a `Node`
+- Each `class` without a reference to Godot will have a unit test written for it in the `Terminal.UnitTests` project
+
+### Development Examples
+#### Adding a command
+1. Add the command to the `UserCommand` `enum` in `UserCommand.cs`
+1. Add the output for `help` for the new command by creating a new entry in the `AllDefaultCommands` property in `DirectoryConstants.cs`
+    - This will also create an executable for the command inside of `/system/programs/`
+1. Add the characters to trigger the command in the `EvaluateToken` method in `UserCommandService.cs`
+1. Add the help routing in the `EvaluateHelpCommand` method in `UserCommandService.cs`
+1. Add the functionality of the command in the `RouteCommand` method in `UserInput.cs`

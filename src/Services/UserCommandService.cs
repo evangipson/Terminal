@@ -105,6 +105,7 @@ namespace Terminal.Services
             "dug" or "removeuser" or "deleteuserfromgroup" => UserCommand.DeleteUserFromGroup,
             "vg" or "viewgroup" => UserCommand.ViewGroup,
             "cls" or "clear" or "clearscreen" => UserCommand.ClearScreen,
+            "deletesave" => UserCommand.DeleteSave,
             _ => UserCommand.Unknown
         };
 
@@ -199,6 +200,7 @@ namespace Terminal.Services
                 UserCommand.DeleteUserFromGroup => GetOutputFromTokens(AllCommands["deleteuserfromgroup"]),
                 UserCommand.ViewGroup => GetOutputFromTokens(AllCommands["viewgroup"]),
                 UserCommand.ClearScreen => GetOutputFromTokens(AllCommands["clearscreen"]),
+                UserCommand.DeleteSave => GetOutputFromTokens(AllCommands["deletesave"]),
                 _ => string.Empty
             };
         }
