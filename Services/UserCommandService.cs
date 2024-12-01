@@ -104,6 +104,7 @@ namespace Terminal.Services
             "aug" or "adduser" or "addusertogroup" => UserCommand.AddUserToGroup,
             "dug" or "removeuser" or "deleteuserfromgroup" => UserCommand.DeleteUserFromGroup,
             "vg" or "viewgroup" => UserCommand.ViewGroup,
+            "cls" or "clear" or "clearscreen" => UserCommand.ClearScreen,
             _ => UserCommand.Unknown
         };
 
@@ -197,6 +198,7 @@ namespace Terminal.Services
                 UserCommand.AddUserToGroup => GetOutputFromTokens(AllCommands["addusertogroup"]),
                 UserCommand.DeleteUserFromGroup => GetOutputFromTokens(AllCommands["deleteuserfromgroup"]),
                 UserCommand.ViewGroup => GetOutputFromTokens(AllCommands["viewgroup"]),
+                UserCommand.ClearScreen => GetOutputFromTokens(AllCommands["clearscreen"]),
                 _ => string.Empty
             };
         }

@@ -197,6 +197,7 @@ namespace Terminal.Containers
             newUserInput.EditFileCommand += EditFileCommandResponse;
             newUserInput.ListHardwareCommand += ListHardwareCommandResponse;
             newUserInput.NetworkCommand += NetworkCommandResponse;
+            newUserInput.ClearScreen += ClearScreen;
 
             AddChild(newUserInput);
             newUserInput.Owner = this;

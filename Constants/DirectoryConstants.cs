@@ -210,6 +210,11 @@ namespace Terminal.Constants
                 ["COMMAND"] = "vg [viewgroup]",
                 ["REMARKS"] = "Views a user group.",
                 ["EXAMPLES"] = "vg usergroup    : Views the \"usergroup\" user group."
+            },
+            ["clearscreen"] = new()
+            {
+                ["COMMAND"] = "cls [clear] [clearscreen]",
+                ["REMARKS"] = "Clears the terminal screen.",
             }
         };
 

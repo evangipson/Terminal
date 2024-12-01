@@ -65,6 +65,12 @@ namespace Terminal.Inputs
         [Signal]
         public delegate void NetworkCommandEventHandler();
 
+        /// <summary>
+        /// The <see cref="Signal"/> that broadcasts when the <see cref="UserCommand.ClearScreen"/> command is invoked.
+        /// </summary>
+        [Signal]
+        public delegate void ClearScreenEventHandler();
+
         private static readonly List<UserCommand> _commandsThatNeedAdditionalArguments = new()
         {
             UserCommand.Color,
@@ -266,6 +272,7 @@ namespace Terminal.Inputs
                 UserCommand.AddUserToGroup => () => CreateSimpleTerminalResponse(_userService.AddUserToGroup(parsedTokens.Skip(1))),
                 UserCommand.DeleteUserFromGroup => () => CreateSimpleTerminalResponse(_userService.DeleteUserFromGroup(parsedTokens.Skip(1))),
                 UserCommand.ViewGroup => () => CreateSimpleTerminalResponse(_userService.ViewUserGroup(parsedTokens.Take(2).Last())),
+                UserCommand.ClearScreen => () => EmitSignal(SignalName.ClearScreen),
                 _ => () => CreateSimpleTerminalResponse($"\"{parsedTokens.First()}\" is an unknown command. Use \"commands\" to get a list of available commands.")
             };
         }

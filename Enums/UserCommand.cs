@@ -40,6 +40,7 @@ namespace Terminal.Enums
         AddUserToGroup,
         DeleteUserFromGroup,
         ViewGroup,
+        ClearScreen,
         Unknown
     };
 }
