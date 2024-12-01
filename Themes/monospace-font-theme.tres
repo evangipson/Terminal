@@ -1,7 +1,0 @@
-[gd_resource type="Theme" load_steps=2 format=3 uid="uid://cvvwknver7ddr"]
-
-[ext_resource type="FontFile" uid="uid://c4avifkpbwf3b" path="res://Fonts/Agave-Regular.ttf" id="1_v8c43"]
-
-[resource]
-default_font = ExtResource("1_v8c43")
-default_font_size = 36

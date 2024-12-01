@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3 uid="uid://vu437t7g2cwv"]
+
+[ext_resource type="Theme" uid="uid://cvvwknver7ddr" path="res://src/Themes/monospace-font-theme.tres" id="1_3umf7"]
+[ext_resource type="Script" path="res://src/Containers/WelcomeScreenContainer.cs" id="1_a2562"]
+
+[node name="WelcomeScreen" type="CanvasLayer"]
+
+[node name="WelcomeScreenContainer" type="BoxContainer" parent="."]
+show_behind_parent = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_a2562")
+
+[node name="Background" type="ColorRect" parent="WelcomeScreenContainer"]
+show_behind_parent = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("1_3umf7")
+color = Color(0.0646965, 0.0646965, 0.0646965, 1)
+
+[node name="WelcomeLabel" type="Label" parent="WelcomeScreenContainer/Background"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -448.0
+offset_top = -84.0
+offset_right = 448.0
+offset_bottom = 72.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_3umf7")
+theme_override_colors/font_color = Color(0.215686, 0.478431, 0.109804, 1)
+theme_override_font_sizes/font_size = 120
+text = "terminal_os"
+vertical_alignment = 1
+visible_characters = 0
+visible_ratio = 0.0
