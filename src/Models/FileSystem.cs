@@ -15,7 +15,7 @@ namespace Terminal.Models
         /// <summary>
         /// A collection of <see cref="DirectoryEntity"/> that represents the structure of the file system.
         /// </summary>
-        public List<DirectoryEntity> Directories { get; set; } = new();
+        public List<DirectoryEntity> Directories { get; set; } = [];
 
         /// <summary>
         /// A unique identifier of the current directory.
@@ -63,10 +63,10 @@ namespace Terminal.Models
         {
             if (directory?.IsDirectory != true)
             {
-                return new() { Root };
+                return [Root];
             }
 
-            List<DirectoryEntity> directoryPath = new();
+            List<DirectoryEntity> directoryPath = [];
             var foundDirectory = directory;
             while (foundDirectory != null)
             {
@@ -89,7 +89,7 @@ namespace Terminal.Models
         /// </returns>
         private List<DirectoryEntity> GetAbsoluteEntity(DirectoryEntity entity)
         {
-            List<DirectoryEntity> directoryPath = new();
+            List<DirectoryEntity> directoryPath = [];
             var foundEntity = entity;
             while (foundEntity != null)
             {

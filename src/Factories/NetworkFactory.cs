@@ -57,11 +57,11 @@ namespace Terminal.Factories
                 return bytes;
             }
 
-            List<byte> loopbackBytes = new() { 0xFE, 0x80, (byte)_random.Next(), (byte)_random.Next() };
+            List<byte> loopbackBytes = [0xFE, 0x80, (byte)_random.Next(), (byte)_random.Next()];
             byte[] otherBytes = new byte[12];
             _random.NextBytes(otherBytes);
 
-            return loopbackBytes.Concat(otherBytes).ToArray();
+            return [.. loopbackBytes, .. otherBytes];
         }
     }
 }

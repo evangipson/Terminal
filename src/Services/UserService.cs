@@ -94,7 +94,7 @@ namespace Terminal.Services
             {
                 Name = groupName,
                 ParentId = rootUserGroupsDirectory.Id,
-                Permissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead, Permission.UserWrite }
+                Permissions = [Permission.AdminRead, Permission.AdminWrite, Permission.UserRead, Permission.UserWrite]
             });
             return $"\"{groupName}\" user group created.";
         }
@@ -150,7 +150,7 @@ namespace Terminal.Services
             {
                 Name = userName,
                 ParentId = groupDirectory.Id,
-                Permissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead, Permission.UserWrite }
+                Permissions = [Permission.AdminRead, Permission.AdminWrite, Permission.UserRead, Permission.UserWrite]
             };
             groupDirectory.Entities.Add(userGroupFile);
             return $"\"{userName}\" added to the \"{groupName}\" user group.";

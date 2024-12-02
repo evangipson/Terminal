@@ -70,7 +70,7 @@ namespace Terminal.Services
                 SetCurrentDirectory(GetRootDirectory());
             }
 
-            List<string> directoryTokensInPath = newDirectoryPath.Split('/').ToList();
+            List<string> directoryTokensInPath = [.. newDirectoryPath.Split('/')];
             DirectoryEntity newCurrentDirectory = GetCurrentDirectory().FindDirectory(directoryTokensInPath.LastOrDefault().TrimEnd('/'));
             newCurrentDirectory ??= GetRootDirectory().FindDirectory(newDirectoryPath.TrimEnd('/'));
 
@@ -347,7 +347,7 @@ namespace Terminal.Services
             var newFile = new DirectoryFile()
             {
                 ParentId = GetCurrentDirectory().Id,
-                Permissions = new() { Permission.UserRead, Permission.UserWrite }
+                Permissions = [Permission.UserRead, Permission.UserWrite]
             };
 
             var name = fileName;
@@ -467,7 +467,7 @@ namespace Terminal.Services
             var newDirectory = new DirectoryFolder()
             {
                 Name = directoryName,
-                Permissions = new() { Permission.UserRead, Permission.UserWrite },
+                Permissions = [Permission.UserRead, Permission.UserWrite],
                 ParentId = GetCurrentDirectory().Id
             };
 
@@ -507,7 +507,7 @@ namespace Terminal.Services
             }
 
             var recurse = arguments.Contains("-r") || arguments.Contains("--recurse");
-            if (recurse == false && existingDirectory.Entities.Any())
+            if (recurse == false && existingDirectory.Entities.Count > 0)
             {
                 return $"Cannot delete the \"{directoryName}\" directory, it has files or folders in it.";
             }
@@ -600,13 +600,7 @@ namespace Terminal.Services
             return $"\"{directoryToMove}\" moved to \"{destinationDirectory}\".";
         }
 
-        private void DeleteEntity(DirectoryEntity entity)
-        {
-            if(GetCurrentDirectory().Entities.Contains(entity))
-            {
-                GetCurrentDirectory().Entities.Remove(entity);
-            }
-        }
+        private void DeleteEntity(DirectoryEntity entity) => GetCurrentDirectory().Entities.Remove(entity);
 
         private void MoveEntity(DirectoryEntity entity, DirectoryEntity destination)
         {

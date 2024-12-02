@@ -14,15 +14,15 @@ namespace Terminal.Services
     /// </summary>
     public partial class PermissionsService : Node
     {
-        private static readonly List<Permission> _permissionsDisplayMap = new()
-        {
+        private static readonly List<Permission> _permissionsDisplayMap =
+        [
             Permission.UserRead,
             Permission.UserWrite,
             Permission.UserExecutable,
             Permission.AdminRead,
             Permission.AdminWrite,
             Permission.AdminExecutable
-        };
+        ];
 
         private DirectoryService _directoryService;
 
@@ -148,7 +148,7 @@ namespace Terminal.Services
                 return null;
             }
 
-            List<Permission> newPermissions = new();
+            List<Permission> newPermissions = [];
             for (var i = newPermissionChars.Length - 1; i >= 0; i--)
             {
                 if (newPermissionChars[i] != '1')
@@ -159,7 +159,7 @@ namespace Terminal.Services
                 newPermissions.Add(_permissionsDisplayMap.ElementAt(i));
             };
 
-            if(!newPermissions.Any())
+            if(newPermissions.Count == 0)
             {
                 newPermissions.Add(Permission.None);
             }

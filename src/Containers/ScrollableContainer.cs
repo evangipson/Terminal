@@ -109,9 +109,9 @@ namespace Terminal.Containers
             await ShowDotsResponse(10, 25, "BOOT INITIALIZING");
             CreateResponse($"\nDOT (C) 2197 Motherboard");
             CreateResponse($"BIOS Date {DateTime.UtcNow.AddYears(250).ToShortDateString()}\n\n");
-            List<string> hardwareToBoot = new() { "motherboard", "processor", "memory", "input", "storage", "display" };
+            List<string> hardwareToBoot = ["motherboard", "processor", "memory", "input", "storage", "display"];
             var builder = new StringBuilder();
-            List<string> hardwareBootOutput = new();
+            List<string> hardwareBootOutput = [];
             foreach (var hardware in hardwareToBoot)
             {
                 var hardwareInfo = GetHardwareDeviceInfo(hardware);
@@ -452,20 +452,20 @@ namespace Terminal.Containers
                 return new KeyValuePair<string, List<IEnumerable<string>>>(entity.Name, hardwareEntityList);
             }).ToList();
 
-            List<Tuple<string, string, string>> hardwareColumnsOutput = new()
-            {
+            List<Tuple<string, string, string>> hardwareColumnsOutput =
+            [
                 new("Device", "Class", "Manufacturer"),
-                new("------", "-----", "------------")
-            };
-            hardwareColumnsOutput.AddRange(hardwareResponse.SelectMany(hwr =>
-            {
-                var device = $"{hwr.Key}";
-                return hwr.Value.Select(hwri => new Tuple<string, string, string>(
-                    device,
-                    hwri.First(x => x.Contains("name:")).Split(':').Last().Trim(),
-                    hwri.First(x => x.Contains("manufacturer:")).Split(':').Last().Trim()
-                ));
-            }).ToList());
+                new("------", "-----", "------------"),
+                .. hardwareResponse.SelectMany(hwr =>
+                {
+                    var device = $"{hwr.Key}";
+                    return hwr.Value.Select(hwri => new Tuple<string, string, string>(
+                        device,
+                        hwri.First(x => x.Contains("name:")).Split(':').Last().Trim(),
+                        hwri.First(x => x.Contains("manufacturer:")).Split(':').Last().Trim()
+                    ));
+                }).ToList(),
+            ];
 
             //var deviceList = hardwareResponse.Select(hwr => $"{hwr.Key}\n{string.Concat(hwr.Key.Select(hwrc => '-'))}\n{string.Join("\n\n", hwr.Value.Select(hwri => string.Join('\n', hwri)))}");
             CreateResponse(string.Join("\n", hardwareColumnsOutput.Select(hardwareOutputTuple => $"{hardwareOutputTuple.Item1,-15}{hardwareOutputTuple.Item2,-15}{hardwareOutputTuple.Item3}")));
@@ -477,22 +477,22 @@ namespace Terminal.Containers
             var networkResponse = networkDirectory.Entities.Where(entity => !entity.IsDirectory).Select(entity =>
             {
                 var networkEntityList = entity.Contents.Split('\n');
-                return new KeyValuePair<string, List<string>>(entity.Name, networkEntityList.ToList());
+                return new KeyValuePair<string, List<string>>(entity.Name, [.. networkEntityList]);
             }).ToList();
 
-            List<Tuple<string, string, string, string>> networkColumnsOutput = new()
-            {
+            List<Tuple<string, string, string, string>> networkColumnsOutput =
+            [
                 new("Name", "Device", "Address (ipv6)", "Address (ipv8)"),
-                new("----", "------", "--------------", "--------------")
-            };
-            networkColumnsOutput.AddRange(networkResponse.Select(nri =>
-            {
-                var name = $"{nri.Key}";
-                var device = $"{nri.Value.First(value => value.Contains("device:")).Replace("device:", string.Empty).Trim()}";
-                var ipv6 = $"{nri.Value.First(value => value.Contains("ipv6:")).Replace("ipv6:", string.Empty).Trim()}";
-                var ipv8 = $"{nri.Value.First(value => value.Contains("ipv8:")).Replace("ipv8:", string.Empty).Trim()}";
-                return new Tuple<string, string, string, string>(name, device, ipv6, ipv8);
-            }).ToList());
+                new("----", "------", "--------------", "--------------"),
+                .. networkResponse.Select(nri =>
+                {
+                    var name = $"{nri.Key}";
+                    var device = $"{nri.Value.First(value => value.Contains("device:")).Replace("device:", string.Empty).Trim()}";
+                    var ipv6 = $"{nri.Value.First(value => value.Contains("ipv6:")).Replace("ipv6:", string.Empty).Trim()}";
+                    var ipv8 = $"{nri.Value.First(value => value.Contains("ipv8:")).Replace("ipv8:", string.Empty).Trim()}";
+                    return new Tuple<string, string, string, string>(name, device, ipv6, ipv8);
+                }).ToList(),
+            ];
 
             CreateResponse(string.Join("\n", networkColumnsOutput.Select(networkOutput => $"{networkOutput.Item1,-10}{networkOutput.Item2,-10}{networkOutput.Item3,-24}{networkOutput.Item4}")));
         }

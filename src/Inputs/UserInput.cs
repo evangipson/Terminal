@@ -71,8 +71,8 @@ namespace Terminal.Inputs
         [Signal]
         public delegate void ClearScreenEventHandler();
 
-        private static readonly List<UserCommand> _commandsThatNeedAdditionalArguments = new()
-        {
+        private static readonly List<UserCommand> _commandsThatNeedAdditionalArguments =
+        [
             UserCommand.Color,
             UserCommand.ChangeDirectory,
             UserCommand.ViewFile,
@@ -93,13 +93,13 @@ namespace Terminal.Inputs
             UserCommand.AddUserToGroup,
             UserCommand.DeleteUserFromGroup,
             UserCommand.ViewGroup
-        };
+        ];
 
-        private static readonly List<UserCommand> _interactiveResponseCommands = new()
-        {
+        private static readonly List<UserCommand> _interactiveResponseCommands =
+        [
             UserCommand.EditFile,
             UserCommand.Ping
-        };
+        ];
 
         private KeyboardSounds _keyboardSounds;
         private PersistService _persistService;

@@ -128,7 +128,7 @@ namespace Terminal.Services
             }
 
             var configFileData = configFile.Contents.Contains('\n')
-                ? configFile.Contents.Split('\n').ToList()
+                ? [.. configFile.Contents.Split('\n')]
                 : new List<string>() { configFile.Contents };
 
             if (configFileData.Count == 0)
@@ -201,10 +201,10 @@ namespace Terminal.Services
             return allColors;
         }
 
-        private int GetLatestVolumeConfig() => UserConfig.GetLatestIntegerConfig(ConfigConstants.VolumeConfigKey, ConfigConstants.UserConfigFileName);
+        private int GetLatestVolumeConfig() => UserConfig.GetLatestIntegerConfig(ConfigConstants.VolumeConfigKey);
 
-        private int GetLatestMonitorIntensityConfig() => DisplayConfig.GetLatestIntegerConfig(ConfigConstants.MonitorShaderIntensityConfigKey, ConfigConstants.DisplayConfigFileName);
+        private int GetLatestMonitorIntensityConfig() => DisplayConfig.GetLatestIntegerConfig(ConfigConstants.MonitorShaderIntensityConfigKey);
 
-        private int GetLatestFontSizeConfig() => DisplayConfig.GetLatestIntegerConfig(ConfigConstants.FontSizeConfigKey, ConfigConstants.DisplayConfigFileName, 36, 8);
+        private int GetLatestFontSizeConfig() => DisplayConfig.GetLatestIntegerConfig(ConfigConstants.FontSizeConfigKey, 36, 8);
     }
 }

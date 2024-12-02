@@ -14,7 +14,7 @@ namespace Terminal.UnitTests.Extensions
                 [testKey] = $"{expected}"
             };
 
-            var result = testConfig.GetLatestIntegerConfig(testKey, "config.conf");
+            var result = testConfig.GetLatestIntegerConfig(testKey);
 
             Assert.Equal(expected, result);
         }
@@ -29,7 +29,7 @@ namespace Terminal.UnitTests.Extensions
                 [testKey] = "not-a-number"
             };
 
-            var result = testConfig.GetLatestIntegerConfig(testKey, "config.conf", expectedDefault);
+            var result = testConfig.GetLatestIntegerConfig(testKey, expectedDefault);
 
             Assert.Equal(expectedDefault, result);
         }
@@ -40,7 +40,7 @@ namespace Terminal.UnitTests.Extensions
             var expectedDefault = 200;
             Dictionary<string, string>? testConfig = null;
 
-            var result = testConfig.GetLatestIntegerConfig("some-key", "config.conf", expectedDefault);
+            var result = testConfig.GetLatestIntegerConfig("some-key", expectedDefault);
 
             Assert.Equal(expectedDefault, result);
         }

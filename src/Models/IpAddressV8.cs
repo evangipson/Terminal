@@ -60,6 +60,13 @@ namespace Terminal.Models
         public static bool TryParse<T>(T input, out IpAddressV8 address)
         {
             address = default;
+
+            if(input.ToString().ToLower().StartsWith("loop") && input.ToString().Length >= 16)
+            {
+                address = new(input.ToString());
+                return true;
+            }
+
             try
             {
                 byte[] inputBytes = ASCIIEncoding.ASCII.GetBytes(input.ToString());

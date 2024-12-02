@@ -61,7 +61,7 @@ namespace Terminal.Services
         /// <returns>
         /// A list of <see langword="string"/> tokens from the provided <paramref name="userInput"/>.
         /// </returns>
-        public static List<string> ParseInputToTokens(string userInput) => userInput.Split(' ').ToList();
+        public static List<string> ParseInputToTokens(string userInput) => [.. userInput.Split(' ')];
 
         /// <summary>
         /// Evaluates the provided <paramref name="token"/> and returns a <see cref="UserCommand"/>.
