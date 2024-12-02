@@ -41,16 +41,16 @@ namespace Terminal.Services
 
         private static readonly Dictionary<string, List<string>> _networkCommandFlags = new()
         {
-            ["active"] = new() { "-a", "--active" },
-            ["noname"] = new() { "-nn", "--no-name" },
-            ["nodevice"] = new() { "-nd", "--no-device" },
-            ["noaddress"] = new() { "-na", "--no-address" },
-            ["ipv8"] = new() { "-v8", "--ipv8" },
+            ["active"] = ["-a", "--active"],
+            ["noname"] = ["-nn", "--no-name"],
+            ["nodevice"] = ["-nd", "--no-device"],
+            ["noaddress"] = ["-na", "--no-address"],
+            ["ipv8"] = ["-v8", "--ipv8"]
         };
         private static readonly Dictionary<string, List<string>> _pingCommandFlags = new()
         {
-            ["ipv8"] = new() { "-v8", "--ipv8" },
-            ["ipv6"] = new() { "-v6", "--ipv6" },
+            ["ipv8"] = ["-v8", "--ipv8"],
+            ["ipv6"] = ["-v6", "--ipv6"]
         };
         private const int nameColumnLength = -10;
         private const int deviceColumnLength = -8;
@@ -81,7 +81,7 @@ namespace Terminal.Services
                 var networkResponse = networkDirectory.Entities.Where(entity => !entity.IsDirectory).Select(entity =>
                 {
                     var networkEntityList = entity.Contents.Split('\n');
-                    return new KeyValuePair<string, List<string>>(entity.Name, networkEntityList.ToList());
+                    return new KeyValuePair<string, List<string>>(entity.Name, [.. networkEntityList]);
                 }).ToList();
 
                 return new Dictionary<string, List<string>>(networkResponse);
@@ -104,7 +104,7 @@ namespace Terminal.Services
             var showIpv6 = !hideAddresses && !showIpv8;
 
             // if there was an unexpected argument, tell the user
-            List<string> unrecognizedArgs = new();
+            List<string> unrecognizedArgs = [];
             foreach (var argument in arguments)
             {
                 if (_networkCommandFlags.Values.All(flag => !flag.Contains(argument)))
@@ -113,7 +113,7 @@ namespace Terminal.Services
                 }
             }
 
-            if (unrecognizedArgs.Any())
+            if (unrecognizedArgs.Count > 0)
             {
                 OnShowNetwork?.Invoke($"\"{unrecognizedArgs.First()}\" is an invalid argument for the \"network\" command. Use \"help network\" to see valid arguments.");
                 return;
@@ -130,46 +130,46 @@ namespace Terminal.Services
                 return new NetworkResponse(name, device, ipv6, ipv8, active);
             }).ToList();
 
-            List<string> columnTitles = new()
-            {
+            List<string> columnTitles =
+            [
                 showName ? $"{"Name", nameColumnLength}" : string.Empty,
                 showDevice ? $"{"Device", deviceColumnLength}" : string.Empty,
                 showIpv6 ? $"{"Address (ipv6)", ipv6ColumnLength}" : string.Empty,
                 showIpv8 ? $"{"Address (ipv8)", ipv8ColumnLength}" : string.Empty,
                 showActive ? $"{"Active", activeColumnLength}" : string.Empty,
-            };
-            List<string> columnRowSeperators = new()
-            {
+            ];
+            List<string> columnRowSeperators =
+            [
                 showName ? "═".Repeat(nameColumnLength * -1) : string.Empty,
                 showDevice ? "═".Repeat(deviceColumnLength * -1) : string.Empty,
                 showIpv6 ? "═".Repeat(ipv6ColumnLength * -1) : string.Empty,
                 showIpv8 ? "═".Repeat(ipv8ColumnLength * -1) : string.Empty,
                 showActive ? "═".Repeat(activeColumnLength * -1) : string.Empty,
-            };
+            ];
 
-            List<string> output = new()
-            {
+            List<string> output =
+            [
                 string.Join("═══", columnRowSeperators.Where(columnRow => !string.IsNullOrEmpty(columnRow))),
                 string.Join("   ", columnTitles.Where(columnTitle => !string.IsNullOrEmpty(columnTitle))),
                 string.Join("═╤═", columnRowSeperators.Where(columnRow => !string.IsNullOrEmpty(columnRow)))
-            };
+            ];
 
             foreach (var networkResponse in networkResponses)
             {
-                List<string> dataRow = new()
-                {
+                List<string> dataRow =
+                [
                     showName ? $"{networkResponse.Name, nameColumnLength}" : string.Empty,
                     showDevice ? $"{networkResponse.Device, deviceColumnLength}" : string.Empty,
                     showIpv6 ? $"{networkResponse.Ipv6Address, ipv6ColumnLength}" : string.Empty,
                     showIpv8 ? $"{networkResponse.Ipv8Address, ipv8ColumnLength}" : string.Empty,
                     showActive ? $"{networkResponse.IsActive.ToString().ToLowerInvariant(), activeColumnLength}" : string.Empty,
-                };
+                ];
 
                 output.Add(string.Join(" │ ", dataRow.Where(row => !string.IsNullOrEmpty(row))));
             }
             output.Add(string.Join("═╧═", columnRowSeperators.Where(columnRow => !string.IsNullOrEmpty(columnRow))));
 
-            List<string> wrappedOutput = new() { $"╔═{output.First(line => !string.IsNullOrEmpty(line))}═╗" };
+            List<string> wrappedOutput = [$"╔═{output.First(line => !string.IsNullOrEmpty(line))}═╗"];
             for (var line = 1; line < output.Count - 1; line++)
             {
                 if (line == 2)
@@ -199,7 +199,7 @@ namespace Terminal.Services
             var pingOnlyIpv8 = _pingCommandFlags["ipv8"].Any(flag => arguments.Contains(flag));
 
             // if there was an unexpected argument, tell the user
-            List<string> unrecognizedArgs = new();
+            List<string> unrecognizedArgs = [];
             foreach (var argument in arguments)
             {
                 if (_pingCommandFlags.Values.All(flag => !flag.Contains(argument)))
@@ -208,7 +208,7 @@ namespace Terminal.Services
                 }
             }
 
-            if (unrecognizedArgs.Any())
+            if (unrecognizedArgs.Count > 0)
             {
                 OnPingDone?.Invoke($"\"{unrecognizedArgs.First()}\" is an invalid argument for the \"ping\" command. Use \"help ping\" to see valid arguments.");
                 return;

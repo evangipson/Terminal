@@ -10,7 +10,7 @@ namespace Terminal.Extensions
     public static class ConfigFileExtensions
     {
         /// <summary>
-        /// Gets a clamped integer config value associated with the provided <paramref name="configKey"/> from the <paramref name="configFileName"/> config file.
+        /// Gets a clamped integer config value associated with the provided <paramref name="configKey"/>.
         /// <para>
         /// The minimum value will be <paramref name="minValue"/>, and the maximum value will be <paramref name="defaultValue"/>.
         /// </para>
@@ -20,9 +20,6 @@ namespace Terminal.Extensions
         /// </param>
         /// <param name="configKey">
         /// The key of the desired config from the config file.
-        /// </param>
-        /// <param name="configFileName">
-        /// The name of the config file, used for logging.
         /// </param>
         /// <param name="defaultValue">
         /// A default value to return when unable to parse the config file. Also used as the maximum value for clamping the config value.
@@ -39,7 +36,7 @@ namespace Terminal.Extensions
         /// <returns>
         /// An <see langword="int"/> value from the <paramref name="targetConfig"/>, clamped between <paramref name="minValue"/> and <paramref name="defaultValue"/>.
         /// </returns>
-        public static int GetLatestIntegerConfig(this Dictionary<string, string> targetConfig, string configKey, string configFileName, int defaultValue = 100, int minValue = 0)
+        public static int GetLatestIntegerConfig(this Dictionary<string, string> targetConfig, string configKey, int defaultValue = 100, int minValue = 0)
         {
             if (targetConfig == null)
             {

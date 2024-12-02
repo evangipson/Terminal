@@ -13,8 +13,8 @@ namespace Terminal.Constants
         /// <summary>
         /// A collection of <see cref="ShaderParameter"/> used by the <see cref="Monitor"/> shader.
         /// </summary>
-        public static readonly List<ShaderParameter> ShaderParameters = new()
-        {
+        public static readonly List<ShaderParameter> ShaderParameters =
+        [
             new()
             {
                 Name = "grille_opacity",
@@ -60,6 +60,6 @@ namespace Terminal.Constants
                 Name = "distort_intensity",
                 MaxValue = 0.018
             }
-        };
+        ];
     }
 }

@@ -223,10 +223,10 @@ namespace Terminal.Constants
             }
         };
 
-        private static readonly List<Permission> _adminReadWritePermissions = new() { Permission.AdminRead, Permission.AdminWrite };
-        private static readonly List<Permission> _userReadWritePermissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead, Permission.UserWrite };
-        private static readonly List<Permission> _userReadPermissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.UserRead };
-        private static readonly List<Permission> _userExecutablePermissions = new() { Permission.AdminRead, Permission.AdminWrite, Permission.AdminExecutable, Permission.UserRead, Permission.UserExecutable };
+        private static readonly List<Permission> _adminReadWritePermissions = [Permission.AdminRead, Permission.AdminWrite];
+        private static readonly List<Permission> _userReadWritePermissions = [Permission.AdminRead, Permission.AdminWrite, Permission.UserRead, Permission.UserWrite];
+        private static readonly List<Permission> _userReadPermissions = [Permission.AdminRead, Permission.AdminWrite, Permission.UserRead];
+        private static readonly List<Permission> _userExecutablePermissions = [Permission.AdminRead, Permission.AdminWrite, Permission.AdminExecutable, Permission.UserRead, Permission.UserExecutable];
 
         /// <summary>
         /// Gets the default directory structure of the file system, filled with all required system files and a user directory.
@@ -240,16 +240,16 @@ namespace Terminal.Constants
             DirectoryFolder rootSystemDirectory = new() { Name = "system", ParentId = rootDirectory.Id, Permissions = _userReadPermissions };
             DirectoryFolder rootUsersDirectory = new() { Name = "users", ParentId = rootDirectory.Id, Permissions = _userReadPermissions };
             DirectoryFolder rootTempDirectory = new() { Name = "temp", ParentId = rootDirectory.Id, Permissions = _userReadPermissions };
-            rootDirectory.Entities = new()
-            {
+            rootDirectory.Entities =
+            [
                 rootSystemDirectory,
                 rootUsersDirectory,
                 rootTempDirectory
-            };
+            ];
 
             DirectoryFolder systemConfigDirectory = new() { Name = "config", ParentId = rootSystemDirectory.Id, Permissions = _userReadPermissions };
-            systemConfigDirectory.Entities = new()
-            {
+            systemConfigDirectory.Entities =
+            [
                 new DirectoryFile()
                 {
                     Name = ConfigConstants.ColorConfigName,
@@ -258,12 +258,12 @@ namespace Terminal.Constants
                     ParentId = systemConfigDirectory.Id,
                     Permissions = _userReadWritePermissions
                 }
-            };
+            ];
 
             DirectoryEntity systemDeviceDirectory = GetDefaultSystemDeviceDirectory(rootSystemDirectory.Id);
             DirectoryFolder systemNetworkDirectory = new() { Name = "network", ParentId = rootSystemDirectory.Id, Permissions = _userReadPermissions };
-            systemNetworkDirectory.Entities = new()
-            {
+            systemNetworkDirectory.Entities =
+            [
                 new DirectoryFile()
                 {
                     Name = "ethernet",
@@ -278,7 +278,7 @@ namespace Terminal.Constants
                     ParentId = systemNetworkDirectory.Id,
                     Permissions = _adminReadWritePermissions
                 }
-            };
+            ];
 
             // Fill the "/system/programs/" folder with all commands as executable files
             DirectoryFolder systemProgramsDirectory = new() { Name = "programs", ParentId = rootSystemDirectory.Id, Permissions = _userReadPermissions };
@@ -290,19 +290,19 @@ namespace Terminal.Constants
                 Permissions = _userExecutablePermissions
             }).ToList();
 
-            rootSystemDirectory.Entities = new()
-            {
+            rootSystemDirectory.Entities =
+            [
                 systemConfigDirectory,
                 systemDeviceDirectory,
                 new DirectoryFolder() { Name = "logs", ParentId = rootSystemDirectory.Id, Permissions = _userReadPermissions },
                 systemNetworkDirectory,
                 systemProgramsDirectory
-            };
+            ];
 
-            rootTempDirectory.Entities = new()
-            {
+            rootTempDirectory.Entities =
+            [
                 new DirectoryFolder() { Name = "logs", ParentId = rootTempDirectory.Id, Permissions = _userReadPermissions }
-            };
+            ];
 
             DirectoryEntity userDirectory = GetDefaultUserDirectory(rootUsersDirectory, "user");
             var userHomeDirectory = userDirectory.Entities
@@ -313,13 +313,13 @@ namespace Terminal.Constants
                 userHomeDirectory.IsHome = true;
             }
 
-            rootUsersDirectory.Entities = new()
-            {
+            rootUsersDirectory.Entities =
+            [
                 userDirectory,
                 new DirectoryFolder() { Name = "groups", ParentId = rootUsersDirectory.Id, Permissions = _userReadWritePermissions }
-            };
+            ];
 
-            return new() { rootDirectory };
+            return [rootDirectory];
         }
 
         /// <summary>
@@ -338,8 +338,8 @@ namespace Terminal.Constants
         {
             DirectoryFolder userDirectory = new() { Name = userName, ParentId = rootUsersDirectory.Id, Permissions = _userReadWritePermissions };
             DirectoryFolder configDirectory = new() { Name = "config", ParentId = userDirectory.Id, Permissions = _userReadWritePermissions };
-            configDirectory.Entities = new()
-            {
+            configDirectory.Entities =
+            [
                 new DirectoryFile()
                 {
                     Name = ConfigConstants.UserConfigName,
@@ -356,12 +356,12 @@ namespace Terminal.Constants
                     ParentId = configDirectory.Id,
                     Permissions = _userReadWritePermissions
                 }
-            };
+            ];
 
             DirectoryFolder homeDirectory = new() { Name = "home", ParentId = userDirectory.Id, Permissions = _userReadWritePermissions };
             DirectoryFolder mailDirectory = new() { Name = "mail", ParentId = homeDirectory.Id, Permissions = _userReadWritePermissions };
-            mailDirectory.Entities = new()
-            {
+            mailDirectory.Entities =
+            [
                 new DirectoryFile()
                 {
                     Name = "welcome-to-terminal-os",
@@ -370,24 +370,24 @@ namespace Terminal.Constants
                     ParentId = mailDirectory.Id,
                     Permissions = _userReadWritePermissions
                 }
-            };
-            homeDirectory.Entities = new() { mailDirectory };
-            userDirectory.Entities = new()
-            {
+            ];
+            homeDirectory.Entities = [mailDirectory];
+            userDirectory.Entities =
+            [
                 configDirectory,
                 homeDirectory,
                 new DirectoryFolder() { Name = "programs", ParentId = userDirectory.Id, Permissions = _userReadWritePermissions },
-            };
+            ];
 
             return userDirectory;
         }
 
-        private static DirectoryEntity GetDefaultSystemDeviceDirectory(Guid rootSystemDirectoryId)
+        private static DirectoryFolder GetDefaultSystemDeviceDirectory(Guid rootSystemDirectoryId)
         {
             DirectoryFolder systemDeviceDirectory = new() { Name = "device", ParentId = rootSystemDirectoryId, Permissions = _userReadPermissions };
             DirectoryFolder deviceDisplayDirectory = new() { Name = "display", ParentId = systemDeviceDirectory.Id, Permissions = _userReadPermissions };
-            deviceDisplayDirectory.Entities = new()
-            {
+            deviceDisplayDirectory.Entities =
+            [
                 new DirectoryFile()
                 {
                     Name = "0",
@@ -395,11 +395,11 @@ namespace Terminal.Constants
                     ParentId = deviceDisplayDirectory.Id,
                     Permissions = _userReadPermissions
                 }
-            };
+            ];
 
             DirectoryFolder deviceInputDirectory = new() { Name = "input", ParentId = systemDeviceDirectory.Id, Permissions = _userReadPermissions };
-            deviceInputDirectory.Entities = new()
-            {
+            deviceInputDirectory.Entities =
+            [
                 new DirectoryFile()
                 {
                     Name = "0",
@@ -407,11 +407,11 @@ namespace Terminal.Constants
                     ParentId = deviceInputDirectory.Id,
                     Permissions = _userReadPermissions
                 }
-            };
+            ];
 
             DirectoryFolder deviceMemoryDirectory = new() { Name = "memory", ParentId = systemDeviceDirectory.Id, Permissions = _userReadPermissions };
-            deviceMemoryDirectory.Entities = new()
-            {
+            deviceMemoryDirectory.Entities =
+            [
                 new DirectoryFile()
                 {
                     Name = "0",
@@ -440,11 +440,11 @@ namespace Terminal.Constants
                     ParentId = deviceMemoryDirectory.Id,
                     Permissions = _userReadPermissions
                 },
-            };
+            ];
 
             DirectoryFolder deviceMotherboardDirectory = new() { Name = "motherboard", ParentId = systemDeviceDirectory.Id, Permissions = _userReadPermissions };
-            deviceMotherboardDirectory.Entities = new()
-            {
+            deviceMotherboardDirectory.Entities =
+            [
                 new DirectoryFile()
                 {
                     Name = "0",
@@ -452,11 +452,11 @@ namespace Terminal.Constants
                     ParentId = deviceMotherboardDirectory.Id,
                     Permissions = _userReadPermissions
                 }
-            };
+            ];
 
             DirectoryFolder deviceProcessorDirectory = new() { Name = "processor", ParentId = systemDeviceDirectory.Id, Permissions = _userReadPermissions };
-            deviceProcessorDirectory.Entities = new()
-            {
+            deviceProcessorDirectory.Entities =
+            [
                 new DirectoryFile()
                 {
                     Name = "0",
@@ -464,11 +464,11 @@ namespace Terminal.Constants
                     ParentId = deviceProcessorDirectory.Id,
                     Permissions = _userReadPermissions
                 }
-            };
+            ];
 
             DirectoryFolder deviceStorageDirectory = new() { Name = "storage", ParentId = systemDeviceDirectory.Id, Permissions = _userReadPermissions };
-            deviceStorageDirectory.Entities = new()
-            {
+            deviceStorageDirectory.Entities =
+            [
                 new DirectoryFile()
                 {
                     Name = "0",
@@ -483,17 +483,17 @@ namespace Terminal.Constants
                     ParentId = deviceStorageDirectory.Id,
                     Permissions = _userReadPermissions
                 }
-            };
+            ];
 
-            systemDeviceDirectory.Entities = new()
-            {
+            systemDeviceDirectory.Entities =
+            [
                 deviceDisplayDirectory,
                 deviceInputDirectory,
                 deviceMemoryDirectory,
                 deviceMotherboardDirectory,
                 deviceProcessorDirectory,
                 deviceStorageDirectory
-            };
+            ];
 
             return systemDeviceDirectory;
         }

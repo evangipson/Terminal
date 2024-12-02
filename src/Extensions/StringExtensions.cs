@@ -10,8 +10,12 @@ namespace Terminal.Extensions
         /// <summary>
         /// Repeats a <see langword="string"/> <paramref name="count"/> amount of times.
         /// </summary>
-        /// <param name="input">The <see langword="string"/> to repeat.</param>
-        /// <param name="count">The amount of times to repeat the <paramref name="input"/>.</param>
+        /// <param name="input">
+        /// The <see langword="string"/> to repeat.
+        /// </param>
+        /// <param name="count">
+        /// The amount of times to repeat the <paramref name="input"/>.
+        /// </param>
         /// <returns>
         /// A <see langword="string"/> <paramref name="count"/> amount of times. Defaults to
         /// returning the <paramref name="input"/> if it's <see langword="null"/> or empty, or

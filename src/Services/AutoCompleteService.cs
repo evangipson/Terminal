@@ -30,8 +30,8 @@ namespace Terminal.Services
         /// </summary>
         public event Action<string> OnAutocomplete;
 
-        private static readonly List<UserCommand> _validAutoCompleteCommands = new()
-        {
+        private static readonly List<UserCommand> _validAutoCompleteCommands =
+        [
             UserCommand.ChangeDirectory,
             UserCommand.ViewFile,
             UserCommand.EditFile,
@@ -42,7 +42,7 @@ namespace Terminal.Services
             UserCommand.DeleteDirectory,
             UserCommand.MoveFile,
             UserCommand.MoveDirectory
-        };
+        ];
 
         private DirectoryService _directoryService;
         private UserCommandService _userCommandService;

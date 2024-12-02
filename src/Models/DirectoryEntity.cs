@@ -39,7 +39,7 @@ namespace Terminal.Models
         /// <summary>
         /// A collection of <see cref="Permission"/> for a <see cref="DirectoryEntity"/>. Defaults to <see cref="Permission.None"/>.
         /// </summary>
-        public List<Permission> Permissions { get; set; } = new() { Permission.None };
+        public List<Permission> Permissions { get; set; } = [Permission.None];
 
         /// <summary>
         /// A flag that determines if a <see cref="DirectoryEntity"/> is the root folder of a file system. Defaults to <see langword="false"/>.
@@ -59,7 +59,7 @@ namespace Terminal.Models
         /// <summary>
         /// A collection of <see cref="DirectoryEntity"/> objects that are in a <see cref="DirectoryEntity"/>.
         /// </summary>
-        public List<DirectoryEntity> Entities { get; set; } = new();
+        public List<DirectoryEntity> Entities { get; set; } = [];
 
         /// <summary>
         /// Renders a file or folder in a console-appropriate manner.
